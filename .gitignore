@@ -3,6 +3,7 @@
 
 # Intelli-J Files
 .idea/
+cmake-build-debug/
 
 # Prerequisites
 *.d

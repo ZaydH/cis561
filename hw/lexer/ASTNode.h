@@ -114,13 +114,17 @@ namespace AST {
         std::string l_eval(EvalContext& ctx) override { return text_; }
     };
 
-    class IntConst : public ASTNode {
-        int value_;
+    template<typename _T>
+    class TemplateConst : public ASTNode {
+        _T value_;
     public:
-        explicit IntConst(int v) : value_{v} {}
+        explicit TemplateConst(_T v) : value_{v} {}
         std::string str() override { return std::to_string(value_); }
-        int eval(EvalContext &ctx) override { return value_; }
+        _T eval(EvalContext &ctx) override { return value_; }
     };
+
+    typedef TemplateConst<int> IntConst;
+//    typedef TemplateConst<bool> BoolConst;
 
     // Virtual base class for +, -, *, /, etc
     class BinOp : public ASTNode {
@@ -131,8 +135,8 @@ namespace AST {
     protected:
         ASTNode &left_;
         ASTNode &right_;
-        std::string opsym;
-        BinOp(std::string sym, ASTNode &l, ASTNode &r) :
+        const std::string opsym;
+        BinOp(const std::string &sym, ASTNode &l, ASTNode &r) :
                 opsym{sym}, left_{l}, right_{r} {};
     public:
         std::string str() {

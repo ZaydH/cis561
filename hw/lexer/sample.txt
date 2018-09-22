@@ -1,21 +1,21 @@
-a = 0
-b = 42
+a = 0 ;
+b = 42;
 if (a) {
-   x = 2
+   x = 2;
 }
 elif (b) {
-   x = 3
+   x = 3 ;
    if (b - b) {
-     y = 2
+     y = 2 ;
    }
    elif (a) {
-     y = 3
+     y = 3;
    }
    else {
-     y =4
+     y =4 ;
    }
 }
-z = 4
-if (b - b) { z = 5 }
-x+y*z+5
+z = 4;
+if (b - b) { z = 5; }
+x+y*z+5;
 

@@ -12,31 +12,50 @@
 
 %%
    /* Punctuation and keywords don't need values. */
-\+  {  return yy::parser::token::PLUS; }
-\*  {  return yy::parser::token::TIMES; }
-\-  {  return yy::parser::token::MINUS; }
-\/  {  return yy::parser::token::DIV; }
-\(  {  return yy::parser::token::LPAREN; }
-\)  {  return yy::parser::token::RPAREN; }
-\{  {  return yy::parser::token::LCURLY; }
-\}  {  return yy::parser::token::RCURLY; }
->   {  return yy::parser::token::GT; }
-<   {  return yy::parser::token::LT; }
->=  {  return yy::parser::token::GEQ; }
-<=  {  return yy::parser::token::LEQ; }
-==  {  return yy::parser::token::EQ; }
-while  {  return yy::parser::token::WHILE; }
-if     {  return yy::parser::token::IF; }
-elif   {  return yy::parser::token::ELIF; }
-else   {  return yy::parser::token::ELSE; }
+\/\* {  return yy::parser::token::BLOCK_COMMENT_START; }
+\*\/ {  return yy::parser::token::BLOCK_COMMENT_END; }
+//   {  return yy::parser::token::LINE_COMMENT_START; }
+
+:    {  return yy::parser::token::COLON; }
+;    {  return yy::parser::token::SEMICLN; }
+
+\+   {  return yy::parser::token::PLUS; }
+\*   {  return yy::parser::token::TIMES; }
+\-   {  return yy::parser::token::MINUS; }
+\/   {  return yy::parser::token::DIV; }
+\(   {  return yy::parser::token::LPAREN; }
+\)   {  return yy::parser::token::RPAREN; }
+\{   {  return yy::parser::token::LCURLY; }
+\}   {  return yy::parser::token::RCURLY; }
+>    {  return yy::parser::token::GT; }
+<    {  return yy::parser::token::LT; }
+>=   {  return yy::parser::token::GEQ; }
+<=   {  return yy::parser::token::LEQ; }
+==   {  return yy::parser::token::EQ; }
+
+and {  return yy::parser::token::AND; }
+or  {  return yy::parser::token::OR; }
+not {  return yy::parser::token::NOT; }
+
+class   {  return yy::parser::token::CLASS; }
+extends {  return yy::parser::token::EXTENDS; }
+def     {  return yy::parser::token::DEF; }
+return  {  return yy::parser::token::RETURN; }
+while   {  return yy::parser::token::WHILE; }
+if      {  return yy::parser::token::IF; }
+elif    {  return yy::parser::token::ELIF; }
+else    {  return yy::parser::token::ELSE; }
+
+typecase      { return yy::parser::token::TYPECASE; }
+Nothing       { return yy::parser::token::NOTHING; }
+none          { return yy::parser::token::NONE; }
 
  /* Integer literals and identifiers do need semantic values,
   * the integer value or the identifier text.
   */
-
+false|true  { yylval.boolean = ((strcmp(text(), "true") == 0) ? true : false); return yy::parser::token::BOOLEAN; }
 [[:digit:]]+  { yylval.num = atoi(text());   return yy::parser::token::NUMBER; }
 [[:alnum:]_]+ { yylval.str = strdup(text()); return yy::parser::token::IDENT; }
-[false|true]  { yylval.boolean = (strcmp(text(), "true") == 0) ? true : false; return yy::parser::token::BOOLEAN; }
 
 =   { yylval.str = strdup(text()); return yy::parser::token::GETS; }
 [ \n]          {}

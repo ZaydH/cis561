@@ -5,6 +5,9 @@
 #ifndef AST_QCLASS_H
 #define AST_QCLASS_H
 
+#include <cstdlib>
+#include <string>
+
 namespace AST {
   typedef std::map<std::string, AST::QuackClass*> ClassesContainer;
   typedef std::map<std::string, AST::QuackClass::Method*> MethodsContainer;

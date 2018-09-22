@@ -46,8 +46,6 @@
 
     AST::QuackClass::Method* method;
     std::map<std::string, AST::QuackClass::Method*> methods;
-    char* method_name;
-    char* type_name;
 }
 
 // The following token values are actually used
@@ -73,11 +71,16 @@
 %token LPAREN RPAREN
 %token LCURLY RCURLY
 
-
 // Abstract syntax tree nodes
 %type <node> expr leaf program stmt assignment
 %type <block> block if_alternatives
 %type <node> ifstmt
+
+%type <class> class class_hdr
+%type <classes> classes
+%type <method> method
+%type <methods> methods
+%type <str> method_name return_type class_name super_class
 
 
 // Precedence.  We are using an ambiguous expression grammar
@@ -93,18 +96,30 @@
 /* Root of the grammar is "program".  A program
  * is a non-empty sequence of assignments or expressions.
  */
-program: block  { *root = $1; } ;
+program: classes block  { *root = $2; } ;
 
 /* Definition for the class structures */
 classes: classes class {$1->emplace($2->name_, $2); $$=$1;}
-       | /* no classes */ { $$ = new ClassesContainer(); };
+       | /* no classes */ { $$ = new ClassesContainer(); }
+       ;
 class: CLASS class_hdr LCURLY block methods RCURLY
        { $2->add_constructor($4); $2->add_methods($5); $$=$2; }
+       ;
+class_hdr : class_name LPAREN RPAREN super_class
+            { $$ = new AST::QuackClass(class_name, super_class); }
+          ;
+super_class : EXTENDS class_name { $$ =  $2; }
+            | /* Inherits Obj */ { $$ = "Obj"; }
+            ;
+class_name : IDENT { $$ = $1; }
+           ;
+
 methods: methods method { $1->emplace($2->name_, $2); $$=$1; }
        | /* no method */ { $$ = new MethodsContainer(); }
        ;
 method: DEF method_name LPAREN RPAREN COLON return_type LCURLY block RCURLY
-        { $$ = new AST::Method(method_name, return_type, block) };
+        { $$ = new AST::Method(method_name, return_type, block) }
+      ;
 method_name : IDENT { $$ = $1 };
 return_type : IDENT { $$ = $1 };
 

@@ -25,11 +25,10 @@
 >=  {  return yy::parser::token::GEQ; }
 <=  {  return yy::parser::token::LEQ; }
 ==  {  return yy::parser::token::EQ; }
-if   {  return yy::parser::token::IF; }
-then   {  return yy::parser::token::THEN; }
-else   {  return yy::parser::token::ELSE; }
+while  {  return yy::parser::token::WHILE; }
+if     {  return yy::parser::token::IF; }
 elif   {  return yy::parser::token::ELIF; }
-fi     {  return yy::parser::token::FI; }
+else   {  return yy::parser::token::ELSE; }
 
  /* Integer literals and identifiers do need semantic values,
   * the integer value or the identifier text.

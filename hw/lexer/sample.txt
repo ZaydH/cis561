@@ -1,18 +1,21 @@
 a = 0
 b = 42
-if a then
+if (a) {
    x = 2
-elif b then
+}
+elif (b) {
    x = 3
-   if b - b then
+   if (b - b) {
      y = 2
-   elif a then
+   }
+   elif (a) {
      y = 3
-   else
+   }
+   else {
      y =4
-   fi
-fi
+   }
+}
 z = 4
-if b - b then z = 5 fi
+if (b - b) { z = 5 }
 x+y*z+5
 

@@ -50,9 +50,10 @@
 %token AND OR
 %token LEQ GEQ GT LT EQ
 %token PLUS MINUS TIMES DIV GETS
-%token IF THEN ELSE FI ELIF
+%token IF ELIF ELSE
 %token LPAREN RPAREN
 %token LCURLY RCURLY
+%token WHILE
 
 // Abstract syntax tree nodes
 %type <node> expr leaf program stmt assignment
@@ -85,14 +86,14 @@ stmt: assignment { $$ = $1; }
     | ifstmt { $$ = $1; }
     ;
 
-ifstmt:  IF expr THEN block if_alternatives FI
- {    $$ = new AST::If(*$2, *$4, *$5);  } ;
+ifstmt:  IF LPAREN expr RPAREN LCURLY block RCURLY if_alternatives
+ {    $$ = new AST::If(*$3, *$6, *$8);  } ;
 
 if_alternatives:   /* empty */  { $$ = new AST::Block(); };
-if_alternatives:   ELSE block   { $$ = $2; };
-if_alternatives:   ELIF expr THEN block if_alternatives
+if_alternatives:   ELSE LCURLY block RCURLY   { $$ = $3; };
+if_alternatives:   ELIF LPAREN expr RPAREN LCURLY block RCURLY if_alternatives
  {  $$ = new AST::Block();
-    $$->append(new AST::If(*$2, *$4, *$5));
+    $$->append(new AST::If(*$3, *$6, *$8));
  };
 
 

@@ -34,7 +34,7 @@ namespace AST {
         std::string str() override {
             std::stringstream ss;
             for (ASTNode *stmt: stmts_) {
-                ss << stmt->str() << ";" << std::endl;
+                ss << stmt->str() << std::endl;
             }
             return ss.str();
         }
@@ -92,10 +92,10 @@ namespace AST {
         explicit If(ASTNode &cond, Block &truepart, Block &falsepart) :
             cond_{cond}, truepart_{truepart}, falsepart_{falsepart} { };
         std::string str() override {
-            return "if " + cond_.str() + " {\n" +
-                truepart_.str() + "\n" +
+            return "if (" + cond_.str() + ") {\n" +
+                truepart_.str() +
                 "} else {\n" +
-                falsepart_.str() + "\n" +
+                falsepart_.str() +
                 "}\n";
         }
         int eval(EvalContext& ctx) override;
@@ -111,7 +111,7 @@ namespace AST {
     explicit While(ASTNode &cond, Block &body) :
         cond_{cond}, body_(body) { };
     std::string str() override {
-      return "while (" + cond_.str() + ") {\n" + body_.str() + "\n" + "}\n";
+      return "while (" + cond_.str() + ") {\n" + body_.str() + "}\n";
     }
     // ToDO Write eval for While Loop
     int eval(EvalContext& ctx) override;
@@ -124,9 +124,9 @@ namespace AST {
      * store something in it).
      */
     class Ident : public LExpr {
-        std::string text_;
+        const std::string text_;
     public:
-        explicit Ident(std::string txt) : text_{txt} {}
+        explicit Ident(const char* txt) : text_(txt) {}
         std::string str() override { return text_; }
         int eval(EvalContext &ctx) override;
         std::string l_eval(EvalContext& ctx) override { return text_; }

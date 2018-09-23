@@ -39,7 +39,7 @@ int main()
     Driver driver(std::cin);
     AST::ASTNode* root = driver.parse();
     if (root != nullptr) {
-        std::cout << "Successfully parsed " << root->str() << std::endl;
+        std::cout << "Successfully parsed: \n" << root->str() << std::endl;
         auto ctx = EvalContext();
         std::cout << "Evaluates to " << root->eval(ctx) << std::endl;
     } else {

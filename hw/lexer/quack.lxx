@@ -113,11 +113,14 @@ class   {  return yy::parser::token::CLASS; }
 extends {  return yy::parser::token::EXTENDS; }
 def     {  return yy::parser::token::DEF; }
 ,       {  return yy::parser::token::PARAM_SEP; }
+\.      {  return yy::parser::token::PERIOD; }
 return  {  return yy::parser::token::RETURN; }
 while   {  return yy::parser::token::WHILE; }
 if      {  return yy::parser::token::IF; }
 elif    {  return yy::parser::token::ELIF; }
 else    {  return yy::parser::token::ELSE; }
+
+this    {  return yy::parser::token::THIS; }
 
 typecase      { return yy::parser::token::TYPECASE; }
 Nothing       { return yy::parser::token::NOTHING; }

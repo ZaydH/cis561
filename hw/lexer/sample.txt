@@ -47,9 +47,13 @@ elif (b) {
    }
 }
 z = 4;
+while (z - 2) {
+  z = z - 1;
+}
 if (b - b) { z = 5; }
+
+"fdsf ddf sd"
 x+y*z+5;
-" fsfdsfdsf  "
 
 // dfdfs * dfd fdfd
 // dfdf

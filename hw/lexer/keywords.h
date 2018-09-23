@@ -9,4 +9,7 @@
 #define KEY_INT  "Int"
 #define KEY_BOOL "Boolean"
 
+#define BOOL_TRUE 1
+#define BOOL_FALSE 0
+
 #endif //AST_KEYWORDS_H

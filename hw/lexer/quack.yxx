@@ -27,7 +27,8 @@
 %code{
     #include "lex.yy.h"
     #undef yylex
-    #define yylex lexer.yylex  /* Within bison's parse() we should invoke lexer.yylex(), not the global yylex() */
+    /* Within bison's parse() we should invoke lexer.yylex(), not the global yylex() */
+    #define yylex lexer.yylex
     void dump(AST::ASTNode* n);
 
 }
@@ -83,7 +84,8 @@
 %type <node> ifstmt
 %type <node> while
 
-%type <str> method_name return_type class_name super_class param_name param_type
+%type <str> method_name return_type class_name super_class
+%type <str> param_name param_type object_name
 %type <q_class> q_class class_hdr
 %type <classes> classes
 %type <method> method
@@ -108,6 +110,7 @@
 program: classes block  { *root = $2; } ;
 
 /* Definition for the class structures */
+// ToDo classes has a memory leak at present
 classes: classes q_class { $1->emplace($2->name_, $2); $$=$1; }
          | /* no classes */ { $$ = new AST::QuackClass::Container(); }
          ;
@@ -160,20 +163,20 @@ stmt: assignment SEMICLN { $$ = $1; }
     ;
 
 // ToDo change if to b_expr
-ifstmt:  IF LPAREN expr RPAREN LCURLY block RCURLY if_alternatives
+ifstmt:  IF LPAREN b_expr RPAREN LCURLY block RCURLY if_alternatives
                 { $$ = new AST::If(*$3, *$6, *$8); }
       ;
 
 if_alternatives:   /* empty */  { $$ = new AST::Block(); };
 if_alternatives:   ELSE LCURLY block RCURLY   { $$ = $3; };
 // ToDo change if alternative to b_expr
-if_alternatives:   ELIF LPAREN expr RPAREN LCURLY block RCURLY if_alternatives
+if_alternatives:   ELIF LPAREN b_expr RPAREN LCURLY block RCURLY if_alternatives
  {  $$ = new AST::Block();
     $$->append(new AST::If(*$3, *$6, *$8));
  };
 
 // ToDo Change while loop to b_expr
-while: WHILE LPAREN expr RPAREN LCURLY block RCURLY
+while: WHILE LPAREN b_expr RPAREN LCURLY block RCURLY
             { $$ = new AST::While(*$3, *$6); }
      ;
 
@@ -187,15 +190,16 @@ expr: i_expr { $$=$1; }
     | b_expr { $$=$1; }
     ;
 
-// ToDo fix the code for Boolean expressions
-b_expr: b_expr AND b_expr    {  }
-      | b_expr OR b_expr     {  }
-      | i_expr GT i_expr     {  }
-      | i_expr LT i_expr     {  }
-      | i_expr LEQ i_expr    {  }
-      | i_expr GEQ i_expr    {  }
+b_expr: b_expr AND b_expr    { $$ = new AST::And(*$1, *$3); dump($$); }
+      | b_expr OR b_expr     { $$ = new AST::Or(*$1, *$3); dump($$); }
+      | i_expr GT i_expr     { $$ = new AST::GT(*$1, *$3); dump($$); }
+      | i_expr GEQ i_expr    { $$ = new AST::GEQ(*$1, *$3); dump($$); }
+      | i_expr LT i_expr     { $$ = new AST::LT(*$1, *$3); dump($$); }
+      | i_expr LEQ i_expr    { $$ = new AST::LEQ(*$1, *$3); dump($$); }
       | LPAREN b_expr RPAREN { $$ = $2; }
-      | expr EQ expr         {  }
+      // ToDo verify Equality is correctly handling types
+      | b_expr EQ b_expr     { $$ = new AST::EQ(*$1, *$3); dump($$); }
+      | i_expr EQ i_expr     { $$ = new AST::EQ(*$1, *$3); dump($$); }
       ;
 
 i_expr: i_expr PLUS i_expr   { $$ = new AST::Plus( *$1, *$3 ); dump($$); }
@@ -210,9 +214,11 @@ i_expr: i_expr PLUS i_expr   { $$ = new AST::Plus( *$1, *$3 ); dump($$); }
 // ToDo Add object method
 
 leaf : IDENT  { $$ = new AST::Ident($1); dump($$); }
-     | NUMBER { $$ = new AST::IntConst( $1 );  dump($$); }
+     | NUMBER { $$ = new AST::IntConst($1);  dump($$); }
      ;
 
+//class_field: object_name PERIOD method_name
+//object_name: IDENT { $$ = $1 };
 
 %%
 #include "Messages.h"

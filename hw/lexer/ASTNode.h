@@ -8,8 +8,11 @@
 #include <string>
 #include <sstream>
 #include <vector>
+
+#include "keywords.h"
 #include "CodegenContext.h"
 #include "EvalContext.h"
+
 
 namespace AST {
   // Abstract syntax tree.  ASTNode is abstract base class for all other nodes.
@@ -144,19 +147,15 @@ namespace AST {
     std::string l_eval(EvalContext &ctx) override { return text_; }
   };
 
-  template<typename _T>
-  class TemplateConst : public ASTNode {
-    _T value_;
+  class IntConst : public ASTNode {
+    int value_;
    public:
-    explicit TemplateConst(_T v) : value_{v} {}
+    explicit IntConst(int v) : value_{v} {}
 
     std::string str() override { return std::to_string(value_); }
 
-    _T eval(EvalContext &ctx) override { return value_; }
+    int eval(EvalContext &ctx) override { return value_; }
   };
-
-  typedef TemplateConst<int> IntConst;
-//    typedef TemplateConst<bool> BoolConst;
 
   // Virtual base class for +, -, *, /, etc
   class BinOp : public ASTNode {
@@ -212,6 +211,65 @@ namespace AST {
         BinOp(std::string("/"), l, r) {};
   };
 
+  class And : public BinOp {
+   public:
+    int eval(EvalContext &ctx) override {
+      // Support short circuit compare
+      if (left_.eval(ctx) == BOOL_FALSE) return BOOL_FALSE;
+      return right_.eval(ctx);
+    };
+    And(ASTNode &l, ASTNode &r) : BinOp(std::string("and"), l, r) {};
+  };
 
+  class Or : public BinOp {
+   public:
+    int eval(EvalContext &ctx) override {
+      // Support short circuit compare
+      if (left_.eval(ctx) == BOOL_TRUE) return BOOL_TRUE;
+      return right_.eval(ctx);
+    };
+    Or(ASTNode &l, ASTNode &r) : BinOp(std::string("or"), l, r) {};
+  };
+
+  class GT : public BinOp {
+   public:
+    int eval(EvalContext &ctx) override {
+      return (left_.eval(ctx) > right_.eval(ctx)) ? BOOL_TRUE : BOOL_FALSE;
+    }
+    GT(ASTNode &l, ASTNode &r) : BinOp(std::string(">"), l, r) {};
+  };
+
+  class LT : public BinOp {
+   public:
+    int eval(EvalContext &ctx) override {
+      return (left_.eval(ctx) < right_.eval(ctx)) ? BOOL_TRUE : BOOL_FALSE;
+    }
+    LT(ASTNode &l, ASTNode &r) : BinOp(std::string("<"), l, r) {};
+  };
+
+  class LEQ : public BinOp {
+   public:
+    int eval(EvalContext &ctx) override {
+      return (left_.eval(ctx) <= right_.eval(ctx)) ? BOOL_TRUE : BOOL_FALSE;
+    }
+    LEQ(ASTNode &l, ASTNode &r) : BinOp(std::string("<="), l, r) {};
+  };
+
+  class GEQ : public BinOp {
+   public:
+    int eval(EvalContext &ctx) override {
+      return (left_.eval(ctx) >= right_.eval(ctx)) ? BOOL_TRUE : BOOL_FALSE;
+    }
+    GEQ(ASTNode &l, ASTNode &r) : BinOp(std::string(">="), l, r) {};
+  };
+
+  //ToDo ensure EQ type checks correctly
+  class EQ : public BinOp {
+   public:
+    int eval(EvalContext &ctx) override {
+      return (left_.eval(ctx) == right_.eval(ctx)) ? BOOL_TRUE : BOOL_FALSE;
+    }
+    EQ(ASTNode &l, ASTNode &r) : BinOp(std::string("=="), l, r) {};
+  };
 }
 #endif //REFLEXIVE_ASTNODE_H

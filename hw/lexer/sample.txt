@@ -29,17 +29,17 @@ class Square() extends Rect {
 
 a = 0 ;
 b = 42;
-if (a) {
+if (a == 1) {
    x = 2;
 }
-elif (b) {
+elif (b > 0) {
    x = 3 ;
-   if (b - b) {
+   if (b - b == 0) {
      y = 2 ;
      y = y - 1;
      y = 2;
    }
-   elif (a) {
+   elif (a > 0) {
      y = 3;
    }
    else {
@@ -47,12 +47,11 @@ elif (b) {
    }
 }
 z = 4;
-while (z - 2) {
+while (z > 2) {
   z = z - 1;
 }
-if (b - b) { z = 5; }
+//if (b - b == 0) { z = 5; }
 
-"fdsf ddf sd"
 x+y*z+5;
 
 // dfdfs * dfd fdfd

@@ -100,6 +100,25 @@ namespace AST {
           delete pair.second;
       delete constructor_params_;
     }
+    /**
+     * Gets method with the specified name from the class itself or any of its parent
+     * classes.  If the method does not exist, then nullptr is returned.
+     *
+     * @param method_name Name of the method to extract.
+     * @return Pointer to the method.
+     */
+    QuackClass::Method* get_method(const std::string &method_name) {
+      QuackClass::Method::Container::iterator itr;
+      itr = methods_->find(method_name);
+      if (itr != methods_->end())
+        return itr->second;
+
+      // See if the method is inherited from a parent
+      // ToDo finalize checking super_ once obj is determined
+      if (super_)
+        return super_->get_method(method_name);
+      return nullptr;
+    }
 
     /**
      * Adds methods to the class.

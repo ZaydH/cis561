@@ -1,19 +1,21 @@
 /*
- * THis is a * block comment
+ * THis is a * block comment // dfdsf
  */
 
-class Pt(x: Int, y: Int) {
-  this.x = x;
-  this.y = y;
-  def STR() : String {
+class Pt() {
+  x = x;
+  y = y;
+  def STR(z : Obj) : String {
+    z = 10;
   }
-  def PLUS(other: Pt) : Pt {
+  def PLUS() : Pt {
   }
   def _x() : Int {  }
   def _y() : Int {  }
 }
 
-class Rect() extends Obj {
+// This line has an error
+class Rect(x : Int, y : Pt, z: Pt) extends Obj {
   ll = ll;
 
   def translate() : Pt {  }
@@ -34,6 +36,8 @@ elif (b) {
    x = 3 ;
    if (b - b) {
      y = 2 ;
+     y = y - 1;
+     y = 2;
    }
    elif (a) {
      y = 3;
@@ -45,4 +49,8 @@ elif (b) {
 z = 4;
 if (b - b) { z = 5; }
 x+y*z+5;
+" fsfdsfdsf  "
+
+// dfdfs * dfd fdfd
+// dfdf
 

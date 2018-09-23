@@ -37,11 +37,15 @@
     bool  boolean;
     char* str;
     AST::ASTNode* node;
+    AST::ASTNode* int_node;
+    AST::ASTNode* bool_node;
     // Methods used for classes and methods so need explicit types
     AST::QuackClass* q_class;
     AST::QuackClass::Container* classes;
     AST::QuackClass::Method* method;
     AST::QuackClass::Method::Container* methods;
+    AST::QuackClass::Parameter* param;
+    AST::QuackClass::Parameter::Container* params;
     // block needs a more explicit type to use the 'append' method
     AST::Block* block;
 }
@@ -55,7 +59,7 @@
 // The following tokens don't need values
 %token LINE_COMMENT_START
 %token CLASS EXTENDS
-%token DEF RETURN
+%token DEF PARAM_SEP RETURN
 %token IF ELIF ELSE
 %token WHILE
 
@@ -70,16 +74,19 @@
 
 // Abstract syntax tree nodes
 %type <node> expr leaf program stmt assignment
+%type <bool_node> b_expr
+%type <int_node>  i_expr
 %type <block> block if_alternatives
 %type <node> ifstmt
+%type <node> while
 
-%type <str> method_name return_type class_name super_class
-// ToDo Fix parameters
-%type <str> parameters
+%type <str> method_name return_type class_name super_class param_name param_type
 %type <q_class> q_class class_hdr
 %type <classes> classes
 %type <method> method
 %type <methods> methods
+%type <param> param
+%type <params> params has_params
 
 
 // Precedence.  We are using an ambiguous expression grammar
@@ -104,11 +111,22 @@ classes: classes q_class { $1->emplace($2->name_, $2); $$=$1; }
 q_class: CLASS class_hdr LCURLY block methods RCURLY
        { $2->add_constructor($4); $2->add_methods($5); $$=$2; }
        ;
-parameters: // ToDo
-            { $$ = nullptr; }
+params: has_params          { $$ = $1; }
+      | /* No parameters */ { $$ = new AST::QuackClass::Parameter::Container(); }
+      ;
+has_params: has_params PARAM_SEP param { $1->emplace($3->name_, $3); }
+          | param    { $$ = new AST::QuackClass::Parameter::Container();
+                       $$->emplace($1->name_, $1);
+                     }
           ;
-class_hdr: class_name LPAREN parameters RPAREN super_class
-            { $$ = new AST::QuackClass($1, $5); }
+param: param_name COLON param_type { $$ = new AST::QuackClass::Parameter($1, $3); }
+     ;
+param_name: IDENT { $$=$1; }
+          ;
+param_type: IDENT { $$=$1; }
+          ;
+class_hdr: class_name LPAREN params RPAREN super_class
+            { $$ = new AST::QuackClass($1, $5, $3); }
          ;
 class_name: IDENT { $$ = $1; } ;
 super_class: EXTENDS class_name { $$ = $2; }
@@ -118,8 +136,8 @@ super_class: EXTENDS class_name { $$ = $2; }
 methods: methods method { $1->emplace($2->name_, $2); $$=$1; }
        | /* no method */ { $$ = new AST::QuackClass::Method::Container(); }
        ;
-method: DEF method_name LPAREN parameters RPAREN COLON return_type LCURLY block RCURLY
-           { $$ = new AST::QuackClass::Method($2, $7, $9); }
+method: DEF method_name LPAREN params RPAREN COLON return_type LCURLY block RCURLY
+           { $$ = new AST::QuackClass::Method($2, $4, $7, $9); }
       ;
 method_name: IDENT { $$ = $1; } ;
 return_type : IDENT { $$ = $1; } ;
@@ -132,10 +150,11 @@ block: block stmt { $1->append($2); $$ = $1; }
 stmt: assignment SEMICLN { $$ = $1; }
     | expr SEMICLN { $$ = $1; }
     | ifstmt { $$ = $1; }
+    | while  { $$ = $1; }
     | /* empty */ { $$ = new AST::Block(); }
     ;
 
-ifstmt:  IF LPAREN expr RPAREN LCURLY block RCURLY if_alternatives
+ifstmt:  IF LPAREN b_expr RPAREN LCURLY block RCURLY if_alternatives
  {    $$ = new AST::If(*$3, *$6, *$8);  } ;
 
 if_alternatives:   /* empty */  { $$ = new AST::Block(); };
@@ -145,29 +164,42 @@ if_alternatives:   ELIF LPAREN expr RPAREN LCURLY block RCURLY if_alternatives
     $$->append(new AST::If(*$3, *$6, *$8));
  };
 
-
+// ToDo Add While Loop
+while: WHILE LPAREN b_expr RPAREN LCURLY block RCURLY
+            { $$ = new AST::While(*$3, *$6); }
+     ;
 
 assignment: IDENT GETS expr {
-        AST::Ident* lhs = new AST::Ident($1);
-        AST::ASTNode*  rhs =  $3;
-        $$ = new AST::Assign(*lhs, *rhs);
-        };
+                                AST::Ident* lhs = new AST::Ident($1);
+                                AST::ASTNode*  rhs =  $3;
+                                $$ = new AST::Assign(*lhs, *rhs);
+                            };
 
-expr : expr PLUS expr  { $$ = new AST::Plus( *$1, *$3 ); dump($$); }
-     | expr MINUS expr { $$ = new AST::Minus( *$1, *$3 ); dump($$); }
-     | expr TIMES expr { $$ = new AST::Times( *$1, *$3 ); dump($$); }
-     | expr DIV expr   { $$ = new AST::Div( *$1, *$3 ); dump($$); }
-     | expr AND expr   { $$ = new AST::Div( *$1, *$3 ); dump($$); }
-     | expr OR expr    { $$ = new AST::Div( *$1, *$3 ); dump($$); }
-     | expr GT expr    { $$ = new AST::Div( *$1, *$3 ); dump($$); }
-     | expr LT expr    { $$ = new AST::Div( *$1, *$3 ); dump($$); }
-     | expr LEQ expr   { $$ = new AST::Div( *$1, *$3 ); dump($$); }
-     | expr GEQ expr   { $$ = new AST::Div( *$1, *$3 ); dump($$); }
-     | expr EQ expr    { $$ = new AST::Div( *$1, *$3 ); dump($$); }
-     | LPAREN expr RPAREN { $$ = $2; }
-     | leaf            { $$ = $1; }
-     | error  leaf     { $$ = $2; }
-     ;
+expr: i_expr { $$=$1; }
+    | b_expr { $$=$1; }
+    // ToDO fix string expression
+    | STRING { }
+    ;
+
+// ToDo fix the code for Boolean expressions
+b_expr: b_expr AND b_expr    {  }
+      | b_expr OR b_expr     {  }
+      | i_expr GT i_expr     {  }
+      | i_expr LT i_expr     {  }
+      | i_expr LEQ i_expr    {  }
+      | i_expr GEQ i_expr    {  }
+      | LPAREN b_expr RPAREN { $$ = $2; }
+      | expr EQ expr         {  }
+      ;
+
+i_expr: i_expr PLUS i_expr   { $$ = new AST::Plus( *$1, *$3 ); dump($$); }
+      | i_expr MINUS i_expr  { $$ = new AST::Minus( *$1, *$3 ); dump($$); }
+      | i_expr TIMES i_expr  { $$ = new AST::Times( *$1, *$3 ); dump($$); }
+      | i_expr DIV i_expr    { $$ = new AST::Div( *$1, *$3 ); dump($$); }
+      | LPAREN i_expr RPAREN { $$ = $2; }
+      | leaf            { $$ = $1; }
+      | error  leaf     { $$ = $2; }
+      ;
 
 leaf : IDENT  { $$ = new AST::Ident( std::string($1)); dump($$); }
      | NUMBER { $$ = new AST::IntConst( $1 );  dump($$); }

@@ -60,5 +60,15 @@ namespace AST {
         }
         return falsepart_.eval(ctx);
     }
+
+    int While::eval(EvalContext &ctx) {
+      int return_val = 0;
+      while (true) {
+        int cond = cond_.eval(ctx);
+        if (!cond)
+          return return_val;
+        return_val = body_.eval(ctx);
+      }
+    }
 }
 

@@ -82,9 +82,12 @@ namespace AST {
     };
 
     class If : public ASTNode {
-        ASTNode &cond_; // The boolean expression to be evaluated
-        Block &truepart_; // Execute this block if the condition is true
-        Block &falsepart_; // Execute this block if the condition is false
+        /** The boolean expression to be evaluated */
+        ASTNode &cond_;
+        /** Block exevuted if the condition is TRUE */
+        Block &truepart_;
+        /** Block exevuted if the condition is FALSE */
+        Block &falsepart_;
     public:
         explicit If(ASTNode &cond, Block &truepart, Block &falsepart) :
             cond_{cond}, truepart_{truepart}, falsepart_{falsepart} { };
@@ -98,6 +101,21 @@ namespace AST {
         int eval(EvalContext& ctx) override;
 
     };
+
+  class While : public ASTNode {
+    /** Boolean condition checked before execution a loop */
+    ASTNode &cond_;
+    /** Executed while condition is true */
+    Block &body_;
+   public:
+    explicit While(ASTNode &cond, Block &body) :
+        cond_{cond}, body_(body) { };
+    std::string str() override {
+      return "while (" + cond_.str() + ") {\n" + body_.str() + "\n" + "}\n";
+    }
+    // ToDO Write eval for While Loop
+    int eval(EvalContext& ctx) override;
+  };
 
     /* Identifiers like x and literals like 42 are the
      * leaves of the AST.  A literal can only be evaluated

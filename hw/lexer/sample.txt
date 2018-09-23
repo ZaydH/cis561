@@ -1,3 +1,30 @@
+/*
+ * THis is a * block comment
+ */
+
+class Pt(x: Int, y: Int) {
+  this.x = x;
+  this.y = y;
+  def STR() : String {
+  }
+  def PLUS(other: Pt) : Pt {
+  }
+  def _x() : Int {  }
+  def _y() : Int {  }
+}
+
+class Rect() extends Obj {
+  ll = ll;
+
+  def translate() : Pt {  }
+  def STR() : String {
+      z=5;
+  }
+}
+
+class Square() extends Rect {
+}
+
 a = 0 ;
 b = 42;
 if (a) {

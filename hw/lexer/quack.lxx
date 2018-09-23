@@ -10,12 +10,35 @@
 %option bison-cc bison-locations noyywrap
 %option namespace=yy lexer=Lexer lex=yylex
 
-%%
-   /* Punctuation and keywords don't need values. */
-\/\* {  return yy::parser::token::BLOCK_COMMENT_START; }
-\*\/ {  return yy::parser::token::BLOCK_COMMENT_END; }
-//   {  return yy::parser::token::LINE_COMMENT_START; }
+  /* Start condition used to handle block comments.
+   *
+   * Based on the description on stack overflow:
+   * https://stackoverflow.com/questions/2130097/difficulty-getting-c-style-comments-in-flex-lex
+   *
+   * Full documentation:
+   * http://dinosaur.compilertools.net/flex/flex_11.html
+   *
+   * RE/flex documentation:
+   * https://www.genivia.com/doc/reflex/html/#reflex-states
+   */
 
+%x BLOCK_COMMENT LINE_COMMENT
+
+%%
+"/*" { start(BLOCK_COMMENT); }
+<BLOCK_COMMENT>{
+<<EOF>>      { std::cerr << "EOF in block comment\n"; return EXIT_FAILURE; }
+  /* INITIAL Reserved word for default state. */
+"*/"         { start(INITIAL); }
+\n           /* Do Nothing */
+}
+"//" { start(LINE_COMMENT); }
+  /* INITIAL Reserved word for default state. */
+<LINE_COMMENT><<EOF>>|\n   { start(INITIAL); }
+  /* Anything beside a new line */
+<BLOCK_COMMENT,LINE_COMMENT>. /* Do Nothing */
+
+   /* Punctuation and keywords don't need values. */
 :    {  return yy::parser::token::COLON; }
 ;    {  return yy::parser::token::SEMICLN; }
 
@@ -58,6 +81,8 @@ false|true  { yylval.boolean = ((strcmp(text(), "true") == 0) ? true : false); r
 [[:alnum:]_]+ { yylval.str = strdup(text()); return yy::parser::token::IDENT; }
 
 =   { yylval.str = strdup(text()); return yy::parser::token::GETS; }
+
+
 [ \n]          {}
 .  {
     report::error("Unexpected character '" + std::string(text()) + "'" +

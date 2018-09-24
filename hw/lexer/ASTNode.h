@@ -148,11 +148,22 @@ namespace AST {
   };
 
   class IntConst : public ASTNode {
-    int value_;
+    const int value_;
    public:
-    explicit IntConst(int v) : value_{v} {}
+    explicit IntConst(const int v) : value_{v} {}
 
     std::string str() override { return std::to_string(value_); }
+
+    int eval(EvalContext &ctx) override { return value_; }
+  };
+
+  /** Stores Boolean constants */
+  class BoolConst : public ASTNode {
+    const int value_;
+   public:
+    explicit BoolConst(const bool v) : value_(v ? BOOL_TRUE: BOOL_FALSE) {}
+
+    std::string str() override { return (value_ == BOOL_TRUE) ? "true" : "false"; }
 
     int eval(EvalContext &ctx) override { return value_; }
   };

@@ -7,6 +7,7 @@
 
 #include <map>
 #include <string>
+#include <set>
 
 #include "keywords.h"
 #include "ASTNode.h"
@@ -73,6 +74,8 @@ namespace AST {
     explicit QuackClass(const char* name, const char* super,
                         const QuackClass::Parameter::Container* constructor_params)
         : name_(name), constructor_params_(constructor_params) {
+      assert(!is_reserved_class_name(name_));
+
       methods_ = nullptr;
       constructor_ = nullptr;
       // Configures the super class
@@ -127,18 +130,47 @@ namespace AST {
      * @param methods New collections of methods.
      */
     void add_methods(QuackClass::Method::Container* methods) {
-      assert(!methods_); // Do not ever allow double allocating the methods
+      assert(!methods_); // Do not ever allow reallocating the methods
       methods_ = methods;
     }
-
+    /**
+     * Adds the constructor to the class.
+     *
+     * @param constructor Constructor for the par
+     */
     void add_constructor(AST::Block* constructor) {
-      assert(!constructor_);
+      assert(!constructor_); // Cannot overwrite the constructor
       constructor_ = constructor;
     }
+    /**
+     * Check whether this class has the s
+     *
+     * @param parent_name_ Name of the parent class.
+     * @return
+     */
+    bool has_parent(std::string &parent_name_) {
+      // ToDo confirm how to handle Obj and parent class
+      if (super_) {
+        if (super_->name_ == parent_name_)
+          return true;
+        return super_->has_parent(parent_name_);
+      }
 
+      return parent_name_ == KEY_OBJ;
+    }
+
+    // ToDo Add support for PRINT and STR
 
     const std::string name_;
    private:
+    /**
+     *
+     * @param str String to check if part of a reserved class name
+     * @return True if the passed string is a reserved class name
+     */
+    static bool is_reserved_class_name(const std::string &str) {
+      return reserved_class_names_.find(str) != reserved_class_names_.end();
+    }
     /** Stores all of the class' methods. */
     QuackClass::Method::Container* methods_;
     AST::Block* constructor_;
@@ -146,6 +178,8 @@ namespace AST {
     QuackClass * super_;
     /** Parameters supplied to the constructor */
     const QuackClass::Parameter::Container* constructor_params_;
+    /** Define illegal names for fields, variables and methods */
+    static std::set<std::string> reserved_class_names_;
   };
 }
 

@@ -30,6 +30,7 @@
     /* Within bison's parse() we should invoke lexer.yylex(), not the global yylex() */
     #define yylex lexer.yylex
     void dump(AST::ASTNode* n);
+    char* convert_string_to_char_ptr(const std::string &str);
 
 }
 
@@ -59,12 +60,10 @@
 
 // The following tokens don't need values
 %token LINE_COMMENT_START
-%token CLASS EXTENDS
+%token CLASS EXTENDS INT_CLASS BOOL_CLASS STRING_CLASS OBJ_CLASS
 %token DEF PARAM_SEP RETURN
 %token IF ELIF ELSE
 %token WHILE
-// ToDo Add Support for this
-%token THIS
 
 %token TYPECASE
 %token NOTHING NONE
@@ -77,16 +76,18 @@
 %token LCURLY RCURLY
 
 // Abstract syntax tree nodes
-%type <node> expr leaf program stmt assignment
+%type <node> expr program stmt assignment
+%type <node> i_leaf b_leaf
 %type <bool_node> b_expr
 %type <int_node>  i_expr
 %type <block> block if_alternatives
 %type <node> ifstmt
 %type <node> while
 
-%type <str> method_name return_type class_name super_class
-%type <str> param_name param_type object_name
-%type <q_class> q_class class_hdr
+%type <str> method_name return_type
+%type <str> new_class_name super_class inherited_class full_class_list
+%type <str> param_name param_type object_name object_type
+%type <q_class> q_class class_sig
 %type <classes> classes
 %type <method> method
 %type <methods> methods
@@ -98,6 +99,7 @@
 // for compactness.  We declare operator precedence from lowest
 // to highest, with associativity, e.g., MINUS is left_ associative
 // so a-b-c is (a-b)-c and not a-(b-c).
+// ToDo Ask about precedence minus operator
 %right NOT
 %left  MINUS PLUS
 %left  TIMES DIV
@@ -115,7 +117,7 @@ program: classes block  { *root = $2; } ;
 classes: classes q_class { $1->emplace($2->name_, $2); $$=$1; }
        | /* no classes */ { $$ = new AST::QuackClass::Container(); }
        ;
-q_class: CLASS class_hdr LCURLY block methods RCURLY
+q_class: CLASS class_sig LCURLY block methods RCURLY
                 { $2->add_constructor($4); $2->add_methods($5); $$=$2; }
        ;
 params: has_params          { $$ = $1; }
@@ -130,15 +132,24 @@ param: param_name COLON param_type { $$ = new AST::QuackClass::Parameter($1, $3)
      ;
 param_name: IDENT { $$=$1; }
           ;
-param_type: IDENT { $$=$1; }
+param_type: full_class_list { $$=$1; }
           ;
-class_hdr: class_name LPAREN params RPAREN super_class
+class_sig: new_class_name LPAREN params RPAREN super_class
                 { $$ = new AST::QuackClass($1, $5, $3); }
          ;
-class_name: IDENT { $$ = $1; } ;
-super_class: EXTENDS class_name { $$ = $2; }
-           | /* Inherits Obj */ { $$ = nullptr; }
+new_class_name: IDENT { $$ = $1; } ;
+super_class: EXTENDS inherited_class { $$ = $2; }
+           // ToDo Convert from nullptr for obj inheritance
+           | /* Inherits Obj */ { $$ = convert_string_to_char_ptr("Obj"); }
            ;
+// ToDo Check if can inherit INT and BOOLEAN
+inherited_class : full_class_list { $$ = $1; } ;
+full_class_list : IDENT        { $$ = $1; }
+                | INT_CLASS    { $$ = convert_string_to_char_ptr("Int"); }
+                | BOOL_CLASS   { $$ = convert_string_to_char_ptr("Boolean"); }
+                | STRING_CLASS { $$ = convert_string_to_char_ptr("String"); }
+                | OBJ_CLASS    { $$ = convert_string_to_char_ptr("Obj"); }
+                ;
 
 methods: methods method { $1->emplace($2->name_, $2); $$=$1; }
        | /* no method */ { $$ = new AST::QuackClass::Method::Container(); }
@@ -147,7 +158,7 @@ method: DEF method_name LPAREN params RPAREN COLON return_type LCURLY block RCUR
            { $$ = new AST::QuackClass::Method($2, $4, $7, $9); }
       ;
 method_name: IDENT { $$ = $1; } ;
-return_type : IDENT { $$ = $1; } ;
+return_type: full_class_list { $$ = $1; } ;
 
 /* Standard recursive definition for a non-empty sequence. */
 block: block stmt { $1->append($2); $$ = $1; }
@@ -181,14 +192,26 @@ while: WHILE LPAREN b_expr RPAREN LCURLY block RCURLY
             { $$ = new AST::While(*$3, *$6); }
      ;
 
+// ToDO Change Assignment to support a type
 assignment: IDENT GETS expr {
                                 AST::Ident* lhs = new AST::Ident($1);
                                 AST::ASTNode*  rhs =  $3;
                                 $$ = new AST::Assign(*lhs, *rhs);
                             };
+// ToDo When Taking an Object with Type, Ensure new variable
+assn_var : object COLON object_type {}
+         | object {}
+         ;
+object: object_name PERIOD object {}
+      | IDENT {}
+      ;
+object_name: IDENT { $$ = $1 };
+object_type: full_class_list;
 
 expr: i_expr { $$=$1; }
     | b_expr { $$=$1; }
+    // ToDo Fix string expression
+    | STRING { }
     ;
 
 b_expr: NOT b_expr           { $$ = new AST::Not(*$2); dump($$); }
@@ -200,8 +223,8 @@ b_expr: NOT b_expr           { $$ = new AST::Not(*$2); dump($$); }
       | i_expr LEQ i_expr    { $$ = new AST::LEQ(*$1, *$3); dump($$); }
       | LPAREN b_expr RPAREN { $$ = $2; }
       // ToDo verify Equality is correctly handling types
-      | b_expr EQ b_expr     { $$ = new AST::EQ(*$1, *$3); dump($$); }
-      | i_expr EQ i_expr     { $$ = new AST::EQ(*$1, *$3); dump($$); }
+      | expr EQ expr         { $$ = new AST::EQ(*$1, *$3); dump($$); }
+      | b_leaf               { $$ = $1; }
       ;
 
 i_expr: MINUS i_expr         { $$ = new AST::Negate( *$2 ); dump($$); }
@@ -210,18 +233,21 @@ i_expr: MINUS i_expr         { $$ = new AST::Negate( *$2 ); dump($$); }
       | i_expr TIMES i_expr  { $$ = new AST::Times( *$1, *$3 ); dump($$); }
       | i_expr DIV i_expr    { $$ = new AST::Div( *$1, *$3 ); dump($$); }
       | LPAREN i_expr RPAREN { $$ = $2; }
-      | leaf            { $$ = $1; }
-      | error  leaf     { $$ = $2; }
+      | i_leaf               { $$ = $1; }
+      | error i_leaf     { $$ = $2; }
       ;
 
 // ToDo Add object method
 
-leaf : IDENT  { $$ = new AST::Ident($1); dump($$); }
-     | NUMBER { $$ = new AST::IntConst($1);  dump($$); }
-     ;
+// ToDO change the leaves to support objects
+i_leaf: NUMBER { $$ = new AST::IntConst($1); dump($$); }
+      | IDENT  { $$ = new AST::Ident($1); dump($$); }
+      ;
+b_leaf: BOOLEAN { $$ = new AST::BoolConst($1); dump($$); }
+      | IDENT  { $$ = new AST::Ident($1); dump($$); }
+      ;
 
 //class_field: object_name PERIOD method_name
-//object_name: IDENT { $$ = $1 };
 
 %%
 #include "Messages.h"
@@ -234,3 +260,8 @@ void yy::parser::error(const location_type& loc, const std::string& msg)
 void dump(AST::ASTNode* n) {
     // std::cout << "*** Building: " << n->str() << std::endl;
 }
+
+char* convert_string_to_char_ptr(const std::string &str) {
+    return const_cast<char*>(str.c_str());
+}
+

@@ -7,6 +7,7 @@
 
 #define KEY_OBJ  "Obj"
 #define KEY_INT  "Int"
+#define KEY_STRING "String"
 #define KEY_BOOL "Boolean"
 
 #define BOOL_TRUE 1

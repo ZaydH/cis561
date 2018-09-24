@@ -34,7 +34,9 @@ include_directories(
 
 add_executable(parser
         quack.tab.cxx lex.yy.cpp lex.yy.h
-        parser.cpp ASTNode.cpp ASTNode.h Messages.h Messages.cpp CodegenContext.cpp CodegenContext.h EvalContext.h)
+        parser.cpp ASTNode.cpp ASTNode.h Messages.h Messages.cpp
+        CodegenContext.cpp CodegenContext.h EvalContext.h
+        QClass.h QClass.cpp)
 
 add_executable(test_ast  test_ast.cpp
         ASTNode.cpp ASTNode.h CodegenContext.cpp CodegenContext.h)

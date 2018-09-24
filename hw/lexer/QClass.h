@@ -181,6 +181,28 @@ namespace AST {
     /** Define illegal names for fields, variables and methods */
     static std::set<std::string> reserved_class_names_;
   };
+
+
+  class Program {
+   public:
+    Program(const QuackClass::Container * classes, ASTNode * block)
+            : classes_(classes), block_(block) {}
+    /**
+     * Clears memory of the classes and the block of code.
+     */
+    ~Program() {
+      if (classes_)
+        for (const auto &pair : *classes_)
+          delete pair.second;
+      delete classes_;
+      delete block_;
+    }
+
+    /** Container containing a reference to all classes */
+    const QuackClass::Container * classes_;
+    /** All code to execute */
+    ASTNode * block_;
+  };
 }
 
 #endif //AST_QCLASS_H

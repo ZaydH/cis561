@@ -7,13 +7,14 @@
 #include "ASTNode.h"
 #include "EvalContext.h"
 #include "Messages.h"
+#include "QClass.h"
 
 class Driver {
 public:
     explicit Driver(reflex::Input in) : lexer(in), parser(new yy::parser(lexer, &root))
        { root = nullptr; }
     ~Driver() { delete parser; }
-    AST::ASTNode* parse() {
+    AST::Program* parse() {
         // parser->set_debug_level(1); // 0 = no debugging, 1 = full tracing
         // std::cout << "Running parser\n";
         int result = parser->parse();
@@ -31,17 +32,18 @@ public:
 private:
     yy::Lexer   lexer;
     yy::parser *parser;
-    AST::ASTNode *root;
+    AST::Program *root;
 };
 
 int main()
 {
     Driver driver(std::cin);
-    AST::ASTNode* root = driver.parse();
+    AST::Program* root = driver.parse();
+    // ToDo Add handling fo the classes in the program
     if (root != nullptr) {
-        std::cout << "Successfully parsed: \n" << root->str() << std::endl;
+        std::cout << "Successfully parsed: \n" << root->block_->str() << std::endl;
         auto ctx = EvalContext();
-        std::cout << "Evaluates to " << root->eval(ctx) << std::endl;
+        std::cout << "Evaluates to " << root->block_->eval(ctx) << std::endl;
     } else {
         std::cout << "Extracted root was nullptr" << std::endl;
     }

@@ -19,6 +19,8 @@ namespace AST {
 
   class ASTNode {
    public:
+    virtual ~ASTNode() {};
+
     virtual std::string str() = 0;
 
     virtual int eval(EvalContext &ctx) = 0;        // Immediate evaluation
@@ -33,6 +35,11 @@ namespace AST {
     std::vector<ASTNode *> stmts_;
    public:
     explicit Block() : stmts_{std::vector<ASTNode *>()} {}
+
+    ~Block() {
+      for (auto &stmt : stmts_)
+        delete stmt;
+    }
 
     void append(ASTNode *stmt) { stmts_.push_back(stmt); }
 
@@ -166,6 +173,17 @@ namespace AST {
     std::string str() override { return (value_ == BOOL_TRUE) ? "true" : "false"; }
 
     int eval(EvalContext &ctx) override { return value_; }
+  };
+
+  class StringConst : public ASTNode {
+    const std::string value_;
+   public:
+    explicit StringConst(const std::string &v) : value_(v) {}
+
+    std::string str() override { return value_; }
+
+    // ToDo Define eval for a String Constant
+    int eval(EvalContext &ctx) override { return -1; }
   };
 
   /**

@@ -157,6 +157,46 @@ namespace AST {
     int eval(EvalContext &ctx) override { return value_; }
   };
 
+  /**
+   * Virtual base class for not etc
+   */
+  class UniOp : public ASTNode {
+   public:
+    // each subclass must override the inherited
+    // eval() method
+
+   protected:
+    ASTNode &expr_;
+    const std::string opsym;
+
+    UniOp(const std::string &sym, ASTNode &expr) :
+        opsym(sym), expr_(expr) {};
+   public:
+    std::string str() {
+      std::stringstream ss;
+      ss << opsym << " " << "(" << expr_.str() << ")";
+      return ss.str();
+    }
+  };
+
+  //ToDo ensure EQ type checks correctly
+  class Not : public UniOp {
+   public:
+    int eval(EvalContext &ctx) override {
+      return (expr_.eval(ctx) == BOOL_TRUE) ? BOOL_FALSE : BOOL_TRUE;
+    }
+    explicit Not(ASTNode &expr) : UniOp(std::string("not"), expr) {};
+  };
+
+  /** Negates an integer value */
+  class Negate : public UniOp {
+   public:
+    int eval(EvalContext &ctx) override {
+      return -expr_.eval(ctx);
+    }
+    explicit Negate(ASTNode &expr) : UniOp(std::string("-"), expr) {};
+  };
+
   // Virtual base class for +, -, *, /, etc
   class BinOp : public ASTNode {
    public:
@@ -166,14 +206,14 @@ namespace AST {
    protected:
     ASTNode &left_;
     ASTNode &right_;
-    const std::string opsym;
+    const std::string opsym_;
 
     BinOp(const std::string &sym, ASTNode &l, ASTNode &r) :
-        opsym{sym}, left_{l}, right_{r} {};
+        opsym_{sym}, left_{l}, right_{r} {};
    public:
     std::string str() {
       std::stringstream ss;
-      ss << "(" << left_.str() << " " << opsym << " "
+      ss << "(" << left_.str() << " " << opsym_ << " "
          << right_.str() << ")";
       return ss.str();
     }

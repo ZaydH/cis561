@@ -29,7 +29,7 @@ class Square() extends Rect {
 
 a = 0 ;
 b = 42;
-if (a == 1) {
+if (not (a == 1)) {
    x = 2;
 }
 elif (b > 0) {
@@ -53,6 +53,7 @@ while (z > 2) {
 //if (b - b == 0) { z = 5; }
 
 x+y*z+5;
+- z + x;
 
 // dfdfs * dfd fdfd
 // dfdf

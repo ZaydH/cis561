@@ -98,10 +98,11 @@
 // for compactness.  We declare operator precedence from lowest
 // to highest, with associativity, e.g., MINUS is left_ associative
 // so a-b-c is (a-b)-c and not a-(b-c).
-%left OR AND
-%left MINUS PLUS
-%left TIMES DIV
-
+%right NOT
+%left  MINUS PLUS
+%left  TIMES DIV
+%left  AND
+%left  OR
 %%
 
 /* Root of the grammar is "program".  A program
@@ -112,10 +113,10 @@ program: classes block  { *root = $2; } ;
 /* Definition for the class structures */
 // ToDo classes has a memory leak at present
 classes: classes q_class { $1->emplace($2->name_, $2); $$=$1; }
-         | /* no classes */ { $$ = new AST::QuackClass::Container(); }
-         ;
+       | /* no classes */ { $$ = new AST::QuackClass::Container(); }
+       ;
 q_class: CLASS class_hdr LCURLY block methods RCURLY
-       { $2->add_constructor($4); $2->add_methods($5); $$=$2; }
+                { $2->add_constructor($4); $2->add_methods($5); $$=$2; }
        ;
 params: has_params          { $$ = $1; }
       | /* No parameters */ { $$ = new AST::QuackClass::Parameter::Container(); }
@@ -132,7 +133,7 @@ param_name: IDENT { $$=$1; }
 param_type: IDENT { $$=$1; }
           ;
 class_hdr: class_name LPAREN params RPAREN super_class
-            { $$ = new AST::QuackClass($1, $5, $3); }
+                { $$ = new AST::QuackClass($1, $5, $3); }
          ;
 class_name: IDENT { $$ = $1; } ;
 super_class: EXTENDS class_name { $$ = $2; }
@@ -163,7 +164,7 @@ stmt: assignment SEMICLN { $$ = $1; }
     ;
 
 // ToDo change if to b_expr
-ifstmt:  IF LPAREN b_expr RPAREN LCURLY block RCURLY if_alternatives
+ifstmt: IF LPAREN b_expr RPAREN LCURLY block RCURLY if_alternatives
                 { $$ = new AST::If(*$3, *$6, *$8); }
       ;
 
@@ -190,7 +191,8 @@ expr: i_expr { $$=$1; }
     | b_expr { $$=$1; }
     ;
 
-b_expr: b_expr AND b_expr    { $$ = new AST::And(*$1, *$3); dump($$); }
+b_expr: NOT b_expr           { $$ = new AST::Not(*$2); dump($$); }
+      | b_expr AND b_expr    { $$ = new AST::And(*$1, *$3); dump($$); }
       | b_expr OR b_expr     { $$ = new AST::Or(*$1, *$3); dump($$); }
       | i_expr GT i_expr     { $$ = new AST::GT(*$1, *$3); dump($$); }
       | i_expr GEQ i_expr    { $$ = new AST::GEQ(*$1, *$3); dump($$); }
@@ -202,7 +204,8 @@ b_expr: b_expr AND b_expr    { $$ = new AST::And(*$1, *$3); dump($$); }
       | i_expr EQ i_expr     { $$ = new AST::EQ(*$1, *$3); dump($$); }
       ;
 
-i_expr: i_expr PLUS i_expr   { $$ = new AST::Plus( *$1, *$3 ); dump($$); }
+i_expr: MINUS i_expr         { $$ = new AST::Negate( *$2 ); dump($$); }
+      | i_expr PLUS i_expr   { $$ = new AST::Plus( *$1, *$3 ); dump($$); }
       | i_expr MINUS i_expr  { $$ = new AST::Minus( *$1, *$3 ); dump($$); }
       | i_expr TIMES i_expr  { $$ = new AST::Times( *$1, *$3 ); dump($$); }
       | i_expr DIV i_expr    { $$ = new AST::Div( *$1, *$3 ); dump($$); }

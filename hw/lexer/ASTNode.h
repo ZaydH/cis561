@@ -166,7 +166,7 @@ namespace AST {
 
     std::string STR() override {
       std::stringstream ss;
-      ss << "return (" << stmt_->STR() << ");";
+      ss << "return (" << stmt_->STR() << ")";
       return ss.str();
     }
 

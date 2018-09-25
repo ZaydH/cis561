@@ -6,6 +6,7 @@
 #define AST_QCLASS_H
 
 #include <map>
+#include <vector>
 #include <string>
 #include <set>
 
@@ -22,22 +23,55 @@ namespace AST {
     class Parameter {
      public:
       /** Stores multiple parameters */
-      typedef std::map<std::string, QuackClass::Parameter*> Container;
+      typedef std::vector<QuackClass::Parameter*> Container;
 
       Parameter(char* name, char* type_name)
           : name_(name), type_name_(type_name) {
         // ToDo add a way to link the types
         type_ = nullptr;
       }
+      /**
+       * Add the parameter to the parameter container.
+       * @param cont A parameter container
+       * @param param A new parameter
+       */
+      static void add_to_container(Container* cont, Parameter *param) {
+        assert(!container_has_param(cont, param->name_));
+        cont->emplace_back(param);
+      }
+      /**
+       * Checks whether the parameter is already in the container.
+       *
+       * @param cont Parameter container
+       * @param param_name Name of parameter to check if already in container
+       *
+       * @return True if a parameter in the container has a matching name.
+       */
+      static bool container_has_param(Container* cont, const std::string &param_name) {
+        for(const auto &param: *cont)
+          if (param->name_ == param_name)
+            return true;
+        return false;
+      }
+      /**
+       * Delete all parameters in the parameter container.
+       *
+       * @param cont Container containing parameters.
+       */
+      static void delete_container(const Container * cont) {
+        for (const auto &param: *cont)
+          delete param;
+      }
+
       /** Prints all parameters in the container */
       static std::string print_container(const Container *container) {
         std::stringstream ss;
         bool is_first = true;
-        for (const auto &pair : *container){
+        for (const auto &param : *container){
           if (!is_first)
             ss << ", ";
           is_first = false;
-          ss << pair.second->STR();
+          ss << param->STR();
         }
         return ss.str();
       }
@@ -74,8 +108,7 @@ namespace AST {
        */
       ~Method() {
         if(params_)
-          for (const auto &param_pair: *params_)
-            delete param_pair.second;
+          Parameter::delete_container(params_);
         delete params_;
 
         delete block_;
@@ -103,7 +136,7 @@ namespace AST {
 
     explicit QuackClass(const char* name, const char* super,
                         const QuackClass::Parameter::Container* constructor_params)
-        : name_(name), constructor_params_(constructor_params) {
+        : name_(name), super_name_(super), constructor_params_(constructor_params) {
       assert(!is_reserved_class_name(name_));
 
       methods_ = nullptr;
@@ -129,8 +162,7 @@ namespace AST {
       delete methods_;
 
       if (constructor_params_)
-        for (auto const& pair : *constructor_params_)
-          delete pair.second;
+        Parameter::delete_container(constructor_params_);
       delete constructor_params_;
     }
     /**
@@ -157,8 +189,8 @@ namespace AST {
       std::stringstream ss;
       ss << KEY_CLASS << " " << name_ << "("
          << QuackClass::Parameter::print_container(constructor_params_) << ")";
-      if (super_)
-        ss << " extends " << super_->name_;
+      if (!super_name_.empty())
+        ss << " extends " << super_name_;
       ss << " {\n";
       ss << constructor_->STR();
       if (methods_) {
@@ -222,6 +254,7 @@ namespace AST {
     QuackClass::Method::Container* methods_;
     AST::Block* constructor_;
     /** Type of the super class */
+    const std::string super_name_;
     QuackClass * super_;
     /** Parameters supplied to the constructor */
     const QuackClass::Parameter::Container* constructor_params_;

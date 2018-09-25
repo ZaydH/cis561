@@ -145,9 +145,13 @@ all_class_names: INT_CLASS    { $$ = convert_string_to_char_ptr("Int"); }
 params: param_set          { $$ = $1; }
       | %empty /* No parameters */ { $$ = new AST::QuackClass::Parameter::Container(); }
       ;
-param_set: param_set COMMA param { $1->emplace($3->name_, $3); }
-         | param    { $$ = new AST::QuackClass::Parameter::Container();
-                       $$->emplace($1->name_, $1);
+param_set: param_set COMMA param
+                    {   $$ = $1;
+                        AST::QuackClass::Parameter::add_to_container($$, $3);
+                    }
+         | param
+                    {   $$ = new AST::QuackClass::Parameter::Container();
+                        AST::QuackClass::Parameter::add_to_container($$, $1);
                     }
          ;
 param: param_name COLON param_type { $$ = new AST::QuackClass::Parameter($1, $3); } ;

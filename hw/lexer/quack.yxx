@@ -185,11 +185,13 @@ inherited_class: all_class_names { $$ = $1; } ;
 methods: methods method { $1->emplace($2->name_, $2); $$=$1; }
        | %empty /* no method */ { $$ = new AST::QuackClass::Method::Container(); }
        ;
-method: DEF method_name LPAREN params RPAREN COLON return_type LCURLY block RCURLY
-           { $$ = new AST::QuackClass::Method($2, $4, $7, $9); }
+method: DEF method_name LPAREN params RPAREN return_type LCURLY block RCURLY
+           { $$ = new AST::QuackClass::Method($2, $4, $6, $8); }
       ;
 method_name: IDENT { $$ = $1; } ;
-return_type: all_class_names { $$ = $1; } ;
+return_type: COLON all_class_names { $$ = $2; }
+           | %empty /* no specified type */ {$$ = convert_string_to_char_ptr(""); }
+           ;
 
 /* Standard recursive definition for a non-empty sequence. */
 block: %empty /* empty */ { $$ = new AST::Block(); }
@@ -209,15 +211,15 @@ stmt: assignment SEMICLN { $$ = $1; }
     | while  { $$ = $1; }
     ;
 
-ifstmt: IF LPAREN b_expr RPAREN LCURLY block RCURLY if_alternatives
-                { $$ = new AST::If(*$3, *$6, *$8); }
+ifstmt: IF b_expr LCURLY block RCURLY if_alternatives
+                { $$ = new AST::If(*$2, *$4, *$6); }
       ;
 
 if_alternatives:   %empty /* empty */  { $$ = new AST::Block(); };
 if_alternatives:   ELSE LCURLY block RCURLY   { $$ = $3; };
-if_alternatives:   ELIF LPAREN b_expr RPAREN LCURLY block RCURLY if_alternatives
+if_alternatives:   ELIF b_expr LCURLY block RCURLY if_alternatives
              {  $$ = new AST::Block();
-                $$->append(new AST::If(*$3, *$6, *$8));
+                $$->append(new AST::If(*$2, *$4, *$6));
              };
 
 while: WHILE LPAREN b_expr RPAREN LCURLY block RCURLY

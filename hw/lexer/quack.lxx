@@ -138,7 +138,7 @@ false|true  { yylval.boolean = ((strcmp(text(), "true") == 0) ? true : false); r
 =   { yylval.str = strdup(text()); return yy::parser::token::GETS; }
 
 
-[ \n]          {}
+[ \n\t]          {}
 .  {
     report::error("Unexpected character '" + std::string(text()) + "'" +
        " at line " + std::to_string(lineno()) +

@@ -61,15 +61,20 @@ namespace AST {
     /** Next parameter in the object call */
     const NamedObject* next_ = nullptr;
   };
-
+  /**
+   * Object in the program with a method call.
+   */
   class ObjectMethodCall : public ObjectCall {
    public:
     explicit ObjectMethodCall(const std::string &name,
-                              const QuackClass::Parameter::Container *params,
+                              const std::vector<AST::ASTNode*>* params,
                               NamedObject* next=nullptr)
                               : ObjectCall(name, next), params_(params) {}
 
     ~ObjectMethodCall() {
+      if (params_)
+        for (auto const &param: *params_)
+          delete param;
       delete params_;
 
       // No need to call destructor of base class
@@ -78,9 +83,17 @@ namespace AST {
 
     std::string STR() override {
       std::stringstream ss;
-      ss << name_ << "(" << QuackClass::Parameter::print_container(params_) << ")" << ".";
+      ss << name_ << "(";
+      bool first_param = true;
+      for (auto const & param : *params_) {
+        if (!first_param)
+          ss << ", ";
+        first_param = false;
+        ss << param->STR();
+      }
+      ss << ")";
       if (next_)
-        ss << const_cast<NamedObject*>(next_)->STR();
+        ss << "." << const_cast<NamedObject*>(next_)->STR();
       return ss.str();
     }
 
@@ -88,7 +101,7 @@ namespace AST {
     int eval(EvalContext &ctx) override { return -1; };
 
     /** Parameters for the function call */
-    const AST::QuackClass::Parameter::Container* params_;
+    const std::vector<AST::ASTNode*>* params_;
   };
 
   class AssnVar : public ASTNode {

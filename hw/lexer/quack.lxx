@@ -116,7 +116,7 @@ Boolean {  return yy::parser::token::BOOL_CLASS; }
 String  {  return yy::parser::token::STRING_CLASS; }
 Obj     {  return yy::parser::token::OBJ_CLASS; }
 def     {  return yy::parser::token::DEF; }
-,       {  return yy::parser::token::PARAM_SEP; }
+,       {  return yy::parser::token::COMMA; }
 \.      {  return yy::parser::token::PERIOD; }
 return  {  return yy::parser::token::RETURN; }
 while   {  return yy::parser::token::WHILE; }

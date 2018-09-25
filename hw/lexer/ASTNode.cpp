@@ -32,24 +32,24 @@ namespace AST {
   }
 
 
-  // Identifiers live in symtab and default to 0.
-  int Ident::eval(EvalContext &ctx) {
-    if (ctx.symtab.count(text_) == 1)
-      return ctx.symtab[text_];
-    else
-      return 0;
-  }
-
-  // Assignment evaluates its right_ hand side and stores the
-  // result into its left_ hand side.  We'll have it return the
-  // value_ it produced just for simplicity and debugging, but the
-  // value_ is not otherwise used.
-  int Assign::eval(EvalContext &ctx) {
-    std::string loc = lexpr_.l_eval(ctx);
-    int rvalue = rexpr_.eval(ctx);
-    ctx.symtab[loc] = rvalue;
-    return rvalue;
-  }
+//  // Identifiers live in symtab and default to 0.
+//  int Ident::eval(EvalContext &ctx) {
+//    if (ctx.symtab.count(text_) == 1)
+//      return ctx.symtab[text_];
+//    else
+//      return 0;
+//  }
+//
+//  // Assignment evaluates its right_ hand side and stores the
+//  // result into its left_ hand side.  We'll have it return the
+//  // value_ it produced just for simplicity and debugging, but the
+//  // value_ is not otherwise used.
+//  int Assign::eval(EvalContext &ctx) {
+//    std::string loc = lexpr_.l_eval(ctx);
+//    int rvalue = rexpr_.eval(ctx);
+//    ctx.symtab[loc] = rvalue;
+//    return rvalue;
+//  }
 
   // An 'if' statement, in this initial cut, evaluates its condition to an integer
   // and chooses the true (then) part or the false (else) part depending on whether

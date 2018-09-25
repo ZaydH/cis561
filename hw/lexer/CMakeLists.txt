@@ -21,7 +21,7 @@ add_custom_command(
 )
 add_custom_command(
         OUTPUT quack.tab.cxx quack.tab.hxx location.hh position.hh stack.hh
-        COMMAND bison -d ${CMAKE_CURRENT_SOURCE_DIR}/quack.yxx
+        COMMAND bison -d ${CMAKE_CURRENT_SOURCE_DIR}/quack.yxx -Wall
         DEPENDS quack.yxx
 )
 

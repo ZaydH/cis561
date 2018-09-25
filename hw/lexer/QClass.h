@@ -29,6 +29,18 @@ namespace AST {
         // ToDo add a way to link the types
         type_ = nullptr;
       }
+      /** Prints all parameters in the container */
+      static std::string print_container(const Container *container) {
+        std::stringstream ss;
+        bool is_first = true;
+        for (const auto &pair : *container){
+          if (!is_first)
+            ss << ", ";
+          is_first = false;
+          ss << pair.second->name_ << " : " << pair.second->type_name_;
+        }
+        return ss.str();
+      }
 
       const std::string name_;
      private:

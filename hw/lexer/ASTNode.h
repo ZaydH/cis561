@@ -54,47 +54,47 @@ namespace AST {
     }
   };
 
-  /* L_Expr nodes are AST nodes that can be evaluated for location.
-   * Most can also be evaluated for value_.  An example of an L_Expr
-   * is an identifier, which can appear on the left_ hand or right_ hand
-   * side of an assignment.  For example, in x = y, x is evaluated for
-   * location and y is evaluated for value_.
-   *
-   * For now, a location is just a name, because that's what we index
-   * the symbol table with.  In a full compiler, locations can be
-   * more complex, and typically in code generation we would have
-   * LExpr evaluate to an address in a register.
-   *
-   * LExpr is abstract.  It's only concrete subclass for now is Ident,
-   * but in a full OO language we would have LExprs that look like
-   * a.b and a[2].
-   */
-  class LExpr : public ASTNode {
-   public:
-    virtual std::string l_eval(EvalContext &ctx) = 0;
-  };
+//  /* L_Expr nodes are AST nodes that can be evaluated for location.
+//   * Most can also be evaluated for value_.  An example of an L_Expr
+//   * is an identifier, which can appear on the left_ hand or right_ hand
+//   * side of an assignment.  For example, in x = y, x is evaluated for
+//   * location and y is evaluated for value_.
+//   *
+//   * For now, a location is just a name, because that's what we index
+//   * the symbol table with.  In a full compiler, locations can be
+//   * more complex, and typically in code generation we would have
+//   * LExpr evaluate to an address in a register.
+//   *
+//   * LExpr is abstract.  It's only concrete subclass for now is Ident,
+//   * but in a full OO language we would have LExprs that look like
+//   * a.b and a[2].
+//   */
+//  class LExpr : public ASTNode {
+//   public:
+////    virtual std::string l_eval(EvalContext &ctx) = 0;
+//  };
 
-  /* An assignment has an lvalue (location to be assigned to)
-   * and an expression.  We evaluate the expression and place
-   * the value_ in the variable.
-   */
-
-  class Assign : public ASTNode {
-    LExpr &lexpr_;
-    ASTNode &rexpr_;
-   public:
-    Assign(LExpr &lexpr, ASTNode &rexpr) :
-        lexpr_{lexpr}, rexpr_{rexpr} {}
-
-    std::string str() override {
-      std::stringstream ss;
-      ss << lexpr_.str() << " = "
-         << rexpr_.str() << ";";
-      return ss.str();
-    }
-
-    int eval(EvalContext &ctx) override;
-  };
+//  /* An assignment has an lvalue (location to be assigned to)
+//   * and an expression.  We evaluate the expression and place
+//   * the value_ in the variable.
+//   */
+//
+//  class Assign : public ASTNode {
+//    LExpr &lexpr_;
+//    ASTNode &rexpr_;
+//   public:
+//    Assign(LExpr &lexpr, ASTNode &rexpr) :
+//        lexpr_{lexpr}, rexpr_{rexpr} {}
+//
+//    std::string str() override {
+//      std::stringstream ss;
+//      ss << lexpr_.str() << " = "
+//         << rexpr_.str() << ";";
+//      return ss.str();
+//    }
+//
+//    int eval(EvalContext &ctx) override;
+//  };
 
   class If : public ASTNode {
     /** The boolean expression to be evaluated */
@@ -136,23 +136,23 @@ namespace AST {
     int eval(EvalContext &ctx) override;
   };
 
-  /* Identifiers like x and literals like 42 are the
-   * leaves of the AST.  A literal can only be evaluated
-   * for value_ (the 'eval' method), but an identifier
-   * can also be evaluated for location (when we want to
-   * store something in it).
-   */
-  class Ident : public LExpr {
-    const std::string text_;
-   public:
-    explicit Ident(const char *txt) : text_(txt) {}
-
-    std::string str() override { return text_; }
-
-    int eval(EvalContext &ctx) override;
-
-    std::string l_eval(EvalContext &ctx) override { return text_; }
-  };
+//  /* Identifiers like x and literals like 42 are the
+//   * leaves of the AST.  A literal can only be evaluated
+//   * for value_ (the 'eval' method), but an identifier
+//   * can also be evaluated for location (when we want to
+//   * store something in it).
+//   */
+//  class Ident : public LExpr {
+//    const std::string text_;
+//   public:
+//    explicit Ident(const char *txt) : text_(txt) {}
+//
+//    std::string str() override { return text_; }
+//
+//    int eval(EvalContext &ctx) override;
+//
+//    std::string l_eval(EvalContext &ctx) override { return text_; }
+//  };
 
   class IntConst : public ASTNode {
     const int value_;

@@ -47,6 +47,7 @@ elif (b > 0) {
    }
 }
 z = 4;
+q.sd.pi(ds : Int).sd = 34;
 while (z > 2) {
   z = z - 1;
 }
@@ -54,6 +55,7 @@ while (z > 2) {
 
 x+y*z+5;
 - z + x;
+
 
 // dfdfs * dfd fdfd
 // dfdf

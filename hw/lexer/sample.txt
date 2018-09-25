@@ -1,65 +1,37 @@
-/*
- * THis is a * block comment // dfdsf
- */
-
-class Pt() {
-  x = x;
-  y = y;
-  def STR(z : Obj) : String {
-    z = 10;
-    return z;
-    z = 10;
-  }
-  def PLUS() : Pt {
-    return 5;
-  }
-  def _x() : Int {  }
-  def _y() : Int {  }
+/**
+* A simple sample Quack program
+*/
+class Pt(x: Int, y: Int) {
+    this.x = x;
+    this.y = y;
+    def STR() : String {
+//        return "(" + this.x.STR() + ","
+//                + this.y.STR() + ")";
+    }
+    def PLUS(other: Pt) : Pt {
+        return Pt(this.x + other.x, this.y + other.y);
+    }
+    def _x() : Int { return this.x; }
+    def _y() : Int { return this.y; }
+}
+class Rect(ll: Pt, ur: Pt) extends Obj {
+    this.ll = ll;
+    this.ur = ur;
+    def translate(delta: Pt) : Pt { return Rect(ll+Pt, ur+Pt); }
+    def STR() : String {
+        lr = Pt( this.ur._y(), this.ll._x() ); // lower right
+        ul = Pt( this.ll._x(), this.ur._y() ); // upper left
+//        return "(" + this.ll.STR() + ", "
+//                + ul.STR() + ","
+//                + this.ur.STR() + ","
+//                + lr.STR() + ")";
+    }
+}
+class Square(ll: Pt, side: Int) extends Rect {
+    this.ll = ll;
+    this.ur = Pt(this.ll._x() + side, this.ll._y() + side);
 }
 
-// This line has an error
-class Rect(x : Int, y : Pt, z: Pt) extends Obj {
-  ll = ll;
-
-  def translate() : Pt {  }
-  def STR() : String {
-      z=5;
-  }
-}
-
-class Square() extends Rect {
-}
-
-a = 0 ;
-b = 42;
-if (not (a == 1)) {
-   x = 2;
-}
-elif (b > 0) {
-   x = 3 ;
-   if (b - b == 0) {
-     y = 2 ;
-     y = y - 1;
-     y = 2;
-   }
-   elif (a > 0) {
-     y = 3;
-   }
-   else {
-     y =4 ;
-   }
-}
-z = 4;
-q.sd.pi(ds : Int).sd = 34;
-while (z > 2) {
-  z = z - 1;
-}
-//if (b - b == 0) { z = 5; }
-
-x+y*z+5;
-- z + x;
-
-
-// dfdfs * dfd fdfd
-// dfdf
-
+a_square = Square( Pt(3,3), 5 );
+a_square = a_square.translate( Pt(2,2) );
+a_square.PRINT();

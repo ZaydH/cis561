@@ -10,6 +10,9 @@
 #define KEY_STRING "String"
 #define KEY_BOOL "Boolean"
 
+#define KEY_CLASS "class"
+#define KEY_DEF "def"
+
 #define BOOL_TRUE 1
 #define BOOL_FALSE 0
 

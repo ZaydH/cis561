@@ -37,8 +37,16 @@ namespace AST {
           if (!is_first)
             ss << ", ";
           is_first = false;
-          ss << pair.second->name_ << " : " << pair.second->type_name_;
+          ss << pair.second->STR();
         }
+        return ss.str();
+      }
+
+      std::string STR() {
+        std::stringstream ss;
+        ss << name_;
+        if (!type_name_.empty())
+          ss << " : " << type_name_;
         return ss.str();
       }
 
@@ -71,6 +79,16 @@ namespace AST {
         delete params_;
 
         delete block_;
+      }
+
+      std::string STR() {
+        std::stringstream ss;
+        ss << KEY_DEF << " " << name_ << "("
+           << QuackClass::Parameter::print_container(params_) << ")";
+        if (!return_type_name_.empty())
+          ss << " : " << return_type_name_;
+        ss << " {\n" << const_cast<AST::Block*>(block_)->STR() << "}\n";
+        return ss.str();
       }
 
       /** Name of the method */
@@ -135,6 +153,23 @@ namespace AST {
       return nullptr;
     }
 
+    std::string STR() {
+      std::stringstream ss;
+      ss << KEY_CLASS << " " << name_ << "("
+         << QuackClass::Parameter::print_container(constructor_params_) << ")";
+      if (super_)
+        ss << " extends " << super_->name_;
+      ss << " {\n";
+      ss << constructor_->STR();
+      if (methods_) {
+        ss << "\n";
+        for (auto const &pair : *methods_) {
+          ss << pair.second->STR();
+        }
+      }
+      ss << "}\n";
+      return ss.str();
+    }
     /**
      * Adds methods to the class.
      *

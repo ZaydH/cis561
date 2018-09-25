@@ -20,7 +20,7 @@ namespace AST {
 
   class ASTNode {
    public:
-    virtual ~ASTNode() {};
+    virtual ~ASTNode() = default;
 
     virtual std::string STR() = 0;
 
@@ -52,7 +52,7 @@ namespace AST {
     std::string STR() override {
       std::stringstream ss;
       for (ASTNode *stmt: stmts_) {
-        ss << stmt->STR() << std::endl;
+        ss << stmt->STR() << ";" << std::endl;
       }
       return ss.str();
     }
@@ -165,8 +165,8 @@ namespace AST {
     ASTNode * stmt_;
 
     std::string STR() override {
-      std::stringstream ss("return (");
-      ss << stmt_->STR() << ");";
+      std::stringstream ss;
+      ss << "return (" << stmt_->STR() << ");";
       return ss.str();
     }
 

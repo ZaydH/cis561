@@ -50,7 +50,8 @@ namespace AST {
     }
 
     std::string STR() override {
-      std::stringstream ss(name_);
+      std::stringstream ss;
+      ss << name_;
       if (next_)
         ss << "." << const_cast<NamedObject*>(next_)->STR();
       return ss.str();
@@ -122,6 +123,7 @@ namespace AST {
       ss << const_cast<AST::NamedObject*>(var_info_)->STR();
       if (!type_name_.empty())
         ss << " : " << type_name_;
+      ss << " = " << assn_stmt_->STR();
       return ss.str();
     }
 

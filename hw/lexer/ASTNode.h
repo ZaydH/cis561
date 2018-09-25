@@ -215,8 +215,8 @@ namespace AST {
     // eval() method
 
    protected:
-    ASTNode &expr_;
     const std::string opsym;
+    ASTNode &expr_;
 
     UniOp(const std::string &sym, ASTNode &expr) :
         opsym(sym), expr_(expr) {};
@@ -253,9 +253,9 @@ namespace AST {
     // eval() method
 
    protected:
+    const std::string opsym_;
     ASTNode &left_;
     ASTNode &right_;
-    const std::string opsym_;
 
     BinOp(const std::string &sym, ASTNode &l, ASTNode &r) :
         opsym_{sym}, left_{l}, right_{r} {};

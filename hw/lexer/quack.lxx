@@ -75,7 +75,7 @@ static std::stringstream ss;
 \\r         { ss << '\r'; }
 \\f         { ss << '\f'; }
 \\\"        { ss << '\"'; }
-\\\\        { ss << '\\'; }
+'\\\\'      { ss << '\\'; }
 \\.         { report::error("Unknown escape character at line" + std::to_string(lineno())
                             + ", column " + std::to_string(columno())); }
   /* INITIAL Reserved word for default state. */

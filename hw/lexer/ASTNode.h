@@ -154,6 +154,22 @@ namespace AST {
 //    std::string l_eval(EvalContext &ctx) override { return text_; }
 //  };
 
+  class Return : public AST::ASTNode {
+   public:
+    explicit Return(ASTNode * stmt) : stmt_(stmt) {}
+
+    ASTNode * stmt_;
+
+    std::string str() override {
+      std::stringstream ss("return (");
+      ss << stmt_->str() << ");";
+      return ss.str();
+    }
+
+    // ToDo Define eval for Return
+    int eval(EvalContext &ctx) override { return -1; }
+  };
+
   class IntConst : public ASTNode {
     const int value_;
    public:
@@ -208,7 +224,7 @@ namespace AST {
     }
   };
 
-  //ToDo ensure EQ type checks correctly
+  //ToDo ensure NOT type checks correctly
   class Not : public UniOp {
    public:
     int eval(EvalContext &ctx) override {

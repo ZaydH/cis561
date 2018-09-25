@@ -7,8 +7,11 @@ class Pt() {
   y = y;
   def STR(z : Obj) : String {
     z = 10;
+    return z;
+    z = 10;
   }
   def PLUS() : Pt {
+    return 5;
   }
   def _x() : Int {  }
   def _y() : Int {  }

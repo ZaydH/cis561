@@ -8,6 +8,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <iostream>
 
 #include "keywords.h"
 #include "CodegenContext.h"
@@ -21,9 +22,12 @@ namespace AST {
    public:
     virtual ~ASTNode() {};
 
-    virtual std::string str() = 0;
+    virtual std::string STR() = 0;
 
     virtual int eval(EvalContext &ctx) = 0;        // Immediate evaluation
+    void PRINT() {
+      std::cout << STR();
+    }
     // virtual std::string c_gen(CodegenContext &context) = 0;
   };
 
@@ -45,10 +49,10 @@ namespace AST {
 
     int eval(EvalContext &ctx) override;
 
-    std::string str() override {
+    std::string STR() override {
       std::stringstream ss;
       for (ASTNode *stmt: stmts_) {
-        ss << stmt->str() << std::endl;
+        ss << stmt->STR() << std::endl;
       }
       return ss.str();
     }
@@ -86,11 +90,11 @@ namespace AST {
 //    Assign(LExpr &lexpr, ASTNode &rexpr) :
 //        lexpr_{lexpr}, rexpr_{rexpr} {}
 //
-//    std::string str() override {
+//    std::string STR() override {
 //      std::stringstream ss;
-//      ss << lexpr_.str() << " = "
-//         << rexpr_.str() << ";";
-//      return ss.str();
+//      ss << lexpr_.STR() << " = "
+//         << rexpr_.STR() << ";";
+//      return ss.STR();
 //    }
 //
 //    int eval(EvalContext &ctx) override;
@@ -107,11 +111,11 @@ namespace AST {
     explicit If(ASTNode &cond, Block &truepart, Block &falsepart) :
         cond_{cond}, truepart_{truepart}, falsepart_{falsepart} {};
 
-    std::string str() override {
-      return "if (" + cond_.str() + ") {\n" +
-             truepart_.str() +
+    std::string STR() override {
+      return "if (" + cond_.STR() + ") {\n" +
+             truepart_.STR() +
              "} else {\n" +
-             falsepart_.str() +
+             falsepart_.STR() +
              "}\n";
     }
 
@@ -128,8 +132,8 @@ namespace AST {
     explicit While(ASTNode &cond, Block &body) :
         cond_{cond}, body_(body) {};
 
-    std::string str() override {
-      return "while (" + cond_.str() + ") {\n" + body_.str() + "}\n";
+    std::string STR() override {
+      return "while (" + cond_.STR() + ") {\n" + body_.STR() + "}\n";
     }
 
     // ToDO Write eval for While Loop
@@ -147,7 +151,7 @@ namespace AST {
 //   public:
 //    explicit Ident(const char *txt) : text_(txt) {}
 //
-//    std::string str() override { return text_; }
+//    std::string STR() override { return text_; }
 //
 //    int eval(EvalContext &ctx) override;
 //
@@ -160,9 +164,9 @@ namespace AST {
 
     ASTNode * stmt_;
 
-    std::string str() override {
+    std::string STR() override {
       std::stringstream ss("return (");
-      ss << stmt_->str() << ");";
+      ss << stmt_->STR() << ");";
       return ss.str();
     }
 
@@ -175,7 +179,7 @@ namespace AST {
    public:
     explicit IntConst(const int v) : value_{v} {}
 
-    std::string str() override { return std::to_string(value_); }
+    std::string STR() override { return std::to_string(value_); }
 
     int eval(EvalContext &ctx) override { return value_; }
   };
@@ -186,7 +190,7 @@ namespace AST {
    public:
     explicit BoolConst(const bool v) : value_(v ? BOOL_TRUE: BOOL_FALSE) {}
 
-    std::string str() override { return (value_ == BOOL_TRUE) ? "true" : "false"; }
+    std::string STR() override { return (value_ == BOOL_TRUE) ? "true" : "false"; }
 
     int eval(EvalContext &ctx) override { return value_; }
   };
@@ -196,7 +200,7 @@ namespace AST {
    public:
     explicit StringConst(const std::string &v) : value_(v) {}
 
-    std::string str() override { return value_; }
+    std::string STR() override { return value_; }
 
     // ToDo Define eval for a String Constant
     int eval(EvalContext &ctx) override { return -1; }
@@ -217,9 +221,9 @@ namespace AST {
     UniOp(const std::string &sym, ASTNode &expr) :
         opsym(sym), expr_(expr) {};
    public:
-    std::string str() {
+    std::string STR() override {
       std::stringstream ss;
-      ss << opsym << " " << "(" << expr_.str() << ")";
+      ss << opsym << " " << "(" << expr_.STR() << ")";
       return ss.str();
     }
   };
@@ -256,10 +260,10 @@ namespace AST {
     BinOp(const std::string &sym, ASTNode &l, ASTNode &r) :
         opsym_{sym}, left_{l}, right_{r} {};
    public:
-    std::string str() {
+    std::string STR() override {
       std::stringstream ss;
-      ss << "(" << left_.str() << " " << opsym_ << " "
-         << right_.str() << ")";
+      ss << "(" << left_.STR() << " " << opsym_ << " "
+         << right_.STR() << ")";
       return ss.str();
     }
   };

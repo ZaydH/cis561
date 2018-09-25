@@ -41,7 +41,7 @@ int main()
     AST::Program* root = driver.parse();
     // ToDo Add handling fo the classes in the program
     if (root != nullptr) {
-        std::cout << "Successfully parsed: \n" << root->block_->str() << std::endl;
+        std::cout << "Successfully parsed: \n" << root->block_->STR() << std::endl;
         auto ctx = EvalContext();
         std::cout << "Evaluates to " << root->block_->eval(ctx) << std::endl;
     } else {

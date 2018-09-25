@@ -19,13 +19,13 @@ namespace AST {
    public:
     explicit NamedObject(const std::string &name) : name_(name) { }
 
-    std::string str() { return name_; }
+    std::string STR() override { return name_; }
 
     const std::string name_;
 
     // Identifiers live in symtab and default to 0.
     // Taken from Young's original code
-    int eval(EvalContext &ctx) {
+    int eval(EvalContext &ctx) override {
       if (ctx.symtab.count(name_) == 1)
         return ctx.symtab[name_];
       else
@@ -49,14 +49,14 @@ namespace AST {
       delete next_;
     }
 
-    std::string str() {
+    std::string STR() override {
       std::stringstream ss(name_);
       if (next_)
-        ss << "." << const_cast<NamedObject*>(next_)->str();
+        ss << "." << const_cast<NamedObject*>(next_)->STR();
       return ss.str();
     }
     // ToDo Implement eval for ObjectCall
-    int eval(EvalContext &ctx) { return -1; };
+    int eval(EvalContext &ctx) override { return -1; };
 
     /** Next parameter in the object call */
     const NamedObject* next_ = nullptr;
@@ -76,16 +76,16 @@ namespace AST {
       // See: https://stackoverflow.com/questions/677620/do-i-need-to-explicitly-call-the-base-virtual-destructor
     }
 
-    std::string str() {
+    std::string STR() override {
       std::stringstream ss;
       ss << name_ << "(" << QuackClass::Parameter::print_container(params_) << ")" << ".";
       if (next_)
-        ss << const_cast<NamedObject*>(next_)->str();
+        ss << const_cast<NamedObject*>(next_)->STR();
       return ss.str();
     }
 
     // ToDo Implement eval for ObjectMethodCall
-    int eval(EvalContext &ctx) { return -1; };
+    int eval(EvalContext &ctx) override { return -1; };
 
     /** Parameters for the function call */
     const AST::QuackClass::Parameter::Container* params_;
@@ -104,16 +104,16 @@ namespace AST {
       }
     }
 
-    std::string str() {
+    std::string STR() override {
       std::stringstream ss;
-      ss << const_cast<AST::NamedObject*>(var_info_)->str();
+      ss << const_cast<AST::NamedObject*>(var_info_)->STR();
       if (!type_name_.empty())
         ss << " : " << type_name_;
       return ss.str();
     }
 
-    int eval(EvalContext &ctx) {
-      std::string loc = const_cast<AST::NamedObject*>(var_info_)->str();
+    int eval(EvalContext &ctx) override {
+      std::string loc = const_cast<AST::NamedObject*>(var_info_)->STR();
       int rvalue = assn_stmt_->eval(ctx);
       ctx.symtab[loc] = rvalue;
       return rvalue;

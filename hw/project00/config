@@ -1,0 +1,6 @@
+[DEFAULT]
+name =  Zayd Hammoudeh
+host =  ix-dev.cs.uoregon.edu
+path = /home/user/zayd/public
+program = scanner
+repo = https://github.com/MichalYoung/proj-pageserver (Links to an external site.)

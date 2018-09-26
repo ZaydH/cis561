@@ -50,10 +50,10 @@
  * is a non-empty sequence of assignments or expressions.
  */
 program: %empty  { *root = new ASTNode(str_to_char_ptr("")); }
-       | body    { $$ = $1; }
+       | body    { *root = $1; }
        ;
 
-body: body leaf { $1->next_=$2; $$ = $1; }
+body: leaf body { $1->next_=$2; $$ = $1; }
     | leaf      { $$ = $1; }
     ;
 

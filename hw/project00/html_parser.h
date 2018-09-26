@@ -9,6 +9,7 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
+#include "Messages.h"
 
 #include "lex.yy.h"
 #include "tree_node.h"
@@ -26,7 +27,7 @@ class HtmlParser {
     } else {
       ss << input_file_path_.substr(0, (int)per_loc)
          << output_label
-         << input_file_path_.substr(per_loc + 1, std::string::npos);
+         << input_file_path_.substr(per_loc, std::string::npos);
     }
     output_file_path_ = ss.str();
   };
@@ -34,23 +35,25 @@ class HtmlParser {
   void run() {
     std::ifstream fin(input_file_path_);
     if (!fin) {
-      std::cerr << "No file found: " << input_file_path_ << ". Exiting...";
+      std::cerr << "No file found: " << input_file_path_ << ". Exiting..."<< std::flush;
       exit(EXIT_FAILURE);
     }
 
 //    yy::Lexer lexer(fin);
-    yy::Lexer lexer(std::cin);
+    yy::Lexer lexer(fin);
     ASTNode *root;
     auto *parser = new yy::parser(lexer, &root);
 
-    // Check if the parsing passed and if so write the output file
-    if (!root) {
-      std::cerr << "Error parsing file: " << input_file_path_;
-    } else {
-      std::cout << "File parse successful.";
-      std::ofstream fout(output_file_path_);
+    std::cout << "Starting parse of file: " << input_file_path_ << std::endl;
+    int result = parser->parse();
+    if (result == 0 && report::ok()) {  // 0 == success, 1 == failure
+      std::cout << "File parse successful."<< std::flush;
+      std::ofstream fout;
+      fout.open(output_file_path_);
       root->PRINT(fout);
       fout.close();
+    } else {
+      std::cerr << "Error parsing file: " << input_file_path_ << std::flush;
     }
     delete parser;
     delete root;

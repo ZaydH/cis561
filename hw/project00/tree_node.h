@@ -7,6 +7,7 @@
 
 #include <string>
 #include <iostream>
+#include <fstream>
 
 class ASTNode {
  public:
@@ -18,8 +19,8 @@ class ASTNode {
     next_ = nullptr;
   }
 
-  const void PRINT(std::ostream &out) {
-    out << value_;
+  void PRINT(std::ostream &out) {
+    out << value_ << std::flush;
     if (next_)
       next_->PRINT(out);
   }

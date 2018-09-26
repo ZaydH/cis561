@@ -34,7 +34,7 @@
            }
 '\"'       { return yy::parser::token::D_QUOTE_RIGHT; }
 '\''       { return yy::parser::token::S_QUOTE_RIGHT; }
-[.]+       { yylval.str = strdup(text());
+.      { yylval.str = strdup(text());
              return yy::parser::token::STRING;
            }
 }

@@ -19,8 +19,8 @@
 
 %%
 <INITIAL,WHITESPACE>{
-'\"'      { return yy::parser::token::D_QUOTE_LEFT; }
-'\''      { return yy::parser::token::S_QUOTE_LEFT; }
+\"        { return yy::parser::token::D_QUOTE_LEFT; }
+\'        { return yy::parser::token::S_QUOTE_LEFT; }
 .         { start(READING_DOC);
             yylval.str = strdup(text());
             return yy::parser::token::STRING;
@@ -28,15 +28,16 @@
 }
 
 <READING_DOC>{
-[ \t\n\r]+ { start(WHITESPACE);
-             yylval.str = strdup(text());
-             return yy::parser::token::STRING;
-           }
-'\"'       { return yy::parser::token::D_QUOTE_RIGHT; }
-'\''       { return yy::parser::token::S_QUOTE_RIGHT; }
-.      { yylval.str = strdup(text());
-             return yy::parser::token::STRING;
-           }
+[ \t\n\r]+      { start(WHITESPACE);
+                    yylval.str = strdup(text());
+                    return yy::parser::token::STRING;
+                }
+\"              { return yy::parser::token::D_QUOTE_RIGHT; }
+\'              { return yy::parser::token::S_QUOTE_RIGHT; }
+  /* Matching everything but the specified characters. */
+[^\"\' \t\n\r]+ { yylval.str = strdup(text());
+                    return yy::parser::token::STRING;
+                }
 }
 %%
 

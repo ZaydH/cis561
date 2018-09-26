@@ -3,6 +3,9 @@ project(project00)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 
+set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
+
 # Where are the reflex include and library files?
 #
 set(REFLEX_LIB "/usr/local/lib/libreflex.a")

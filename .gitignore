@@ -5,6 +5,12 @@
 .idea/
 cmake-build-debug/
 
+# Make Related files
+CMakeCache.txt
+CMakeFiles/
+Release/
+bin/
+
 # Prerequisites
 *.d
 

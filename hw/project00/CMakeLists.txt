@@ -8,8 +8,14 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
 # Where are the reflex include and library files?
 #
-set(REFLEX_LIB "/usr/local/lib/libreflex.a")
-set(REFLEX_INCLUDE "/usr/local/include/reflex")
+
+IF(APPLE)
+  set(REFLEX_LIB "/usr/local/lib/libreflex.a")
+  set(REFLEX_INCLUDE "/usr/local/include/reflex")
+ELSE(APPLE)
+  set(REFLEX_LIB "/home/faculty/michal/classes/cis461/RE-flex/bin/reflex")
+  set(REFLEX_INCLUDE "/home/faculty/michal/classes/cis461/RE-flex/")
+ENDIF(APPLE)
 
 # Run re-Flex
 add_custom_command(
@@ -27,7 +33,7 @@ add_custom_command(
 include_directories(
         ${CMAKE_CURRENT_BINARY_DIR}
         ${REFLEX_INCLUDE}
-        ${CMAKE_CURRENT_SOURCE_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 add_executable(project00 main.cpp lex.yy.cpp lex.yy.h

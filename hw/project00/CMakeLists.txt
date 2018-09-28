@@ -13,8 +13,8 @@ IF(APPLE)
   set(REFLEX_LIB "/usr/local/lib/libreflex.a")
   set(REFLEX_INCLUDE "/usr/local/include/reflex")
 ELSE(APPLE)
-  set(REFLEX_LIB "/home/faculty/michal/classes/cis461/RE-flex/bin/reflex")
-  set(REFLEX_INCLUDE "/home/faculty/michal/classes/cis461/RE-flex/")
+  set(REFLEX_LIB "/home/faculty/michal/classes/cis461/RE-flex/lib/libreflex.a")
+  set(REFLEX_INCLUDE "/home/faculty/michal/classes/cis461/RE-flex/include")
 ENDIF(APPLE)
 
 # Run re-Flex
@@ -34,6 +34,7 @@ include_directories(
         ${CMAKE_CURRENT_BINARY_DIR}
         ${REFLEX_INCLUDE}
 	${CMAKE_CURRENT_SOURCE_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}/Release
 )
 
 add_executable(project00 main.cpp lex.yy.cpp lex.yy.h

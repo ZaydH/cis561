@@ -47,7 +47,7 @@ class HtmlParser {
     std::cout << "Starting parse of file: " << input_file_path_ << std::endl;
     int result = parser->parse();
     if (result == 0 && report::ok()) {  // 0 == success, 1 == failure
-      std::cout << "File parse successful."<< std::flush;
+      std::cout << "File parse successful.\n" << std::flush;
       std::ofstream fout;
       fout.open(output_file_path_);
       root->PRINT(fout);

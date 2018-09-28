@@ -12,14 +12,16 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 IF(APPLE)
   set(REFLEX_LIB "/usr/local/lib/libreflex.a")
   set(REFLEX_INCLUDE "/usr/local/include/reflex")
+  set(REFLEX reflex)
 ELSE(APPLE)
   set(REFLEX_LIB "/home/faculty/michal/classes/cis461/RE-flex/lib/libreflex.a")
   set(REFLEX_INCLUDE "/home/faculty/michal/classes/cis461/RE-flex/include")
+  set(REFLEX "/home/faculty/michal/classes/cis461/RE-flex/bin/reflex")
 ENDIF(APPLE)
 
 # Run re-Flex
 add_custom_command(
-    COMMAND  reflex --bison-cc --bison-locations --header-file ${CMAKE_CURRENT_SOURCE_DIR}/project00.lxx
+    COMMAND  ${REFLEX} --bison-cc --bison-locations --header-file ${CMAKE_CURRENT_SOURCE_DIR}/project00.lxx
     OUTPUT   lex.yy.cpp lex.yy.h
     DEPENDS  project00.lxx project00.tab.hxx
 )
@@ -34,7 +36,6 @@ include_directories(
         ${CMAKE_CURRENT_BINARY_DIR}
         ${REFLEX_INCLUDE}
 	${CMAKE_CURRENT_SOURCE_DIR}
-	${CMAKE_CURRENT_SOURCE_DIR}/Release
 )
 
 add_executable(project00 main.cpp lex.yy.cpp lex.yy.h

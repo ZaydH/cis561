@@ -3,4 +3,5 @@ name =  Zayd Hammoudeh
 host =  ix-dev.cs.uoregon.edu
 path =  /home/users/zayd/repos/cis561/hw/project00/bin
 program = project00
+repo = https://github.com/ZaydH/cis561
 repo_folder = hw/project00/

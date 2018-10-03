@@ -112,7 +112,7 @@ namespace AST {
   class Ident : public LExpr {
     std::string text_;
    public:
-    explicit Ident(std::string txt) : text_{txt} {}
+    explicit Ident(std::string &txt) : text_{txt} {}
 
     std::string str() override { return text_; }
 
@@ -138,7 +138,7 @@ namespace AST {
     ASTNode &left_;
     ASTNode &right_;
 
-    BinOp(std::string sym, ASTNode &l, ASTNode &r) :
+    BinOp(const std::string &sym, ASTNode &l, ASTNode &r) :
         opsym{sym}, left_{l}, right_{r} {};
    public:
     std::string str() {

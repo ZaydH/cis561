@@ -59,6 +59,7 @@ std::string BAD_EOF_IN_BLOCK_COMMENT = "End of file reached before end of block 
   /* Multi-character punctuation with names */
 ==    { return parser::token::EQUALS; }
 [<]=  { return parser::token::ATMOST; }
+[>]=  { return parser::token::ATLEAST; }
 
 
    /* Single character punctuation.  Because a character
@@ -67,7 +68,7 @@ std::string BAD_EOF_IN_BLOCK_COMMENT = "End of file reached before end of block 
     * JFlex/Cup do not let you do this in Java.
     * Here are a few ... there are more.
     */
-[-+*/]  { return text()[0]; }
+[-+*/\{\}:\(\),=;]  { return text()[0]; }
 
   /* Keywords are essentially another kind of punctuation,
    * but since they also match the identifier pattern, we
@@ -78,9 +79,22 @@ std::string BAD_EOF_IN_BLOCK_COMMENT = "End of file reached before end of block 
    * Here are a couple of examples.
    */
 
-class  { return parser::token::CLASS; }
-def    { return parser::token::DEF; }
+class    { return parser::token::CLASS; }
+extends  { return parser::token::EXTENDS; }
+def      { return parser::token::DEF; }
+return   { return parser::token::RETURN; }
 
+typecase { return parser::token::TYPECASE; }
+
+if       { return parser::token::IF; }
+elif     { return parser::token::ELIF; }
+else     { return parser::token::ELSE; }
+
+while    { return parser::token::WHILE; }
+
+and      { return parser::token::AND; }
+or       { return parser::token::OR; }
+not      { return parser::token::NOT; }
 
    /* The following tokens are value-bearing:
     * We pass a value back to the parser by copying
@@ -94,38 +108,8 @@ def    { return parser::token::DEF; }
     * be clobbered by subsequent calls.
     */
 
-[0-9]+                   { yylval.num = atoi(text()); return parser::token::INT_LIT; }
-
-  /* You *can* write a one-line regular expression for matching a quoted string,
-   * but you probably can't read it.  (I can't read mine.)  Scanner states and
-   * simpler patterns are probably a better idea.
-   * You almost certainly scanner states for triple quotes.
-   * The tricky bit is catching errors, such as disallowed escape sequences
-   * and unclosed quotes.
-   */
-
-  /* Ignore whitespace */
-[ \t\n]*  {  }
-
-
-   /*
-    * Handle both types of comments.  The two types will differ primarily in how they handle
-    * New lines, EOF, and \*\/.
-    */
-"/*" { start(BLOCK_COMMENT); }
-<BLOCK_COMMENT>{
-<<EOF>>      { report::error("Unexpected EOF in block comment at line "
-                             + std::to_string(lineno()));
-               start(INITIAL); }
-  /* INITIAL Reserved word for default state. */
-"*/"         { start(INITIAL); }
-\n           /* Do Nothing */
-}
-"//" { start(LINE_COMMENT); }
-  /* INITIAL Reserved word for default state. */
-<LINE_COMMENT><<EOF>>|\n   { start(INITIAL); }
-  /* Anything beside a new line */
-<BLOCK_COMMENT,LINE_COMMENT>. /* Do Nothing */
+[0-9]+                     { yylval.num = atoi(text()); return parser::token::INT_LIT; }
+[[:alpha:]_][[:alnum:]_]*  { yylval.str = strdup(text()); return parser::token::IDENT; }
 
   /**
    * Simple string (i.e., single quote only)
@@ -144,6 +128,7 @@ def    { return parser::token::DEF; }
 \\n         { std::stringstream ss_err;
               ss_err << BAD_NL_STR << " " << WHERE_AT;
               report::error(ss_err.str());
+              start(INITIAL);
             }
 \\r         { ss << '\r'; }
 \\f         { ss << '\f'; }
@@ -153,12 +138,43 @@ def    { return parser::token::DEF; }
               ss_err << "Unknown escape character " << WHERE_AT;
               report::error(ss_err.str());
             }
-  /* INITIAL Reserved word for default state. */
 \" { start(INITIAL);
      yylval.str = const_cast<char*>(ss.str().c_str());
      return yy::parser::token::STRING_LIT;
    }
 }
+
+   /*
+    * Handle both types of comments.  The two types will differ primarily in how they handle
+    * New lines, EOF, and \*\/.
+    */
+"/*" { start(BLOCK_COMMENT); }
+<BLOCK_COMMENT>{
+<<EOF>>      { report::error("Unexpected EOF in block comment " + WHERE_AT);
+               start(INITIAL);
+             }
+"*/"         { start(INITIAL); }
+\n           /* Do Nothing */
+}
+
+"//" { start(LINE_COMMENT); }
+   /* INITIAL Reserved word for default state. */
+<LINE_COMMENT><<EOF>>|\n   { start(INITIAL); }
+  /* Anything beside a new line */
+<BLOCK_COMMENT,LINE_COMMENT>. /* Do Nothing */
+
+
+  /* You *can* write a one-line regular expression for matching a quoted string,
+   * but you probably can't read it.  (I can't read mine.)  Scanner states and
+   * simpler patterns are probably a better idea.
+   * You almost certainly scanner states for triple quotes.
+   * The tricky bit is catching errors, such as disallowed escape sequences
+   * and unclosed quotes.
+   */
+
+  /* Ignore whitespace */
+[ \t\n]*  {  }
+
 
 .  {   std::stringstream ss_err;
        ss_err << "Unexpected character '" << text() << "' " << WHERE_AT;

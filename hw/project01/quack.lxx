@@ -15,16 +15,16 @@
 %}
 
 %{
-/* Externally visible file name --
-* for error messages.
-* FIXME: Need to extract this from structures that reflex passes
-* or else find another way to dig it out.
-*/
+    /* Externally visible file name --
+     * for error messages.
+     * FIXME: Need to extract this from structures that reflex passes
+     * or else find another way to dig it out.
+     */
 std::string yyfilename = "What file is this, anyway?";
 
-/* Some strings can't be matched in one gulp.  We need
- * a buffer in which to assemble them from parts.
- */
+    /* Some strings can't be matched in one gulp.  We need
+     * a buffer in which to assemble them from parts.
+     */
 static std::stringstream ss;
 
 /* Some long messages that don't fit well in the code below */
@@ -32,7 +32,7 @@ static std::stringstream ss;
 std::string BAD_ESC_MSG =
   "Illegal escape code; only \\\\, \\0, \\t, \\n, \\r, \\n are permitted";
 std::string BAD_NL_STR =
-  "Unclosed string?  Encountered newline in quoted string at line ";
+  "Unclosed string?  Encountered newline in quoted string";
 std::string BAD_EOF_IN_BLOCK_COMMENT = "End of file reached before end of block comment.";
 
 %}
@@ -68,7 +68,7 @@ std::string BAD_EOF_IN_BLOCK_COMMENT = "End of file reached before end of block 
     * JFlex/Cup do not let you do this in Java.
     * Here are a few ... there are more.
     */
-[-+*/\{\}:\(\),=;]  { return text()[0]; }
+[-+*/{}:().,=;<>]  { return text()[0]; }
 
   /* Keywords are essentially another kind of punctuation,
    * but since they also match the identifier pattern, we
@@ -139,7 +139,7 @@ not      { return parser::token::NOT; }
      ss.str(""); /*clear the stringstream */
    }
 <SIMPLE_STRING>{
-[^\\"\n<<EOF>>]+   { ss << text(); }
+[^\\"\n]+   { ss << text(); }
 \\0         { ss << '\0'; }
 \\b         { ss << '\b'; }
 \\t         { ss << '\t'; }
@@ -155,10 +155,7 @@ not      { return parser::token::NOT; }
 \n          { std::stringstream ss_err;
               ss_err << BAD_NL_STR << " " << WHERE_AT;
               report::error(ss_err.str());
-
-              yylval.str = const_cast<char*>(ss.str().c_str());
               start(INITIAL);
-              return yy::parser::token::STRING_LIT;
             }
 \"          { start(INITIAL);
               yylval.str = const_cast<char*>(ss.str().c_str());

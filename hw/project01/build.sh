@@ -8,7 +8,7 @@ make
 cd ..
 
 BIN_DIR=bin
-BIN_NAME=project00
+BIN_NAME=project01
 chmod 777 $BIN_DIR
 chmod 777 $BIN_DIR/$BIN_NAME
 

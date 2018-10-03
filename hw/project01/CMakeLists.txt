@@ -43,6 +43,7 @@ add_executable(project01
                lex.yy.h lex.yy.cpp
                Messages.h Messages.cpp
                ASTNode.h ASTNode.cpp
+               location.hh position.hh quack.tab.hxx stack.hh
                )
 
 target_link_libraries(project01 ${REFLEX_LIB})

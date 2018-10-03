@@ -112,24 +112,38 @@ not      { return parser::token::NOT; }
 [[:alpha:]_][[:alnum:]_]*  { yylval.str = strdup(text()); return parser::token::IDENT; }
 
   /**
+   * Block string
+   */
+\"\"\" { start(BLOCK_STRING); ss.str("");/*clear the stringstream */ }
+<SIMPLE_STRING,BLOCK_STRING>{
+<<EOF>>     { report::error("Invalid EOF in string on line " + std::to_string(lineno()));
+              start(INITIAL);
+              return EOF;
+            }
+}
+<BLOCK_STRING>{
+\"\"\"       { start(INITIAL);
+               yylval.str = const_cast<char*>(ss.str().c_str());
+               return yy::parser::token::STRING_LIT;
+             }
+[^\"\"\"]+   { ss << text(); }
+}
+
+  /**
    * Simple string (i.e., single quote only)
    *
    * Based on: https://stackoverflow.com/questions/5418181/flex-lex-encoding-strings-with-escaped-characters
    */
   /** ToDo Fill-in simple string */
 \" { start(SIMPLE_STRING);
-     ss.str("");/*clear the stringstream */
+     ss.str(""); /*clear the stringstream */
    }
 <SIMPLE_STRING>{
-[^\\"\n<<EOF>>]*   { ss << text(); }
+[^\\"\n<<EOF>>]+   { ss << text(); }
 \\0         { ss << '\0'; }
 \\b         { ss << '\b'; }
 \\t         { ss << '\t'; }
-\\n         { std::stringstream ss_err;
-              ss_err << BAD_NL_STR << " " << WHERE_AT;
-              report::error(ss_err.str());
-              start(INITIAL);
-            }
+\\n         { ss << '\n'; }
 \\r         { ss << '\r'; }
 \\f         { ss << '\f'; }
 \\\"        { ss << '\"'; }
@@ -138,10 +152,18 @@ not      { return parser::token::NOT; }
               ss_err << "Unknown escape character " << WHERE_AT;
               report::error(ss_err.str());
             }
-\" { start(INITIAL);
-     yylval.str = const_cast<char*>(ss.str().c_str());
-     return yy::parser::token::STRING_LIT;
-   }
+\n          { std::stringstream ss_err;
+              ss_err << BAD_NL_STR << " " << WHERE_AT;
+              report::error(ss_err.str());
+
+              yylval.str = const_cast<char*>(ss.str().c_str());
+              start(INITIAL);
+              return yy::parser::token::STRING_LIT;
+            }
+\"          { start(INITIAL);
+              yylval.str = const_cast<char*>(ss.str().c_str());
+              return yy::parser::token::STRING_LIT;
+            }
 }
 
    /*
@@ -150,18 +172,20 @@ not      { return parser::token::NOT; }
     */
 "/*" { start(BLOCK_COMMENT); }
 <BLOCK_COMMENT>{
-<<EOF>>      { report::error("Unexpected EOF in block comment " + WHERE_AT);
-               start(INITIAL);
-             }
+<<EOF>>      { report::error("Unexpected EOF in block comment " + WHERE_AT); }
 "*/"         { start(INITIAL); }
 \n           /* Do Nothing */
 }
 
 "//" { start(LINE_COMMENT); }
    /* INITIAL Reserved word for default state. */
-<LINE_COMMENT><<EOF>>|\n   { start(INITIAL); }
+<LINE_COMMENT>{
+<<EOF>>|\n   { start(INITIAL); }
+}
   /* Anything beside a new line */
-<BLOCK_COMMENT,LINE_COMMENT>. /* Do Nothing */
+<BLOCK_COMMENT,LINE_COMMENT>{
+. /* Do Nothing */
+}
 
 
   /* You *can* write a one-line regular expression for matching a quoted string,

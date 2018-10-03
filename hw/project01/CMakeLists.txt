@@ -1,29 +1,36 @@
-cmake_minimum_required(VERSION 3.12)
-project(QuackParser)
-
+cmake_minimum_required(VERSION 3.10)
+project(project01)
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 
-cmake_minimum_required(VERSION 3.12)
-
+set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
 # Where are the reflex include and library files?
 #
-set(REFLEX_LIB "/usr/local/lib/libreflex.a")
-set(REFLEX_INCLUDE "/usr/local/include/reflex")
 
-# Recipes for generating C++ source files from .lxx and .yxx files
-#
+IF(APPLE)
+  set(REFLEX_LIB "/usr/local/lib/libreflex.a")
+  set(REFLEX_INCLUDE "/usr/local/include/reflex")
+  set(REFLEX reflex)
+ELSE(APPLE)
+  set(REFLEX_LIB "/home/faculty/michal/classes/cis461/RE-flex/lib/libreflex.a")
+  set(REFLEX_INCLUDE "/home/faculty/michal/classes/cis461/RE-flex/include")
+  set(REFLEX "/home/faculty/michal/classes/cis461/RE-flex/bin/reflex")
+ENDIF(APPLE)
 
+# Run re-Flex
 add_custom_command(
-        OUTPUT lex.yy.cpp lex.yy.h
-        COMMAND   reflex --bison-cc --bison-locations --header-file ${CMAKE_CURRENT_SOURCE_DIR}/quack.lxx
-        DEPENDS quack.lxx quack.tab.hxx
+    COMMAND  ${REFLEX} --bison-cc --bison-locations --header-file ${CMAKE_CURRENT_SOURCE_DIR}/quack.lxx
+    OUTPUT   lex.yy.cpp lex.yy.h
+    DEPENDS  quack.lxx quack.tab.hxx
 )
-add_custom_command(
-        OUTPUT quack.tab.cxx quack.tab.hxx location.hh position.hh stack.hh
-        COMMAND bison -d ${CMAKE_CURRENT_SOURCE_DIR}/quack.yxx
-        DEPENDS quack.yxx
-)
+## Run Bison
+#add_custom_command(
+#    COMMAND bison -d -v ${CMAKE_CURRENT_SOURCE_DIR}/project00.yxx --report-file=debug.output
+#    OUTPUT  quack.tab.cxx quack.tab.hxx location.hh position.hh stack.hh
+#    DEPENDS quack.yxx
+#)
 
 include_directories(
         ${CMAKE_CURRENT_BINARY_DIR}
@@ -31,18 +38,11 @@ include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-add_executable(parser
-        quack.tab.cxx lex.yy.cpp lex.yy.h
-        parser.cpp ASTNode.cpp ASTNode.h Messages.h Messages.cpp )
+add_executable(project01
+               main.cpp
+               lex.yy.h lex.yy.cpp
+               Messages.h Messages.cpp
+               ASTNode.h ASTNode.cpp
+               )
 
-add_executable(lexer
-        main.cpp
-        lex.yy.cpp lex.yy.h
-        location.hh position.hh
-        quack.tab.hxx
-        ASTNode.cpp ASTNode.h Messages.h Messages.cpp
-        names.h)
-
-
-target_link_libraries(parser ${REFLEX_LIB})
-target_link_libraries(lexer ${REFLEX_LIB})
+target_link_libraries(project01 ${REFLEX_LIB})

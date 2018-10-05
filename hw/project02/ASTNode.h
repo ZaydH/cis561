@@ -25,10 +25,6 @@ namespace AST {
     virtual void print_original_src(unsigned int indent_depth = 0) = 0;
   };
 
-  class EvalContext {
-    /* To be filled in later */
-  };
-
   /* A block is a sequence of statements or expressions.
    * For simplicity we'll just make it a sequence of ASTNode,
    * and leave it to the parser to build valid structures.
@@ -220,6 +216,90 @@ namespace AST {
       if (!body_->empty())
         std::cout << "\n";
       std::cout << indent_str << "}";
+    }
+  };
+
+  class Assn : public ASTNode {
+   public:
+    ASTNode* lhs_;
+    ASTNode* rhs_;
+
+    Assn(ASTNode* lhs, ASTNode* rhs) : lhs_(lhs), rhs_(rhs) {};
+
+    ~Assn() {
+      delete lhs_;
+      delete rhs_;
+    }
+
+    void print_original_src(unsigned int indent_depth = 0) {
+      lhs_->print_original_src(indent_depth);
+      std::cout << " = ";
+      rhs_->print_original_src(indent_depth);
+    }
+  };
+
+  class RhsArgs : public ASTNode {
+   public:
+    std::vector<ASTNode*> args_;
+
+    RhsArgs() {}
+
+    ~RhsArgs() {
+      for (const auto &arg: args_)
+        delete arg;
+    }
+
+    unsigned long count() { return args_.size(); }
+
+    bool empty() { return args_.empty(); }
+
+    void add(ASTNode* new_node) { args_.emplace_back(new_node); }
+
+    void print_original_src(unsigned int indent_depth) {
+      bool is_first = true;
+      for (const auto &arg : args_) {
+        if (!is_first)
+          std::cout << ", ";
+        is_first = false;
+        arg->print_original_src(indent_depth);
+      }
+    }
+  };
+
+  class ObjectCall : public ASTNode {
+   public:
+    ASTNode* object_;
+    ASTNode* next_;
+
+    ObjectCall(ASTNode* object, ASTNode* next) : object_(object), next_(next) {}
+
+    ~ObjectCall() {
+      delete object_;
+      delete next_;
+    }
+
+    void print_original_src(unsigned int indent_depth) {
+      object_->print_original_src(indent_depth);
+      std::cout << ".";
+      next_->print_original_src(indent_depth);
+    }
+  };
+
+  class FunctionCall : public ASTNode {
+   public:
+    std::string ident_;
+    RhsArgs* args_;
+
+    FunctionCall(char* ident, RhsArgs* args) : ident_(ident), args_(args) {}
+
+    ~FunctionCall() {
+      delete args_;
+    }
+
+    void print_original_src(unsigned int indent_depth) {
+      std::cout << ident_ << "(";
+      args_->print_original_src(indent_depth);
+      std::cout << ")";
     }
   };
 }

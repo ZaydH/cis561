@@ -13,5 +13,6 @@
 #define CLASS_STR "String"
 #define CLASS_OBJ "Object"
 #define CLASS_BOOL "Boolean"
+#define CLASS_NOTHING "Nothing"
 
 #endif //PROJECT02_KEYWORDS_H

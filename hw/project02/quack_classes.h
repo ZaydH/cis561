@@ -52,6 +52,8 @@ namespace Quack {
       std::map<std::string,const Class*> classes_;
     };
 
+    Class(char* name) : name_(name) {}
+
    private:
     /** Name of the class */
     const std::string name_;

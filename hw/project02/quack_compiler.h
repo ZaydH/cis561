@@ -76,10 +76,12 @@ namespace Quack {
 
     void parse(std::istream &f_in) {
       yy::Lexer lexer(f_in);
-      Quack::Program* prog;
-      yy::parser * parser = new yy::parser(lexer, &prog);
-//
-//      delete parser;
+      yy::parser * parser = new yy::parser(lexer, progs_.back());
+
+      if (parser->parse() != 0)
+        std::cout << "Parse failed, no tree\n";
+
+      delete parser;
     }
     /**
      * Select to run the compiler in debug mode.

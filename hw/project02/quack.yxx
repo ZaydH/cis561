@@ -25,7 +25,7 @@
 %define parse.trace
 
 %parse-param { yy::Lexer& lexer }  /* Construct parser object with lexer */
-%parse-param { Quack::Program** root }  /* Pass the quack program back to the tool */
+%parse-param { Quack::Program* root }  /* Pass the quack program back to the tool */
 
 %code{
     #include "lex.yy.h"
@@ -67,6 +67,8 @@
 %type <q_class> q_class
 %type <block> block
 
+%type <str> super_class
+
 // Precedence.  We are using an ambiguous expression grammar
 // for compactness.  We declare operator precedence from lowest
 // to highest, with associativity, e.g., MINUS is left_ associative
@@ -85,7 +87,7 @@
 /* Root of the grammar is "program".  A program
  * is a non-empty sequence of assignments or expressions.
  */
-program: classes block  { *root = new Quack::Program($1, $2); }
+program: classes block  { root = new Quack::Program($1, $2); }
        ;
 
 classes: q_class classes  { $2->add($1);
@@ -94,8 +96,12 @@ classes: q_class classes  { $2->add($1);
        | %empty           { $$ = new Quack::Class::Container(); }
        ;
 
-q_class: CLASS IDENT '(' ')' '{' '}' { $$ = new Quack::Class(); }
+q_class: CLASS IDENT '(' ')' super_class '{' '}' { $$ = new Quack::Class($2); }
        ;
+
+super_class: EXTENDS IDENT { $$ = $2; }
+           | %empty        { $$ = strdup(""); }
+           ;
 
 block  : %empty            { $$ = new AST::Block(); }
        ;

@@ -196,5 +196,31 @@ namespace AST {
       right_->print_original_src();
     }
   };
+
+  class While : public ASTNode {
+   public:
+    ASTNode* cond_;
+    Block* body_;
+
+    explicit While(ASTNode* cond, Block* body) : cond_(cond), body_(body) {};
+
+    ~While() {
+      delete cond_;
+      delete body_;
+    }
+
+    void print_original_src(unsigned int indent_depth = 0) override {
+      std::string indent_str = std::string(indent_depth, '\t');
+      std::cout << "While ";
+      cond_->print_original_src();
+      std::cout << " {\n";
+
+      body_->print_original_src(indent_depth + 1);
+
+      if (!body_->empty())
+        std::cout << "\n";
+      std::cout << indent_str << "}";
+    }
+  };
 }
 #endif //ASTNODE_H

@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
 
 #include "ASTNode.h"
 #include "quack_classes.h"
@@ -15,7 +16,7 @@ namespace Quack {
 
   class Program {
    public:
-    explicit Program(const Class::Container *classes, const AST::Block *block) :
+    explicit Program(Class::Container *classes, AST::Block *block) :
        classes_(classes), block_(block) {};
 
     ~Program() {
@@ -23,9 +24,18 @@ namespace Quack {
       delete block_;
     }
 
+    void print_original_src() {
+      if (classes_)
+        classes_->print_original_src(0);
+      std::cout << "\n";
+      if (block_)
+        block_->print_original_src(0);
+      std::cout << std::flush;
+    }
+
    private:
-    const Class::Container *classes_;
-    const AST::Block* block_;
+    Class::Container *classes_;
+    AST::Block* block_;
   };
 }
 

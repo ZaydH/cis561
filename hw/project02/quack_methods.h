@@ -3,32 +3,59 @@
 //
 
 #include <map>
+#include <string>
+#include <iostream>
 
+#include "keywords.h"
 #include "ASTNode.h"
+#include "quack_params.h"
 
 #ifndef PROJECT02_QUACK_METHODS_H
 #define PROJECT02_QUACK_METHODS_H
 
 namespace Quack {
-
-  class Class;
-
   class Method {
    public:
-    typedef MapContainer<Method> Container;
+    class Container : public MapContainer<Method> {
+     public:
+      const void print_original_src(unsigned int indent_depth) override {
+        MapContainer<Method>::print_original_src_(indent_depth, "\n");
+      }
+    };
 
-    Method(const std::string &name, const std::string &return_type, AST::Block* block)
-      : name_(name), return_type_name_(return_type), block_(block) {};
+    Method(const std::string &name, const std::string &return_type,
+           Param::Container* params, AST::Block* block)
+      : name_(name), return_type_name_(return_type), params_(params), block_(block) { };
 
     ~Method() {
+      delete params_;
       delete block_;
     };
+    /**
+     * Debug method used to print the original source code.
+     * @param indent_depth
+     */
+    void print_original_src(unsigned int indent_depth = 0) {
+      std::string indent_str = std::string(indent_depth, '\t');
+      std::cout << indent_str << KEY_DEF << " " << name_ << "(" <<  std::flush;
+      params_->print_original_src(0);
+      std::cout << ")";
+
+      if (return_type_name_ != "")
+        std::cout << " " << ": " << return_type_name_;
+
+      std::cout << " {\n";
+      block_->print_original_src(indent_depth + 1);
+      std::cout << indent_str << "}";
+    }
+
     /** Name of the method */
     std::string name_;
-
-   private:
     /** Name of the return type of the method (if any) */
     std::string return_type_name_;
+
+   private:
+    Param::Container* params_;
     /** Statements (if any) to perform in method */
     AST::Block* block_;
   };

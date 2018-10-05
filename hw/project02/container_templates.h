@@ -5,6 +5,7 @@
 #include <string>
 #include <map>
 #include <set>
+#include <iostream>
 
 #ifndef PROJECT02_CONTAINER_TEMPLATES_H
 #define PROJECT02_CONTAINER_TEMPLATES_H
@@ -12,11 +13,16 @@
 
 template<typename _T>
 class ObjectContainer {
-  virtual ~ObjectContainer() = default;
+ private:
   virtual bool exists(const std::string &obj_name) = 0;
   virtual void add(_T *new_obj) = 0;
   virtual _T* get(const std::string &str) = 0;
   virtual unsigned long count() = 0;
+ public:
+  virtual ~ObjectContainer() = default;
+  bool empty() { return count() == 0; };
+
+  virtual const void print_original_src(unsigned int indent_depth) = 0;
 };
 
 
@@ -68,6 +74,21 @@ class MapContainer : public ObjectContainer<_T> {
    * @return Numebr of objects in the container
    */
   unsigned long count() { return objs_.size(); }
+  /**
+   * Print the object container for debug.
+   *
+   * @param indent_depth
+   */
+  const void print_original_src_(unsigned int indent_depth, const std::string &print_sep) {
+    bool is_first = true;
+
+    for (auto &pair : objs_) {
+      if (!is_first)
+        std::cout << print_sep;
+      is_first = false;
+      pair.second->print_original_src(indent_depth);
+    }
+  }
  private:
   std::map<std::string,_T*> objs_;
 };
@@ -75,6 +96,7 @@ class MapContainer : public ObjectContainer<_T> {
 
 template<typename _T>
 class VectorContainer : public ObjectContainer<_T> {
+ public:
   VectorContainer() = default;
 
   ~VectorContainer() {
@@ -93,16 +115,39 @@ class VectorContainer : public ObjectContainer<_T> {
    * @param new_obj Object to add.
    */
   void add(_T* new_obj) {
-    if (exists(new_obj->name))
-      throw("Duplicate parameter name: " + new_obj->name);
+    if (exists(new_obj->name_))
+      throw("Duplicate parameter name: " + new_obj->name_);
     objs_.emplace_back(new_obj);
-    names_ |= { new_obj->name_ };
+    names_.emplace(new_obj->name_);
   };
+  _T* get(const std::string &name) {
+    if (!exists(name))
+      return nullptr;
+    for (auto &obj: objs_)
+      if (obj->name_ == name)
+        return obj;
+    throw("Unable to get method name: " + name);
+  }
   /**
    * Accessor for the container element count.
    * @return Number of elements in the container.
    */
   unsigned long count() { return objs_.size(); }
+  /**
+   * Print the object container for debug.
+   *
+   * @param indent_depth
+   */
+  const void print_original_src_(unsigned int indent_depth, const std::string &print_sep) {
+    bool is_first = true;
+
+    for (auto &obj : objs_) {
+      if (!is_first)
+        std::cout << print_sep;
+      is_first = false;
+      obj->print_original_src(indent_depth);
+    }
+  }
 
  private:
   std::vector<_T*> objs_;

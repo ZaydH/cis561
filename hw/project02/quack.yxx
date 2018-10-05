@@ -25,7 +25,7 @@
 %define parse.trace
 
 %parse-param { yy::Lexer& lexer }  /* Construct parser object with lexer */
-%parse-param { Quack::Program* root }  /* Pass the quack program back to the tool */
+%parse-param { Quack::Program** root }  /* Pass the quack program back to the tool */
 
 %code{
     #include "lex.yy.h"
@@ -45,7 +45,8 @@
     Quack::Class* q_class;
     Quack::Method::Container* methods;
     Quack::Method* method;
-
+    Quack::Param::Container* params;
+    Quack::Param* param;
 
     AST::Block*block;
 }
@@ -71,6 +72,8 @@
 %type <q_class> q_class
 %type <methods> methods
 %type <method> method
+%type <params> params all_params
+%type <param> param
 %type <str> var_type
 
 
@@ -96,7 +99,7 @@
 /* Root of the grammar is "program".  A program
  * is a non-empty sequence of assignments or expressions.
  */
-program: classes block  { root = new Quack::Program($1, $2); }
+program: classes block  { *root = new Quack::Program($1, $2); }
        ;
 
 classes: q_class classes  { $2->add($1);
@@ -105,14 +108,24 @@ classes: q_class classes  { $2->add($1);
        | %empty           { $$ = Quack::Class::Container::singleton(); }
        ;
 
-q_class: CLASS IDENT '(' input_params ')' super_class '{' block methods '}'
-            { $$ = new Quack::Class($2, $6, $8, $9); }
+    /**
+     * Parses a Quack Class
+     */
+q_class: CLASS IDENT '(' all_params ')' super_class '{' block methods '}'
+            { $$ = new Quack::Class($2, $6, $4, $8, $9); }
        ;
-input_params: %empty {}
-            | input_params ',' param {}
-            | param {}
-param: IDENT            {}
-     | IDENT ':' IDENT  {}
+all_params: %empty { $$ = new Quack::Param::Container(); }
+          | params { $$ = $1; }
+params: params ',' param {
+                            $1->add($3);
+                            $$=$1;
+                         }
+      | param {   $$ = new Quack::Param::Container();
+                  $$->add($1);
+               }
+      ;
+param: IDENT            { $$ = new Quack::Param($1); }
+     | IDENT ':' IDENT  { $$ = new Quack::Param($1, $3); }
      ;
 
 super_class: EXTENDS IDENT { $$ = $2; }
@@ -125,8 +138,8 @@ methods: method methods {
                         }
        | %empty { $$ = new Quack::Method::Container(); }
        ;
-method: DEF IDENT '(' input_params ')' var_type '{' block '}'
-           { $$ = new Quack::Method($2, $6, $8); }
+method: DEF IDENT '(' all_params ')' var_type '{' block '}'
+           { $$ = new Quack::Method($2, $6, $4, $8); }
       ;
 var_type: ':' IDENT      { $$ = $2; }
         | %empty         { $$ = strdup(""); }

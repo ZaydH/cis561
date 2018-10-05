@@ -8,6 +8,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <iostream>
 
 namespace AST {
   // Abstract syntax tree.  ASTNode is abstract base class for all other nodes.
@@ -20,6 +21,12 @@ namespace AST {
     virtual std::string str() = 0;
 
     virtual ~ASTNode() = default;
+
+    void print_original_src(unsigned int indent_depth) {
+      std::string indent_str = std::string(indent_depth, '\t');
+      // ToDo add printing of original src
+      std::cout << indent_str << "";
+    }
   };
 
   class EvalContext {
@@ -48,6 +55,18 @@ namespace AST {
       }
       return ss.str();
     }
+
+    void print_original_src(unsigned int indent_depth) {
+      bool is_first = true;
+      for (const auto &stmt : stmts_) {
+       if (!is_first)
+         std::cout << "\n";
+       is_first = false;
+       stmt->print_original_src(indent_depth);
+      }
+    }
+
+    bool empty() { return stmts_.empty(); }
    private:
     std::vector<ASTNode *> stmts_;
   };

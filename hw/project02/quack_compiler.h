@@ -4,6 +4,7 @@
 
 #include <string>
 #include <fstream>
+#include <iostream>
 
 #include "quack_program.h"
 #include "lex.yy.h"
@@ -76,11 +77,15 @@ namespace Quack {
 
     void parse(std::istream &f_in) {
       yy::Lexer lexer(f_in);
-      yy::parser * parser = new yy::parser(lexer, progs_.back());
+      Quack::Program* prog;
+      yy::parser *parser = new yy::parser(lexer, &prog);
 
-      if (parser->parse() != 0)
+      if (parser->parse() != 0 && report::ok()) {
         std::cout << "Parse failed, no tree\n";
-
+      } else {
+        if (debug_)
+          prog->print_original_src();
+      }
       delete parser;
     }
     /**

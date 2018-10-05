@@ -43,8 +43,11 @@
 
     Quack::Class::Container* classes;
     Quack::Class* q_class;
+    Quack::Method::Container* methods;
+    Quack::Method* method;
 
-    AST::Block* block;
+
+    AST::Block*block;
 }
 
 // The following token values are actually used
@@ -64,7 +67,13 @@
 // Abstract syntax tree nodes
 %type <program> program
 %type <classes> classes
+
 %type <q_class> q_class
+%type <methods> methods
+%type <method> method
+%type <str> var_type
+
+
 %type <block> block
 
 %type <str> super_class
@@ -93,17 +102,37 @@ program: classes block  { root = new Quack::Program($1, $2); }
 classes: q_class classes  { $2->add($1);
                             $$=$2;
                           }
-       | %empty           { $$ = new Quack::Class::Container(); }
+       | %empty           { $$ = Quack::Class::Container::singleton(); }
        ;
 
-q_class: CLASS IDENT '(' ')' super_class '{' '}' { $$ = new Quack::Class($2); }
+q_class: CLASS IDENT '(' input_params ')' super_class '{' block methods '}'
+            { $$ = new Quack::Class($2, $6, $8, $9); }
        ;
+input_params: %empty {}
+            | input_params ',' param {}
+            | param {}
+param: IDENT            {}
+     | IDENT ':' IDENT  {}
+     ;
 
 super_class: EXTENDS IDENT { $$ = $2; }
            | %empty        { $$ = strdup(""); }
            ;
 
-block  : %empty            { $$ = new AST::Block(); }
+methods: method methods {
+                          $2->add($1);
+                          $$ = $2;
+                        }
+       | %empty { $$ = new Quack::Method::Container(); }
+       ;
+method: DEF IDENT '(' input_params ')' var_type '{' block '}'
+           { $$ = new Quack::Method($2, $6, $8); }
+      ;
+var_type: ':' IDENT      { $$ = $2; }
+        | %empty         { $$ = strdup(""); }
+        ;
+
+block  : %empty             { $$ = new AST::Block(); }
        ;
 %%
 #include "Messages.h"

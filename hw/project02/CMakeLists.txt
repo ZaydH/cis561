@@ -45,7 +45,7 @@ include_directories(
 add_executable(${BIN_NAME}
                main.cpp
                quack_program.h
-               quack_classes.h
+               quack_classes.h quack_classes.cpp
                lex.yy.h lex.yy.cpp quack.tab.cxx
                Messages.h Messages.cpp
                ASTNode.h ASTNode.cpp

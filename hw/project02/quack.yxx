@@ -79,7 +79,7 @@
 %type <str> var_type
 
 %type <block> block if_alternatives
-%type <node> boolean_lit expr ifstmt
+%type <node> stmt expr ifstmt
 
 
 // Precedence.  We are using an ambiguous expression grammar
@@ -152,10 +152,14 @@ var_type: ':' IDENT      { $$ = $2; }
         ;
 
 block: %empty         { $$ = new AST::Block(); }
-     | block expr ';' { $1->append($2);
+     | block stmt     { $1->append($2);
                         $$ = $1;
                       }
      ;
+
+stmt: ifstmt          { $$ = $1; }
+    | expr ';'        { $$ = $1; }
+    ;
 
 expr: '(' expr ')'      { $$ = $2; }
     | expr '+' expr     { $$ = new AST::BinOp("+", $1, $3); }
@@ -173,28 +177,23 @@ expr: '(' expr ')'      { $$ = $2; }
     | '-' expr          { $$ = new AST::UniOp("-", $2); }
     | NOT expr          { $$ = new AST::UniOp("not", $2); }
     | INT_LIT           { $$ = new AST::IntLit($1); }
-    | boolean_lit       { $$ = $1; }
     | IDENT             { $$ = new AST::Ident($1); }
     | STRING_LIT        { $$ = new AST::StrLit($1); }
-    | ifstmt            { $$ = $1; }
     | RETURN expr       { $$ = new AST::Return($2); }
+    | "true"            { $$ = new AST::BoolLit(true); }
+    | "false"           { $$ = new AST::BoolLit(false); }
 // ToDo Unimplemented expressions
 //    | expr = expr       {  }
     ;
 
-ifstmt: IF expr '{' block '}' if_alternatives
-                { $$ = new AST::If($2, $4, $6); }
-      ;
-if_alternatives:   %empty /* empty */  { $$ = new AST::Block(); };
-if_alternatives:   ELSE '{' block '}'   { $$ = $3; };
-if_alternatives:   ELIF expr '{' block '}' if_alternatives
-             {  $$ = new AST::Block();
-                $$->append(new AST::If($2, $4, $6));
-             };
-
-boolean_lit: "true"     { $$ = new AST::BoolLit(true); }
-           | "false"    { $$ = new AST::BoolLit(false); }
-           ;
+ifstmt: IF expr '{' block '}' if_alternatives { $$ = new AST::If($2, $4, $6); } ;
+if_alternatives:   %empty /* empty */  { $$ = new AST::Block(); }
+               |   ELSE '{' block '}'  { $$ = $3; };
+               |   ELIF expr '{' block '}' if_alternatives
+                                 {  $$ = new AST::Block();
+                                    $$->append(new AST::If($2, $4, $6));
+                                 }
+               ;
 
 %%
 #include "Messages.h"

@@ -33,7 +33,7 @@ namespace Quack {
     };
     /**
      * Debug method used to print the original source code.
-     * @param indent_depth
+     * @param indent_depth Amount of tabs to indent the block.
      */
     void print_original_src(unsigned int indent_depth = 0) {
       std::string indent_str = std::string(indent_depth, '\t');
@@ -46,7 +46,7 @@ namespace Quack {
 
       std::cout << " {\n";
       block_->print_original_src(indent_depth + 1);
-      std::cout << indent_str << "}";
+      std::cout << (!block_->empty() ? "\n" : "") << indent_str << "}";
     }
 
     /** Name of the method */

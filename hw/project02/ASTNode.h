@@ -46,14 +46,14 @@ namespace AST {
 
     void print_original_src(unsigned int indent_depth) {
       bool is_first = true;
-      std::string indent_str = std::string(indent_depth, '\n');
+      std::string indent_str = std::string(indent_depth, '\t');
       for (const auto &stmt : stmts_) {
        if (!is_first)
          std::cout << "\n";
        is_first = false;
 
        std::cout << indent_str;
-       stmt->print_original_src();
+       stmt->print_original_src(indent_depth);
        std::cout << ";";
       }
     }
@@ -79,13 +79,17 @@ namespace AST {
 
     void print_original_src(unsigned int indent_depth = 0) override {
       std::string indent_str = std::string(indent_depth, '\t');
-      std::cout << "If (";
+      std::cout << "If ";
       cond_->print_original_src();
-      std::cout << ") {\n";
+      std::cout << " {\n";
       truepart_->print_original_src(indent_depth + 1);
-      std::cout << "\n" << indent_str << "} else {\n";
-      falsepart_->print_original_src(indent_depth);
-      std::cout << "\n" << indent_str << "}";
+      std::cout << (!truepart_->empty() ? "\n" : "") << indent_str << "}";
+
+      if (!falsepart_->empty()) {
+        std::cout << " else {\n";
+        falsepart_->print_original_src(indent_depth + 1);
+        std::cout << "\n" << indent_str << "}";
+      }
     }
   };
 

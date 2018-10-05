@@ -25,7 +25,7 @@
 %define parse.trace
 
 %parse-param { yy::Lexer& lexer }  /* Construct parser object with lexer */
-%parse-param { Quack::Program** prog }  /* Pass the quack program back to the tool */
+%parse-param { Quack::Program** root }  /* Pass the quack program back to the tool */
 
 %code{
     #include "lex.yy.h"
@@ -91,7 +91,7 @@ program: classes block  { *root = new Quack::Program($1, $2); }
 classes: q_class classes  { $2->add($1);
                             $$=$2;
                           }
-       | %empty           { $$ = new Quack::Classes(); }
+       | %empty           { $$ = new Quack::Class::Container(); }
        ;
 
 q_class: CLASS IDENT '(' ')' '{' '}' { $$ = new Quack::Class(); }
@@ -100,3 +100,9 @@ q_class: CLASS IDENT '(' ')' '{' '}' { $$ = new Quack::Class(); }
 block  : %empty            { $$ = new AST::Block(); }
        ;
 %%
+#include "Messages.h"
+
+void yy::parser::error(const location_type& loc, const std::string& msg)
+{
+  report::error_at(loc, msg);
+}

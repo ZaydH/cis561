@@ -32,7 +32,7 @@ namespace Quack {
       void add(const Class *new_class) {
         if (exists(new_class->name_))
           throw("Duplicate class: " + new_class->name_);
-        classes_.emplace(new_class->name_, new_class);
+        classes_[new_class->name_] = new_class;
       }
       /**
        * Extract the specified class by its class name. If the specified class name does not
@@ -42,14 +42,14 @@ namespace Quack {
        * @return A pointer to the class with the specified name if it exists and
        * nullptr otherwise.
        */
-      Class* get(const std::string &str) {
+      const Class* get(const std::string &str) {
         auto itr = classes_.find(str);
         if (itr == classes_.end())
           return nullptr;
         return itr->second;
       }
      private:
-      std::map<std::string,Class*> classes_;
+      std::map<std::string,const Class*> classes_;
     };
 
    private:

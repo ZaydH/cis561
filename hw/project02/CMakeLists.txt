@@ -46,10 +46,9 @@ add_executable(${BIN_NAME}
                main.cpp
                quack_program.h
                quack_classes.h
-               lex.yy.h lex.yy.cpp
+               lex.yy.h lex.yy.cpp quack.tab.cxx
                Messages.h Messages.cpp
                ASTNode.h ASTNode.cpp
-               location.hh position.hh quack.tab.hxx stack.hh
                )
 
 target_link_libraries(${BIN_NAME} ${REFLEX_LIB})

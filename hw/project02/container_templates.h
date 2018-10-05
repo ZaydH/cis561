@@ -89,7 +89,8 @@ class MapContainer : public ObjectContainer<_T> {
       pair.second->print_original_src(indent_depth);
     }
   }
- private:
+
+ protected:
   std::map<std::string,_T*> objs_;
 };
 

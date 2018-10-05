@@ -8,6 +8,7 @@
 
 #include "quack_program.h"
 #include "lex.yy.h"
+#include "quack_classes.h"
 
 #ifndef PROJECT01_QUACKCOMPILER_H
 #define PROJECT01_QUACKCOMPILER_H
@@ -15,7 +16,9 @@
 namespace Quack {
   class Compiler {
    public:
-    Compiler() = default;
+    Compiler() {
+      initialize();
+    }
 
     ~Compiler() {
       for (const auto &prog : progs_)
@@ -70,6 +73,17 @@ namespace Quack {
 
         parse(f_in);
         f_in.close();
+      }
+    }
+
+    void initialize() {
+      Class::Container* classes = Class::Container::singleton();
+
+      if (classes->empty()) {
+        classes->add(new ObjectClass());
+        classes->add(new IntClass());
+        classes->add(new StringClass());
+        classes->add(new BooleanClass());
       }
     }
 

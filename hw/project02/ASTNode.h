@@ -1,3 +1,5 @@
+#include <utility>
+
 //
 // Created by Michal Young on 9/12/18.
 //
@@ -18,15 +20,9 @@ namespace AST {
 
   class ASTNode {
    public:
-    virtual std::string str() = 0;
-
     virtual ~ASTNode() = default;
 
-    void print_original_src(unsigned int indent_depth) {
-      std::string indent_str = std::string(indent_depth, '\t');
-      // ToDo add printing of original src
-      std::cout << indent_str << "";
-    }
+    virtual void print_original_src(unsigned int indent_depth = 0) = 0;
   };
 
   class EvalContext {
@@ -37,7 +33,7 @@ namespace AST {
    * For simplicity we'll just make it a sequence of ASTNode,
    * and leave it to the parser to build valid structures.
    */
-  class Block : public ASTNode {
+  class Block {
    public:
     Block() : stmts_{std::vector<ASTNode *>()} {}
 
@@ -48,21 +44,17 @@ namespace AST {
 
     void append(ASTNode *stmt) { stmts_.push_back(stmt); }
 
-    std::string str() override {
-      std::stringstream ss;
-      for (ASTNode *stmt: stmts_) {
-        ss << stmt->str() << ";" << std::endl;
-      }
-      return ss.str();
-    }
-
     void print_original_src(unsigned int indent_depth) {
       bool is_first = true;
+      std::string indent_str = std::string(indent_depth, '\n');
       for (const auto &stmt : stmts_) {
        if (!is_first)
          std::cout << "\n";
        is_first = false;
-       stmt->print_original_src(indent_depth);
+
+       std::cout << indent_str;
+       stmt->print_original_src();
+       std::cout << ";";
       }
     }
 
@@ -71,63 +63,30 @@ namespace AST {
     std::vector<ASTNode *> stmts_;
   };
 
-  /* L_Expr nodes are AST nodes that can be evaluated for location.
-   * Most can also be evaluated for value.  An example of an L_Expr
-   * is an identifier, which can appear on the left hand or right hand
-   * side of an assignment.  For example, in x = y, x is evaluated for
-   * location and y is evaluated for value.
-   *
-   * For now, a location is just a name, because that's what we index
-   * the symbol table with.  In a full compiler, locations can be
-   * more complex, and typically in code generation we would have
-   * LExpr evaluate to an address in a register.
-   *
-   * LExpr is abstract.  It's only concrete subclass for now is Ident,
-   * but in a full OO language we would have LExprs that look like
-   * a.b and a[2].
-   */
-  class LExpr : public ASTNode {
-   public:
-    virtual std::string l_eval(EvalContext &ctx) = 0;
-  };
-
-  /* An assignment has an lvalue (location to be assigned to)
-   * and an expression.  We evaluate the expression and place
-   * the value_ in the variable.
-   */
-
-  class Assign : public ASTNode {
-    LExpr &lexpr_;
-    ASTNode &rexpr_;
-   public:
-    Assign(LExpr &lexpr, ASTNode &rexpr) :
-        lexpr_{lexpr}, rexpr_{rexpr} {}
-
-    std::string str() override {
-      std::stringstream ss;
-      ss << lexpr_.str() << " = "
-         << rexpr_.str() << ";";
-      return ss.str();
-    }
-
-  };
-
   class If : public ASTNode {
-    ASTNode &cond_; // The boolean expression to be evaluated
-    Block &truepart_; // Execute this block if the condition is true
-    Block &falsepart_; // Execute this block if the condition is false
+    ASTNode *cond_; // The boolean expression to be evaluated
+    Block *truepart_; // Execute this block if the condition is true
+    Block *falsepart_; // Execute this block if the condition is false
    public:
-    explicit If(ASTNode &cond, Block &truepart, Block &falsepart) :
+    explicit If(ASTNode *cond, Block* truepart, Block* falsepart) :
         cond_{cond}, truepart_{truepart}, falsepart_{falsepart} {};
 
-    std::string str() override {
-      return "if " + cond_.str() + " {\n" +
-             truepart_.str() + "\n" +
-             "} else {\n" +
-             falsepart_.str() + "\n" +
-             "}\n";
+    ~If() {
+      delete cond_;
+      delete truepart_;
+      delete falsepart_;
     }
 
+    void print_original_src(unsigned int indent_depth = 0) override {
+      std::string indent_str = std::string(indent_depth, '\t');
+      std::cout << "If (";
+      cond_->print_original_src();
+      std::cout << ") {\n";
+      truepart_->print_original_src(indent_depth + 1);
+      std::cout << "\n" << indent_str << "} else {\n";
+      falsepart_->print_original_src(indent_depth);
+      std::cout << "\n" << indent_str << "}";
+    }
   };
 
   /* Identifiers like x and literals like 42 are the
@@ -136,70 +95,102 @@ namespace AST {
    * can also be evaluated for location (when we want to
    * store something in it).
    */
-  class Ident : public LExpr {
+  class Ident : public ASTNode {
     std::string text_;
    public:
-    explicit Ident(std::string &txt) : text_{txt} {}
+    explicit Ident(const char* txt) : text_{txt} {}
 
-    std::string str() override { return text_; }
-
-    std::string l_eval(EvalContext &ctx) override { return text_; }
+    void print_original_src(unsigned int indent_depth = 0) override { std::cout << text_; }
   };
 
-  class IntConst : public ASTNode {
-    int value_;
+  template <typename _T>
+  class Literal : public ASTNode {
    public:
-    explicit IntConst(int v) : value_{v} {}
+    explicit Literal(const _T v) : value_{v} {}
 
-    std::string str() override { return std::to_string(value_); }
+    /** Value of the literal */
+    const _T value_;
   };
 
-  // Virtual base class for +, -, *, /, etc
-  class BinOp : public ASTNode {
+  class IntLit : public Literal<int>{
    public:
-    // each subclass must override the inherited
-    // eval() method
+    explicit IntLit(int v) : Literal(v) {};
 
-   protected:
-    std::string opsym;
-    ASTNode &left_;
-    ASTNode &right_;
-
-    BinOp(const std::string &sym, ASTNode &l, ASTNode &r) :
-        opsym{sym}, left_{l}, right_{r} {};
-   public:
-    std::string str() {
-      std::stringstream ss;
-      ss << "(" << left_.str() << " " << opsym << " "
-         << right_.str() << ")";
-      return ss.str();
+    void print_original_src(unsigned int indent_depth = 0) override {
+      std::cout << std::to_string(value_);
     }
   };
 
-  class Plus : public BinOp {
+  class BoolLit : public Literal<bool>{
    public:
-    Plus(ASTNode &l, ASTNode &r) :
-        BinOp(std::string("+"), l, r) {};
+    explicit BoolLit(bool v) : Literal(v) {};
+
+    void print_original_src(unsigned int indent_depth = 0) override {
+      std::cout << (value_ ? "true" : "false");
+    }
   };
 
-  class Minus : public BinOp {
+  class StrLit : public Literal<std::string> {
    public:
-    Minus(ASTNode &l, ASTNode &r) :
-        BinOp(std::string("-"), l, r) {};
+    explicit StrLit(const char* v) : Literal<std::string>(std::string("")) {}
+
+    void print_original_src(unsigned int indent_depth = 0) {
+      std::cout  << "\"" << value_ << "\"";
+    }
   };
 
-  class Times : public BinOp {
+  class BinOp : public ASTNode {
    public:
-    Times(ASTNode &l, ASTNode &r) :
-        BinOp(std::string("*"), l, r) {};
+    std::string opsym;
+    ASTNode *left_;
+    ASTNode *right_;
+
+    BinOp(std::string sym, ASTNode *l, ASTNode *r) : opsym{sym}, left_{l}, right_{r} {};
+
+    ~BinOp() {
+      delete left_;
+      delete right_;
+    }
+
+    void print_original_src(unsigned int indent_depth = 0) override {
+      std::cout << "(";
+      left_->print_original_src();
+      std::cout << " " << opsym << " ";
+      right_->print_original_src();
+      std::cout << ")";
+    }
   };
 
-  class Div : public BinOp {
+  class UniOp : public ASTNode {
    public:
-    Div(ASTNode &l, ASTNode &r) :
-        BinOp(std::string("/"), l, r) {};
+    std::string opsym;
+    ASTNode *right_;
+
+    UniOp(std::string sym, ASTNode *r) : opsym{std::move(sym)}, right_{r} {};
+
+    ~UniOp() { delete right_; }
+
+    void print_original_src(unsigned int indent_depth = 0) override {
+      std::cout << "(" << opsym << " ";
+      right_->print_original_src();
+      std::cout << ")";
+    }
   };
 
+  class Return : public ASTNode {
+   public:
+    ASTNode* right_;
 
+    Return(ASTNode* right) : right_(right) {}
+
+    ~Return() {
+      delete right_;
+    }
+
+    void print_original_src(unsigned int indent_depth = 0) override {
+      std::cout << "return ";
+      right_->print_original_src();
+    }
+  };
 }
 #endif //ASTNODE_H

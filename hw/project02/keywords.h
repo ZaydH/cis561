@@ -9,8 +9,9 @@
 #define KEY_DEF "def"
 #define KEY_EXTENDS "extends"
 
-#define CLASS_INT "Int"
+#define CLASS_INT "Integer"
 #define CLASS_STR "String"
 #define CLASS_OBJ "Object"
+#define CLASS_BOOL "Boolean"
 
 #endif //PROJECT02_KEYWORDS_H

@@ -48,7 +48,8 @@
     Quack::Param::Container* params;
     Quack::Param* param;
 
-    AST::Block*block;
+    AST::ASTNode* node;
+    AST::Block* block;
 }
 
 // The following token values are actually used
@@ -70,16 +71,16 @@
 %type <classes> classes
 
 %type <q_class> q_class
+%type <str> super_class
 %type <methods> methods
 %type <method> method
 %type <params> params all_params
 %type <param> param
 %type <str> var_type
 
+%type <block> block if_alternatives
+%type <node> boolean_lit expr ifstmt
 
-%type <block> block
-
-%type <str> super_class
 
 // Precedence.  We are using an ambiguous expression grammar
 // for compactness.  We declare operator precedence from lowest
@@ -96,24 +97,28 @@
 %left  '='
 %%
 
-/* Root of the grammar is "program".  A program
- * is a non-empty sequence of assignments or expressions.
+/*
+ * Root of the grammar is "program". A program consists of zero or more classes
+ * and zero or more expressions.
  */
-program: classes block  { *root = new Quack::Program($1, $2); }
-       ;
+program: classes block  { *root = new Quack::Program($1, $2); } ;
 
+/*
+ * Classes are listed one after another.  They are stored in a singleton object
+ * generally accessible for simplifed type checking.
+ */
 classes: q_class classes  { $2->add($1);
                             $$=$2;
                           }
        | %empty           { $$ = Quack::Class::Container::singleton(); }
        ;
 
-    /**
-     * Parses a Quack Class
-     */
+/* Parses a Quack Class */
 q_class: CLASS IDENT '(' all_params ')' super_class '{' block methods '}'
             { $$ = new Quack::Class($2, $6, $4, $8, $9); }
        ;
+
+/* Parameters are used in both the constructor of a class and the parameters of a method. */
 all_params: %empty { $$ = new Quack::Param::Container(); }
           | params { $$ = $1; }
 params: params ',' param {
@@ -128,6 +133,7 @@ param: IDENT            { $$ = new Quack::Param($1); }
      | IDENT ':' IDENT  { $$ = new Quack::Param($1, $3); }
      ;
 
+/* Super class is the extended class. */
 super_class: EXTENDS IDENT { $$ = $2; }
            | %empty        { $$ = strdup(""); }
            ;
@@ -145,8 +151,51 @@ var_type: ':' IDENT      { $$ = $2; }
         | %empty         { $$ = strdup(""); }
         ;
 
-block  : %empty             { $$ = new AST::Block(); }
-       ;
+block: %empty         { $$ = new AST::Block(); }
+     | block expr ';' { $1->append($2);
+                        $$ = $1;
+                      }
+     ;
+
+expr: '(' expr ')'      { $$ = $2; }
+    | expr '+' expr     { $$ = new AST::BinOp("+", $1, $3); }
+    | expr '-' expr     { $$ = new AST::BinOp("-", $1, $3); }
+    | expr '*' expr     { $$ = new AST::BinOp("*", $1, $3); }
+    | expr '/' expr     { $$ = new AST::BinOp("/", $1, $3); }
+    | expr '<' expr     { $$ = new AST::BinOp("<", $1, $3); }
+    | expr '>' expr     { $$ = new AST::BinOp(">", $1, $3); }
+    | expr AND expr     { $$ = new AST::BinOp("and", $1, $3); }
+    | expr OR expr      { $$ = new AST::BinOp("or", $1, $3); }
+    | expr EQUALS expr  { $$ = new AST::BinOp("==", $1, $3); }
+    | expr ATMOST expr  { $$ = new AST::BinOp("<=", $1, $3); }
+    | expr ATLEAST expr { $$ = new AST::BinOp(">=", $1, $3); }
+    | expr '=' expr     { $$ = new AST::BinOp("=", $1, $3); }
+    | '-' expr          { $$ = new AST::UniOp("-", $2); }
+    | NOT expr          { $$ = new AST::UniOp("not", $2); }
+    | INT_LIT           { $$ = new AST::IntLit($1); }
+    | boolean_lit       { $$ = $1; }
+    | IDENT             { $$ = new AST::Ident($1); }
+    | STRING_LIT        { $$ = new AST::StrLit($1); }
+    | ifstmt            { $$ = $1; }
+    | RETURN expr       { $$ = new AST::Return($2); }
+// ToDo Unimplemented expressions
+//    | expr = expr       {  }
+    ;
+
+ifstmt: IF expr '{' block '}' if_alternatives
+                { $$ = new AST::If($2, $4, $6); }
+      ;
+if_alternatives:   %empty /* empty */  { $$ = new AST::Block(); };
+if_alternatives:   ELSE '{' block '}'   { $$ = $3; };
+if_alternatives:   ELIF expr '{' block '}' if_alternatives
+             {  $$ = new AST::Block();
+                $$->append(new AST::If($2, $4, $6));
+             };
+
+boolean_lit: "true"     { $$ = new AST::BoolLit(true); }
+           | "false"    { $$ = new AST::BoolLit(false); }
+           ;
+
 %%
 #include "Messages.h"
 

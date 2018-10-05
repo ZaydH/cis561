@@ -32,9 +32,21 @@ namespace Quack {
         }
         return &all_classes_;
       }
-
+      /**
+       * Prints the user defined classes only.
+       *
+       * @param indent_depth Depth to tab the contents.
+       */
       const void print_original_src(unsigned int indent_depth = 0) {
-        MapContainer<Class>::print_original_src_(indent_depth, "\n\n");
+        auto print_class = new Container();
+
+        for (const auto &pair : objs_) {
+          if (pair.first == CLASS_OBJ || pair.first == CLASS_INT
+              || pair.first == CLASS_STR || pair.first == CLASS_BOOL)
+            continue;
+          print_class->add(pair.second);
+        }
+        print_class->MapContainer<Class>::print_original_src_(indent_depth, "\n\n");
       }
 
       Container(Container const&) = delete;       // Don't Implement
@@ -53,11 +65,18 @@ namespace Quack {
       Container* classes = Container::singleton();
       if (classes->exists(name))
         throw("Duplicate class named " + name_);
-      // ToDo Handle Obj class
-      if (!classes->exists(super_type_name_) && super_type_name_ != CLASS_OBJ)
-        throw("Unknown super class: " + super_type_name_);
-      if (super_type_name_ != CLASS_OBJ)
+      // Select the super class.
+      if (name_ == CLASS_OBJ) {
+        // Objects is the base class of all objects
+        super_ = nullptr;
+      } else if (super_type_name_.empty()) {
+        // If no super class is specified, Object is assumed.
+        super_ = classes->get(CLASS_OBJ);
+      } else {
+        if (!classes->exists(super_type_name_))
+          throw ("Unknown super class: " + super_type_name_);
         super_ = classes->get(super_type_name_);
+      }
     }
     /**
      * Clear all dynamic memory in the object.
@@ -128,8 +147,27 @@ namespace Quack {
   };
 
   class ObjectClass : public Class {
+   public:
     ObjectClass()
         : Class(strdup(CLASS_OBJ), strdup(""), new Param::Container(), nullptr, nullptr) { }
+  };
+
+  class IntClass : public Class {
+   public:
+    IntClass()
+        : Class(strdup(CLASS_INT), strdup(CLASS_OBJ), new Param::Container(), nullptr, nullptr) { }
+  };
+
+  class StringClass : public Class {
+   public:
+    StringClass()
+        : Class(strdup(CLASS_STR), strdup(CLASS_OBJ), new Param::Container(), nullptr, nullptr) { }
+  };
+
+  class BooleanClass : public Class {
+   public:
+    BooleanClass()
+        : Class(strdup(CLASS_BOOL), strdup(CLASS_OBJ), new Param::Container(), nullptr, nullptr) { }
   };
 }
 

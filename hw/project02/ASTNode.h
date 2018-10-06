@@ -12,6 +12,8 @@
 #include <vector>
 #include <iostream>
 
+#include "keywords.h"
+
 namespace AST {
   // Abstract syntax tree.  ASTNode is abstract base class for all other nodes.
   // This is not the final AST for Quack ... it's a quick-and-dirty version
@@ -106,7 +108,7 @@ namespace AST {
   template <typename _T>
   class Literal : public ASTNode {
    public:
-    explicit Literal(const _T v) : value_{v} {}
+    explicit Literal(const _T &v) : value_{v} {}
 
     /** Value of the literal */
     const _T value_;
@@ -145,7 +147,7 @@ namespace AST {
     ASTNode *left_;
     ASTNode *right_;
 
-    BinOp(std::string sym, ASTNode *l, ASTNode *r) : opsym{sym}, left_{l}, right_{r} {};
+    BinOp(const std::string &sym, ASTNode *l, ASTNode *r) : opsym{sym}, left_{l}, right_{r} {};
 
     ~BinOp() {
       delete left_;
@@ -166,7 +168,7 @@ namespace AST {
     std::string opsym;
     ASTNode *right_;
 
-    UniOp(std::string sym, ASTNode *r) : opsym{std::move(sym)}, right_{r} {};
+    UniOp(const std::string &sym, ASTNode *r) : opsym{std::move(sym)}, right_{r} {};
 
     ~UniOp() { delete right_; }
 
@@ -181,7 +183,7 @@ namespace AST {
    public:
     ASTNode* right_;
 
-    Return(ASTNode* right) : right_(right) {}
+    explicit Return(ASTNode* right) : right_(right) {}
 
     ~Return() {
       delete right_;
@@ -301,6 +303,78 @@ namespace AST {
       args_->print_original_src(indent_depth);
       std::cout << ")";
     }
+  };
+
+  class Typing : public ASTNode {
+   public:
+    Typing(ASTNode* expr, const std::string &type_name) : expr_(expr), type_name_(type_name) {}
+
+    ~Typing() {
+      delete expr_;
+    }
+
+    ASTNode* expr_;
+    std::string type_name_;
+
+    void print_original_src(unsigned int indent_depth) {
+      expr_->print_original_src(indent_depth);
+      if (!type_name_.empty())
+        std::cout << " : " << type_name_;
+    }
+
+  };
+
+  class TypeAlternative {
+   public:
+    TypeAlternative(const std::string &t1, const std::string &t2, Block* block)
+              : type_names_{t1,t2}, block_(block) {}
+
+    ~TypeAlternative() { delete block_; }
+
+    void print_original_src(unsigned int indent_depth) {
+      std::cout << type_names_[0] << " : " << type_names_[1] << "\n";
+      block_->print_original_src(indent_depth + 1);
+    }
+
+    std::string type_names_[2];
+    Block* block_;
+  };
+
+  class Typecase : public ASTNode {
+   public:
+    Typecase(ASTNode* expr, std::vector<TypeAlternative*>* alts) : expr_(expr), alts_(alts) {}
+
+    ~Typecase() {
+      delete expr_;
+      for (const auto &alt : *alts_)
+        delete alt;
+      delete alts_;
+    }
+
+    void print_original_src(unsigned int indent_depth) {
+      std::string indent_str = std::string(indent_depth, '\t');
+      std::cout << KEY_TYPECASE << " ";
+      expr_->print_original_src(0);
+      std::cout << " {\n";
+      bool is_first = true;
+
+      // Print the alternate blocks
+      for (const auto &alt : *alts_) {
+        if (!is_first)
+          std::cout << "\n\n";
+        is_first = false;
+        std::cout << indent_str << "\t";
+        alt->print_original_src(indent_depth + 2); // Add two, one for types and one for block
+      }
+
+      if (!alts_->empty())
+        std::cout << "\n";
+      std::cout << indent_str << "}";
+    }
+
+   private:
+    ASTNode* expr_;
+    std::vector<TypeAlternative*>* alts_;
   };
 }
 #endif //ASTNODE_H

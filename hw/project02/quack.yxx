@@ -51,6 +51,8 @@
     AST::ASTNode* node;
     AST::Block* block;
     AST::RhsArgs* actual_args;
+
+    std::vector<AST::TypeAlternative*>* type_alt;
 }
 
 // The following token values are actually used
@@ -79,9 +81,10 @@
 %type <param> param
 %type <str> var_type
 
-%type <block> block if_alternatives
-%type <node> stmt ifstmt while assn lhs lexpr rhs function_call return ident
+%type <block> statement_block block if_alternatives
+%type <node> stmt ifstmt lhs lexpr rhs function_call return ident
 %type <actual_args> actual_args rhs_args
+%type <type_alt> type_alternative
 
 
 // Precedence.  We are using an ambiguous expression grammar
@@ -147,38 +150,40 @@ methods: method methods {
                         }
        | %empty { $$ = new Quack::Method::Container(); }
        ;
-method: DEF IDENT '(' all_params ')' var_type '{' block '}'
-           { $$ = new Quack::Method($2, $6, $4, $8); }
+method: DEF IDENT '(' all_params ')' var_type statement_block
+           { $$ = new Quack::Method($2, $6, $4, $7); }
       ;
 var_type: ':' IDENT      { $$ = $2; }
         | %empty         { $$ = strdup(""); }
         ;
 
-block: %empty         { $$ = new AST::Block(); }
-     | block stmt     { $1->append($2); $$ = $1; }
+statement_block: '{' block '}' { $$ = $2; }
+block: %empty                  { $$ = new AST::Block(); }
+     | block stmt              { $1->append($2); $$ = $1; }
      ;
 
 stmt: ifstmt          { $$ = $1; }
-    | while           { $$ = $1; }
-    | assn            { $$ = $1; }
+    | WHILE rhs statement_block    { $$ = new AST::While($2, $3); }
+    | lhs '=' rhs ';'              { $$ = new AST::Assn($1, $3); } ;
     | rhs ';'         { $$ = $1; }
     | return ';'      { $$ = $1; }
+    | TYPECASE rhs '{'type_alternative '}' { $$ = new AST::Typecase($2, $4); }
     ;
-
-assn: lhs '=' rhs ';'    { $$ = new AST::Assn($1, $3); } ;
-
-// ToDO Missing rule
-lhs: lexpr            { }
-   | lexpr ':' IDENT  { }
+type_alternative: %empty              { $$ = new std::vector<AST::TypeAlternative*>(); }
+                | type_alternative IDENT ':' IDENT statement_block
+                                      { $1->emplace_back(new AST::TypeAlternative($2, $4, $5));
+                                        $$ = $1; }
+                ;
+// ToDO Missing Variable instantiation
+lhs: lexpr            { $$ = new AST::Typing($1, ""); }
+   | lexpr ':' IDENT  { $$ = new AST::Typing($1, $3); }
    ;
 lexpr: ident          { $$ = $1; }
      | rhs '.' ident  { $$ = new AST::ObjectCall($1, $3); }
      ;
-ident: IDENT          { $$ = new AST::Ident($1); }
-     ;
-
-return: RETURN rhs { $$ = new AST::Return($2); }
-      | RETURN     { $$ = new AST::Return(nullptr); }
+ident: IDENT          { $$ = new AST::Ident($1); } ;
+return: RETURN rhs    { $$ = new AST::Return($2); }
+      | RETURN        { $$ = new AST::Return(nullptr); }
       ;
 
 rhs: '(' rhs ')'       { $$ = $2; }
@@ -213,16 +218,14 @@ rhs_args: rhs              { $$ = new AST::RhsArgs(); $$->add($1); }
         | rhs_args ',' rhs { $1->add($3); $$ = $1; }
         ;
 
-ifstmt: IF rhs '{' block '}' if_alternatives { $$ = new AST::If($2, $4, $6); } ;
-if_alternatives:   %empty /* empty */  { $$ = new AST::Block(); }
-               |   ELSE '{' block '}'  { $$ = $3; };
-               |   ELIF rhs '{' block '}' if_alternatives
+ifstmt: IF rhs statement_block if_alternatives { $$ = new AST::If($2, $3, $4); } ;
+if_alternatives:   %empty /* empty */          { $$ = new AST::Block(); }
+               |   ELSE statement_block        { $$ = $2; };
+               |   ELIF rhs statement_block if_alternatives
                                  {  $$ = new AST::Block();
-                                    $$->append(new AST::If($2, $4, $6));
+                                    $$->append(new AST::If($2, $3, $4));
                                  }
                ;
-
-while: WHILE rhs '{' block '}' { $$ = new AST::While($2, $4); }
 
 %%
 #include "Messages.h"

@@ -8,6 +8,7 @@
 #define KEY_CLASS "class"
 #define KEY_DEF "def"
 #define KEY_EXTENDS "extends"
+#define KEY_TYPECASE "typecase"
 
 #define CLASS_INT "Integer"
 #define CLASS_STR "String"

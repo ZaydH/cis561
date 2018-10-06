@@ -80,7 +80,7 @@
 %type <str> var_type
 
 %type <block> block if_alternatives
-%type <node> stmt ifstmt while assn lhs lexpr rhs
+%type <node> stmt ifstmt while assn lhs lexpr rhs function_call return ident
 %type <actual_args> actual_args rhs_args
 
 
@@ -88,15 +88,16 @@
 // for compactness.  We declare operator precedence from lowest
 // to highest, with associativity, e.g., MINUS is left_ associative
 // so a-b-c is (a-b)-c and not a-(b-c).
-
-%precedence NOT  // No direction since unary operator
-%left  '-' '+'
+%left '.'
+%precedence NOT NEG  // No direction since unary operator
 %left  '*' '/'
+%left  '-' '+'
 %left  ATLEAST ATMOST '>' '<'
 %left  EQUALS
 %left  AND
 %left  OR
 %left  '='
+%left  ','
 %%
 
 /*
@@ -127,8 +128,8 @@ params: params ',' param {
                             $1->add($3);
                             $$=$1;
                          }
-      | param {   $$ = new Quack::Param::Container();
-                  $$->add($1);
+      | param  { $$ = new Quack::Param::Container();
+                 $$->add($1);
                }
       ;
 param: IDENT            { $$ = new Quack::Param($1); }
@@ -154,27 +155,31 @@ var_type: ':' IDENT      { $$ = $2; }
         ;
 
 block: %empty         { $$ = new AST::Block(); }
-     | block stmt     { $1->append($2);
-                        $$ = $1;
-                      }
+     | block stmt     { $1->append($2); $$ = $1; }
      ;
 
 stmt: ifstmt          { $$ = $1; }
     | while           { $$ = $1; }
     | assn            { $$ = $1; }
     | rhs ';'         { $$ = $1; }
+    | return ';'      { $$ = $1; }
     ;
 
 assn: lhs '=' rhs ';'    { $$ = new AST::Assn($1, $3); } ;
 
-lhs: lexpr            { $$ = $1; }
 // ToDO Missing rule
-   | lexpr ':' IDENT  {}
+lhs: lexpr            { }
+   | lexpr ':' IDENT  { }
    ;
-lexpr: IDENT          { $$ = new AST::Ident($1); }
-// ToDO Missing rule
-     | rhs '.' IDENT  {}
+lexpr: ident          { $$ = $1; }
+     | rhs '.' ident  { $$ = new AST::ObjectCall($1, $3); }
      ;
+ident: IDENT          { $$ = new AST::Ident($1); }
+     ;
+
+return: RETURN rhs { $$ = new AST::Return($2); }
+      | RETURN     { $$ = new AST::Return(nullptr); }
+      ;
 
 rhs: '(' rhs ')'       { $$ = $2; }
    | rhs '+' rhs       { $$ = new AST::BinOp("+", $1, $3); }
@@ -188,26 +193,24 @@ rhs: '(' rhs ')'       { $$ = $2; }
    | rhs EQUALS rhs    { $$ = new AST::BinOp("==", $1, $3); }
    | rhs ATMOST rhs    { $$ = new AST::BinOp("<=", $1, $3); }
    | rhs ATLEAST rhs   { $$ = new AST::BinOp(">=", $1, $3); }
-   | rhs '=' rhs       { $$ = new AST::BinOp("=", $1, $3); }
-   | '-' rhs           { $$ = new AST::UniOp("-", $2); }
+   | '-' rhs %prec NEG { $$ = new AST::UniOp("-", $2); }
    | NOT rhs           { $$ = new AST::UniOp("not", $2); }
    | INT_LIT           { $$ = new AST::IntLit($1); }
-   | rhs '.' rhs       { $$ = new AST::ObjectCall($1, $3); }
-   | lhs               { $$ = $1; }
-   | IDENT '(' actual_args ')' { $$ = new AST::FunctionCall($1, $3); }
+   | rhs '.' function_call { $$ = new AST::ObjectCall($1, $3); }
+   | lexpr             { $$ = $1; }
+   | function_call     { $$ = $1; }
    | STRING_LIT        { $$ = new AST::StrLit($1); }
-   | RETURN rhs        { $$ = new AST::Return($2); }
    | "true"            { $$ = new AST::BoolLit(true); }
    | "false"           { $$ = new AST::BoolLit(false); }
 // ToDo Unimplemented expressions
+// ToDo Typecase missing
    ;
+function_call: IDENT '(' actual_args ')' { $$ = new AST::FunctionCall($1, $3); }
 actual_args: %empty        { $$ = new AST::RhsArgs(); }
            | rhs_args      { $$ = $1; }
            ;
 rhs_args: rhs              { $$ = new AST::RhsArgs(); $$->add($1); }
-        | rhs_args ',' rhs { $1->add($3);
-                             $$ = $1;
-                           }
+        | rhs_args ',' rhs { $1->add($3); $$ = $1; }
         ;
 
 ifstmt: IF rhs '{' block '}' if_alternatives { $$ = new AST::If($2, $4, $6); } ;

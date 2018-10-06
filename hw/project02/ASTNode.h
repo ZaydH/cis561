@@ -77,7 +77,7 @@ namespace AST {
 
     void print_original_src(unsigned int indent_depth = 0) override {
       std::string indent_str = std::string(indent_depth, '\t');
-      std::cout << "If ";
+      std::cout << "if ";
       cond_->print_original_src();
       std::cout << " {\n";
       truepart_->print_original_src(indent_depth + 1);
@@ -332,8 +332,10 @@ namespace AST {
     ~TypeAlternative() { delete block_; }
 
     void print_original_src(unsigned int indent_depth) {
-      std::cout << type_names_[0] << " : " << type_names_[1] << "\n";
+      std::cout << type_names_[0] << " : " << type_names_[1] << " {\n";
       block_->print_original_src(indent_depth + 1);
+
+      std::cout << "\n" << std::string(indent_depth, '\t') << "}";
     }
 
     std::string type_names_[2];
@@ -361,10 +363,10 @@ namespace AST {
       // Print the alternate blocks
       for (const auto &alt : *alts_) {
         if (!is_first)
-          std::cout << "\n\n";
+          std::cout << "\n";
         is_first = false;
         std::cout << indent_str << "\t";
-        alt->print_original_src(indent_depth + 2); // Add two, one for types and one for block
+        alt->print_original_src(indent_depth + 1);
       }
 
       if (!alts_->empty())

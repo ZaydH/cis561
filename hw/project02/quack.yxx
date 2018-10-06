@@ -113,8 +113,8 @@ program: classes block  { *root = new Quack::Program($1, $2); } ;
  * Classes are listed one after another.  They are stored in a singleton object
  * generally accessible for simplifed type checking.
  */
-classes: q_class classes  { $2->add($1);
-                            $$=$2;
+classes: classes q_class  { $1->add($2);
+                            $$=$1;
                           }
        | %empty           { $$ = Quack::Class::Container::singleton(); }
        ;

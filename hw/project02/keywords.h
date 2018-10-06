@@ -12,7 +12,7 @@
 
 #define CLASS_INT "Integer"
 #define CLASS_STR "String"
-#define CLASS_OBJ "Object"
+#define CLASS_OBJ "Obj"
 #define CLASS_BOOL "Boolean"
 #define CLASS_NOTHING "Nothing"
 

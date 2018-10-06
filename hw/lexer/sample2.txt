@@ -47,21 +47,21 @@ class Rect(ll: Pt, ur: Pt) extends Obj {
   def STR() {
       lr = Pt( this.ur._y(), this.ll._x() );  // lower right
       ul = Pt( this.ll._x(), this.ur._y() );  // upper left
-     // return "(" + this.ll.STR() + ", "
-     //            +      ul.STR() + ","
-     //            + this.ur.STR() + ","
-     //            +      lr.STR() + ")";
+      return "(" + this.ll.STR() + ", "
+                 +      ul.STR() + ","
+                 + this.ur.STR() + ","
+                 +      lr.STR() + ")";
   }
 
   /* The EQUAL method of Rect can be called as ==, and the
    * calls the EQUAL method of Pt.
    */
    def EQUAL(other: Obj) : Boolean {
-  //     typecase other {
-  //        r: Rect { return this.lr == r.lr
-//	               and this.ur == r.ur;
-//		  }
-//	}
+       typecase other {
+          r: Rect { return this.lr == r.lr
+ 	               and this.ur == r.ur;
+		  }
+	}
 	return false;
    }
 }
@@ -76,7 +76,7 @@ b_square: Rect = Rect( Pt(5,5), Pt(10,10));
 a_square = a_square.translate( Pt(2,2) );
 a_square.PRINT();
 if a_square == b_square {
-//   "They are the same".PRINT();
+   "They are the same".PRINT();
 } else {
-//   (b_square.STR() + " is different").PRINT();
+   (b_square.STR() + " is different").PRINT();
 }

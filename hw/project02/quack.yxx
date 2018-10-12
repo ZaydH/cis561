@@ -173,7 +173,6 @@ type_alternative: %empty              { $$ = new std::vector<AST::TypeAlternativ
                                       { $1->emplace_back(new AST::TypeAlternative($2, $4, $5));
                                         $$ = $1; }
                 ;
-// ToDO Missing Variable instantiation
 lhs: lexpr            { $$ = new AST::Typing($1, ""); }
    | lexpr ':' IDENT  { $$ = new AST::Typing($1, $3); }
    ;
@@ -206,8 +205,6 @@ rhs: '(' rhs ')'       { $$ = $2; }
    | STRING_LIT        { $$ = new AST::StrLit($1); }
    | "true"            { $$ = new AST::BoolLit(true); }
    | "false"           { $$ = new AST::BoolLit(false); }
-// ToDo Unimplemented expressions
-// ToDo Typecase missing
    ;
 function_call: IDENT '(' actual_args ')' { $$ = new AST::FunctionCall($1, $3); }
 actual_args: %empty        { $$ = new AST::RhsArgs(); }

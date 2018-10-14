@@ -28,7 +28,7 @@ namespace report {
     unsigned end_line = loc.end.line;
     std::cerr << msg << " at line " << begin_line << " column " << loc.begin.column;
     if (begin_line != end_line)
-      std::cerr << " to line " << end_line << "column " << loc.end.column;
+      std::cerr << " to line " << end_line << " column " << loc.end.column;
     else
       std::cerr << "-" << loc.end.column;
     std::cerr << std::endl;

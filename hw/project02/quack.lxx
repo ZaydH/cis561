@@ -17,7 +17,6 @@
 %{
     /* Externally visible file name --
      * for error messages.
-     * FIXME: Need to extract this from structures that reflex passes
      * or else find another way to dig it out.
      */
 std::string yyfilename = "What file is this, anyway?";

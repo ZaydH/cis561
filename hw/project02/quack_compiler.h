@@ -24,6 +24,7 @@ namespace Quack {
       for (const auto &prog : progs_)
         delete prog;
     }
+
     /**
      * Parse the input command line arguments and configure the compiler.
      *
@@ -71,13 +72,14 @@ namespace Quack {
           continue;
         }
 
-        parse(f_in);
+        report::reset_error_count();
+        parse(f_in, file_path);
         f_in.close();
       }
     }
 
     void initialize() {
-      Class::Container* classes = Class::Container::singleton();
+      Class::Container *classes = Class::Container::singleton();
 
       if (classes->empty()) {
         classes->add(new ObjectClass());
@@ -89,19 +91,20 @@ namespace Quack {
 
    private:
 
-    void parse(std::istream &f_in) {
+    void parse(std::istream &f_in, const std::string &file_path) {
       yy::Lexer lexer(f_in);
-      Quack::Program* prog;
+      Quack::Program *prog;
       yy::parser *parser = new yy::parser(lexer, &prog);
 
-      if (parser->parse() != 0 && report::ok()) {
-        std::cout << "Parse failed, no tree\n";
+      if (parser->parse() != 0 || !report::ok()) {
+        std::cerr << "Parse failed for file: " << file_path << std::endl;
       } else {
         if (debug_)
           prog->print_original_src();
       }
       delete parser;
     }
+
     /**
      * Select to run the compiler in debug mode.
      */
@@ -110,7 +113,7 @@ namespace Quack {
      * Input file to be compiled.
      */
     std::vector<std::string> input_files_;
-    std::vector<Quack::Program*> progs_;
+    std::vector<Quack::Program *> progs_;
 
     unsigned int num_errs_ = 0;
   };

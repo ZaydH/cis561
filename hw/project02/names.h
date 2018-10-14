@@ -13,25 +13,25 @@
 #define QUACKPARSER_NAMES_H
 
 static struct {
-        CLASS = 258,
-        DEF = 259,
-        EXTENDS = 260,
-        IF = 261,
-        ELIF = 262,
-        ELSE = 263,
-        WHILE = 264,
-        RETURN = 265,
-        TYPECASE = 266,
-        ATLEAST = 267,
-        ATMOST = 268,
-        EQUALS = 269,
-        AND = 270,
-        OR = 271,
-        NOT = 272,
-        IDENT = 273,
-        INT_LIT = 274,
-        STRING_LIT = 275,
-        NEG = 276
+  CLASS = 258,
+  DEF = 259,
+  EXTENDS = 260,
+  IF = 261,
+  ELIF = 262,
+  ELSE = 263,
+  WHILE = 264,
+  RETURN = 265,
+  TYPECASE = 266,
+  ATLEAST = 267,
+  ATMOST = 268,
+  EQUALS = 269,
+  AND = 270,
+  OR = 271,
+  NOT = 272,
+  IDENT = 273,
+  INT_LIT = 274,
+  STRING_LIT = 275,
+  NEG = 276
 };
 
 

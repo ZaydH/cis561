@@ -55,7 +55,7 @@ namespace Quack {
 
       input_files_.reserve(num_files);
       progs_.reserve(num_files);
-      for (int i = 0; i < num_files; i++)
+      for (unsigned int i = 0; i < num_files; i++)
         input_files_.emplace_back(argv[i + optind]);
     }
 

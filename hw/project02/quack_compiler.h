@@ -99,6 +99,7 @@ namespace Quack {
       if (parser->parse() != 0 || !report::ok()) {
         std::cerr << "Parse failed for file: " << file_path << std::endl;
       } else {
+        std::cout << "Parse successful for file: " << file_path << std::endl;
         if (debug_)
           prog->print_original_src();
       }

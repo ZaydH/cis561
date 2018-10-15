@@ -33,6 +33,15 @@ namespace Quack {
         return &all_classes_;
       }
       /**
+       * Empty all stored classes in the singleton.
+       */
+      static void reset() {
+        Container* classes = singleton();
+        for (auto &pair : *classes)
+          delete pair.second;
+        classes->clear();
+      }
+      /**
        * Prints the user defined classes only.
        *
        * @param indent_depth Depth to tab the contents.
@@ -61,22 +70,14 @@ namespace Quack {
     Class(char* name, char * super_type, Param::Container* params,
           AST::Block* constructor, Method::Container* methods)
       : name_(name), super_type_name_(strcmp(super_type, "") == 0 ? CLASS_OBJ : super_type),
-        constructor_params_(params), constructor_(constructor), methods_(methods) {
+        super_(OBJECT_NOT_FOUND), constructor_params_(params), constructor_(constructor),
+        methods_(methods) {
       Container* classes = Container::singleton();
       if (classes->exists(name))
-        throw("Duplicate class named " + name_);
-      // Select the super class.
-      if (name_ == CLASS_OBJ) {
-        // Objects is the base class of all objects
-        super_ = nullptr;
-      } else if (super_type_name_.empty()) {
-        // If no super class is specified, Object is assumed.
-        super_ = classes->get(CLASS_OBJ);
-      } else {
-        if (!classes->exists(super_type_name_))
-          throw ("Unknown super class: " + super_type_name_);
-        super_ = classes->get(super_type_name_);
-      }
+        throw("Duplicate class named \"" + name_ + "\"");
+
+      if (name_ == CLASS_NOTHING)
+        throw("Invalid class name \"" + name_ + "\"");
     }
     /**
      * Clear all dynamic memory in the object.
@@ -100,6 +101,41 @@ namespace Quack {
       return false;
     }
     /**
+     * Checks all classes for any cyclical inheritance.
+     */
+    static void check_cyclic_inheritance() {
+      for (auto & class_pair : *Container::singleton()) {
+        Class* quack_class = class_pair.second;
+
+        std::vector<Class*> super_list; // Compiler needs this because cant pass a temp by reference
+        Class* base_parent = quack_class->has_no_cyclic_inheritance(super_list);
+
+        if (base_parent != BASE_CLASS)
+          throw("Class " + quack_class->name_ + " has a cyclic dependency with class \""
+                + base_parent->name_ + "\"");
+      }
+    }
+    /**
+     * Used to check for cyclical class inheritance.  When classes are correctly configured,
+     * each class eventually points back (through the Object class) back to a single common class.
+     * If there is a cyclic dependency, the current class dependency will eventually appear in the
+     * \p all_super list built via recursive calls.
+     *
+     * @param all_super All super classes observed so far.
+     * @return true if the class has no cyclic dependencies.
+     */
+    Class* has_no_cyclic_inheritance(std::vector<Class *> &all_super) {
+      if (super_ == BASE_CLASS)
+        return BASE_CLASS;
+
+      // If the class appears in a super, then there is a cycle
+      if (std::find(all_super.begin(), all_super.end(), this) != all_super.end())
+        return this;
+
+      all_super.emplace_back(this);
+      return super_->has_no_cyclic_inheritance(all_super);
+    }
+    /**
      * Check if the class is of the specified type.
      *
      * @param name Name of the type
@@ -112,9 +148,38 @@ namespace Quack {
         return super_->is_type(name);
       return false;
     }
+    /**
+     * Performs an initial type check and configuration for the class's super class as well
+     * as for the method parameters, return types, and constructor parameters.
+     */
+    void initial_type_check() {
+      configure_super_class();
+
+      configure_method_params(*constructor_params_);
+      for (auto &method_pair : *methods_) {
+        Method * method = method_pair.second;
+        configure_method_params(*method->params_);
+
+        // Check and configure the method return type.
+        if (method->return_type_name_ == CLASS_NOTHING)
+          method->return_type_ = BASE_CLASS;
+        Class *return_type = Container::singleton()->get(method->return_type_name_);
+        if (return_type == OBJECT_NOT_FOUND)
+          throw("Class: " + this->name_ + ", method " + method->name_ + ", unknown return type \""
+                + method->return_type_name_ + "\"");
+        method->return_type_ = return_type;
+      }
+    }
+
+
     /** Name of the class */
     const std::string name_;
-
+    /**
+     * Debug function used to print a representation of the original quack source code
+     * used to visualize the AST.
+     *
+     * @param indent_depth Depth to indent the generated code. Used for improved readability.
+     */
     void print_original_src(unsigned int indent_depth) {
       std::string indent_str = std::string(indent_depth, '\t');
       std::cout << indent_str << KEY_CLASS << " " << name_ << "(";
@@ -134,6 +199,34 @@ namespace Quack {
       std::cout << "\n" << indent_str << "}";
     }
    private:
+    /**
+     * Configures the super class pointer for the object.
+     */
+    void configure_super_class() {
+      // Object is the top of the object hierarchy so handle specially.
+      if (this->name_ == CLASS_OBJ) {
+        super_ = BASE_CLASS;
+        return;
+      }
+
+      std::string super_name = (super_type_name_.empty()) ? CLASS_OBJ : super_type_name_;
+
+      Container* classes = Container::singleton();
+      if (!classes->exists(super_type_name_))
+        throw ("For class, \"" + name_ + "\", unknown super class: " + super_type_name_);
+      super_ = classes->get(super_name);
+    }
+    void configure_method_params(Param::Container &params) {
+      for (auto &param : params) {
+        if (param->type_name_ == CLASS_NOTHING)
+          throw("Parameter " + param->name_ + " cannot have type \"" + CLASS_NOTHING + "\"");
+
+        Class* type_class = Container::singleton()->get(param->type_name_);
+        if (type_class == OBJECT_NOT_FOUND)
+          throw("Parameter " + param->name_ + " has undefined type \"" + param->type_name_ + "\"");
+        param->type_class_ = type_class;
+      }
+    }
     /** Name of the super class of this type */
     const std::string super_type_name_;
     /** Pointer to the super class of this class. */
@@ -150,24 +243,28 @@ namespace Quack {
    public:
     ObjectClass()
         : Class(strdup(CLASS_OBJ), strdup(""), new Param::Container(), nullptr, nullptr) { }
+    // ToDo add missing Object methods
   };
 
   class IntClass : public Class {
    public:
     IntClass()
         : Class(strdup(CLASS_INT), strdup(CLASS_OBJ), new Param::Container(), nullptr, nullptr) { }
+    // ToDo Add missing Int methods
   };
 
   class StringClass : public Class {
    public:
     StringClass()
         : Class(strdup(CLASS_STR), strdup(CLASS_OBJ), new Param::Container(), nullptr, nullptr) { }
+    // ToDo Add Missing String methods
   };
 
   class BooleanClass : public Class {
    public:
     BooleanClass()
         : Class(strdup(CLASS_BOOL), strdup(CLASS_OBJ), new Param::Container(), nullptr, nullptr) { }
+    // ToDo Add Missing Boolean methods
   };
 }
 

@@ -16,4 +16,7 @@
 #define CLASS_BOOL "Boolean"
 #define CLASS_NOTHING "Nothing"
 
+#define OBJECT_NOT_FOUND nullptr
+#define BASE_CLASS nullptr
+
 #endif //PROJECT02_KEYWORDS_H

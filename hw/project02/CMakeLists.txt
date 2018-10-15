@@ -49,6 +49,6 @@ add_executable(${BIN_NAME}
                lex.yy.h lex.yy.cpp quack.tab.cxx
                Messages.h Messages.cpp
                ASTNode.h ASTNode.cpp
-               )
+        quack_type_checker.h)
 
 target_link_libraries(${BIN_NAME} ${REFLEX_LIB})

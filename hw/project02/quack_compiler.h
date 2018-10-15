@@ -6,9 +6,10 @@
 #include <fstream>
 #include <iostream>
 
-#include "quack_program.h"
 #include "lex.yy.h"
+#include "quack_program.h"
 #include "quack_classes.h"
+#include "quack_type_checker.h"
 
 #ifndef PROJECT01_QUACKCOMPILER_H
 #define PROJECT01_QUACKCOMPILER_H
@@ -62,6 +63,8 @@ namespace Quack {
     void run() {
       num_errs_ = 0;
       for (const std::string &file_path : input_files_) {
+        Quack::Class::Container::reset();
+
         std::ifstream f_in(file_path);
         progs_.emplace_back(nullptr);
 
@@ -73,8 +76,13 @@ namespace Quack {
         }
 
         report::reset_error_count();
-        parse(f_in, file_path);
+        Quack::Program* prog = parse(f_in, file_path);
         f_in.close();
+
+        auto type_checker = Quack::TypeChecker();
+        type_checker.run();
+
+        progs_.back() = prog;
       }
     }
 
@@ -91,7 +99,7 @@ namespace Quack {
 
    private:
 
-    void parse(std::istream &f_in, const std::string &file_path) {
+    Quack::Program* parse(std::istream &f_in, const std::string &file_path) {
       yy::Lexer lexer(f_in);
       Quack::Program *prog;
       yy::parser *parser = new yy::parser(lexer, &prog);
@@ -104,6 +112,8 @@ namespace Quack {
           prog->print_original_src();
       }
       delete parser;
+
+      return prog;
     }
 
     /**

@@ -18,6 +18,7 @@ class ObjectContainer {
   virtual void add(_T *new_obj) = 0;
   virtual _T* get(const std::string &str) = 0;
   virtual unsigned long count() = 0;
+  virtual void clear() = 0;
  public:
   virtual ~ObjectContainer() = default;
   bool empty() { return count() == 0; };
@@ -36,12 +37,24 @@ class MapContainer : public ObjectContainer<_T> {
       delete pair.second;
   }
   /**
+   * Iterator accessor for object pairs in the map container
+   *
+   * @return Iterator to the beginning of the map.
+   */
+  typename std::map<std::string, _T*>::iterator begin() { return objs_.begin(); }
+  /**
+   * Iterator accessor for object pairs in the map container
+   *
+   * @return Iterator to the end of the map.
+   */
+  typename std::map<std::string, _T*>::iterator end() { return objs_.end(); }
+  /**
    * Check if the object exists in the map.
    *
    * @param obj_name Name of the object.
    * @return True if the object exists in the map container.
    */
-  bool exists(const std::string &obj_name) {
+  bool exists(const std::string &obj_name) override {
     return objs_.find(obj_name) != objs_.end();
   }
   /**
@@ -49,7 +62,7 @@ class MapContainer : public ObjectContainer<_T> {
    *
    * @param new_obj New object to add.
    */
-  void add(_T *new_obj) {
+  void add(_T *new_obj) override {
     if (exists(new_obj->name_))
       throw("Duplicate Object: " + new_obj->name_);
     objs_[new_obj->name_] = new_obj;
@@ -62,10 +75,10 @@ class MapContainer : public ObjectContainer<_T> {
    * @return A pointer to the object with the specified name if it exists and
    * nullptr otherwise.
    */
-  _T* get(const std::string &str) {
+  _T* get(const std::string &str) override {
     auto itr = objs_.find(str);
     if (itr == objs_.end())
-      return nullptr;
+      return OBJECT_NOT_FOUND;
     return itr->second;
   }
   /**
@@ -73,7 +86,13 @@ class MapContainer : public ObjectContainer<_T> {
    *
    * @return Numebr of objects in the container
    */
-  unsigned long count() { return objs_.size(); }
+  unsigned long count() override { return objs_.size(); }
+  /**
+   * Delete all stored objects in the maps.
+   */
+  void clear() override {
+    objs_.clear();
+  }
   /**
    * Print the object container for debug.
    *
@@ -105,35 +124,55 @@ class VectorContainer : public ObjectContainer<_T> {
       delete ptr;
   }
   /**
+   * Accessor for an iterator to the beginning of the objects container.
+   *
+   * @return Pointer to the beginning of the objects container.
+   */
+  typename std::vector<_T*>::iterator begin() { return objs_.begin(); }
+  /**
+   * Accessor for an iterator to the end of the objects container.
+   *
+   * @return Pointer to the end of the objects container.
+   */
+  typename std::vector<_T*>::iterator end() { return objs_.end(); }
+  /**
    * Check if the specified parameter name exists.
    *
    * @param name Name of the parameter
    * @return True if the parameter exists.
    */
-  bool exists(const std::string &name) { return names_.find(name) != names_.end(); }
+  bool exists(const std::string &name) override { return names_.find(name) != names_.end(); }
   /**
    * Adds the passed object to the container.
    * @param new_obj Object to add.
    */
-  void add(_T* new_obj) {
+  void add(_T* new_obj) override {
     if (exists(new_obj->name_))
       throw("Duplicate parameter name: " + new_obj->name_);
     objs_.emplace_back(new_obj);
     names_.emplace(new_obj->name_);
   };
-  _T* get(const std::string &name) {
+  _T* get(const std::string &name) override {
     if (!exists(name))
-      return nullptr;
+      return OBJECT_NOT_FOUND;
+
     for (auto &obj: objs_)
       if (obj->name_ == name)
         return obj;
     throw("Unable to get method name: " + name);
   }
   /**
+   * Delete all stored objects in the map.
+   */
+  void clear() override {
+    objs_.clear();
+    names_.clear();
+  }
+  /**
    * Accessor for the container element count.
    * @return Number of elements in the container.
    */
-  unsigned long count() { return objs_.size(); }
+  unsigned long count() override { return objs_.size(); }
   /**
    * Print the object container for debug.
    *

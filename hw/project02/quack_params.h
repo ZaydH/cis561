@@ -11,6 +11,16 @@
 #define PROJECT02_QUACK_PARAMS_H
 
 namespace Quack {
+
+  /**
+   * Forward declaration of a Quack Class.  This is to allow links between parameters
+   * and their actual type definition.
+   */
+  class Class;
+
+  /**
+   * Parameter to a class constructor or a method.
+   */
   class Param {
    public:
     class Container : public VectorContainer<Param> {
@@ -21,7 +31,9 @@ namespace Quack {
     };
 
     Param(const std::string &name, const std::string &type_name = "")
-        : name_(name), type_name_(type_name) {}
+        : name_(name), type_name_(type_name) {
+      type_class_ = nullptr;
+    }
 
     void print_original_src(unsigned int indent_depth = 0) {
       std::string indent_str = "";
@@ -35,6 +47,7 @@ namespace Quack {
 
     std::string name_;
     std::string type_name_;
+    Class * type_class_;
   };
 }
 

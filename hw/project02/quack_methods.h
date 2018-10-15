@@ -53,9 +53,11 @@ namespace Quack {
     std::string name_;
     /** Name of the return type of the method (if any) */
     std::string return_type_name_;
+    /** Type of the return object */
+    Class* return_type_;
 
-   private:
     Param::Container* params_;
+   private:
     /** Statements (if any) to perform in method */
     AST::Block* block_;
   };

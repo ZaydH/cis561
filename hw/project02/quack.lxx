@@ -133,7 +133,6 @@ not      { return parser::token::NOT; }
    *
    * Based on: https://stackoverflow.com/questions/5418181/flex-lex-encoding-strings-with-escaped-characters
    */
-  /** ToDo Fill-in simple string */
 \" { start(SIMPLE_STRING);
      ss.str(""); /*clear the stringstream */
    }

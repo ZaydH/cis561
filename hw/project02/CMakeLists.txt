@@ -45,10 +45,11 @@ include_directories(
 add_executable(${BIN_NAME}
                main.cpp
                quack_program.h
-               quack_classes.h
+               quack_classes.h quack_classes.cpp
                lex.yy.h lex.yy.cpp quack.tab.cxx
                Messages.h Messages.cpp
                ASTNode.h ASTNode.cpp
-        quack_type_checker.h)
+               quack_type_checker.h
+              )
 
 target_link_libraries(${BIN_NAME} ${REFLEX_LIB})

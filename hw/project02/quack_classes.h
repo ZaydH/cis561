@@ -6,6 +6,7 @@
 #include <cstring>
 #include <vector>
 #include <iostream>
+#include <stdexcept>
 
 #include "container_templates.h"
 #include "quack_methods.h"
@@ -25,13 +26,7 @@ namespace Quack {
        *
        * @return Pointer to a set of classes.
        */
-      static Container* singleton() {
-        static Container all_classes_;
-        if (all_classes_.empty()) {
-          // ToDo Initialize Class Container
-        }
-        return &all_classes_;
-      }
+      static Container* singleton();
       /**
        * Empty all stored classes in the singleton.
        */
@@ -72,12 +67,12 @@ namespace Quack {
       : name_(name), super_type_name_(strcmp(super_type, "") == 0 ? CLASS_OBJ : super_type),
         super_(OBJECT_NOT_FOUND), constructor_params_(params), constructor_(constructor),
         methods_(methods) {
-      Container* classes = Container::singleton();
-      if (classes->exists(name))
-        throw("Duplicate class named \"" + name_ + "\"");
+//      Container* classes = Container::singleton();
+//      if (classes->exists(name))
+//        throw("Duplicate class named \"" + name_ + "\"");
 
       if (name_ == CLASS_NOTHING)
-        throw("Invalid class name \"" + name_ + "\"");
+        throw std::runtime_error("Invalid class name \"" + name_ + "\"");
     }
     /**
      * Clear all dynamic memory in the object.
@@ -110,9 +105,11 @@ namespace Quack {
         std::vector<Class*> super_list; // Compiler needs this because cant pass a temp by reference
         Class* base_parent = quack_class->has_no_cyclic_inheritance(super_list);
 
-        if (base_parent != BASE_CLASS)
-          throw("Class " + quack_class->name_ + " has a cyclic dependency with class \""
-                + base_parent->name_ + "\"");
+        if (base_parent != BASE_CLASS) {
+          throw std::runtime_error("Class " + quack_class->name_
+                                   + " has a cyclic dependency with class \""
+                                   + base_parent->name_ + "\"");
+        }
       }
     }
     /**
@@ -164,9 +161,10 @@ namespace Quack {
         if (method->return_type_name_ == CLASS_NOTHING)
           method->return_type_ = BASE_CLASS;
         Class *return_type = Container::singleton()->get(method->return_type_name_);
-        if (return_type == OBJECT_NOT_FOUND)
-          throw("Class: " + this->name_ + ", method " + method->name_ + ", unknown return type \""
-                + method->return_type_name_ + "\"");
+        if (return_type == OBJECT_NOT_FOUND) {
+          throw std::runtime_error("Class: " + this->name_ + ", method " + method->name_
+                                   + ", unknown return type \"" + method->return_type_name_ + "\"");
+        }
         method->return_type_ = return_type;
       }
     }
@@ -212,18 +210,24 @@ namespace Quack {
       std::string super_name = (super_type_name_.empty()) ? CLASS_OBJ : super_type_name_;
 
       Container* classes = Container::singleton();
-      if (!classes->exists(super_type_name_))
-        throw ("For class, \"" + name_ + "\", unknown super class: " + super_type_name_);
+      if (!classes->exists(super_type_name_)) {
+        throw std::runtime_error("For class, \"" + name_ + "\", unknown super class: "
+                                 + super_type_name_);
+      }
       super_ = classes->get(super_name);
     }
     void configure_method_params(Param::Container &params) {
       for (auto &param : params) {
-        if (param->type_name_ == CLASS_NOTHING)
-          throw("Parameter " + param->name_ + " cannot have type \"" + CLASS_NOTHING + "\"");
+        if (param->type_name_ == CLASS_NOTHING) {
+          throw std::runtime_error("Parameter " + param->name_ + " cannot have type \""
+                                   + CLASS_NOTHING + "\"");
+        }
 
         Class* type_class = Container::singleton()->get(param->type_name_);
-        if (type_class == OBJECT_NOT_FOUND)
-          throw("Parameter " + param->name_ + " has undefined type \"" + param->type_name_ + "\"");
+        if (type_class == OBJECT_NOT_FOUND) {
+          throw std::runtime_error("Parameter " + param->name_ + " has undefined type \""
+                                   + param->type_name_ + "\"");
+        }
         param->type_class_ = type_class;
       }
     }
@@ -242,28 +246,32 @@ namespace Quack {
   class ObjectClass : public Class {
    public:
     ObjectClass()
-        : Class(strdup(CLASS_OBJ), strdup(""), new Param::Container(), nullptr, nullptr) { }
+        : Class(strdup(CLASS_OBJ), strdup(""), new Param::Container(),
+                new AST::Block(), new Method::Container()) { }
     // ToDo add missing Object methods
   };
 
   class IntClass : public Class {
    public:
     IntClass()
-        : Class(strdup(CLASS_INT), strdup(CLASS_OBJ), new Param::Container(), nullptr, nullptr) { }
+        : Class(strdup(CLASS_INT), strdup(CLASS_OBJ), new Param::Container(),
+                new AST::Block(), new Method::Container()) { }
     // ToDo Add missing Int methods
   };
 
   class StringClass : public Class {
    public:
     StringClass()
-        : Class(strdup(CLASS_STR), strdup(CLASS_OBJ), new Param::Container(), nullptr, nullptr) { }
+        : Class(strdup(CLASS_STR), strdup(CLASS_OBJ), new Param::Container(),
+                new AST::Block(), new Method::Container()) { }
     // ToDo Add Missing String methods
   };
 
   class BooleanClass : public Class {
    public:
     BooleanClass()
-        : Class(strdup(CLASS_BOOL), strdup(CLASS_OBJ), new Param::Container(), nullptr, nullptr) { }
+        : Class(strdup(CLASS_BOOL), strdup(CLASS_OBJ), new Param::Container(),
+                new AST::Block(), new Method::Container()) { }
     // ToDo Add Missing Boolean methods
   };
 }

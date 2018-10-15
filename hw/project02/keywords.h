@@ -10,7 +10,7 @@
 #define KEY_EXTENDS "extends"
 #define KEY_TYPECASE "typecase"
 
-#define CLASS_INT "Integer"
+#define CLASS_INT "Int"
 #define CLASS_STR "String"
 #define CLASS_OBJ "Obj"
 #define CLASS_BOOL "Boolean"

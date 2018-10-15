@@ -6,6 +6,9 @@
 #include <map>
 #include <set>
 #include <iostream>
+#include <stdexcept>
+
+#include "keywords.h"
 
 #ifndef PROJECT02_CONTAINER_TEMPLATES_H
 #define PROJECT02_CONTAINER_TEMPLATES_H
@@ -64,7 +67,7 @@ class MapContainer : public ObjectContainer<_T> {
    */
   void add(_T *new_obj) override {
     if (exists(new_obj->name_))
-      throw("Duplicate Object: " + new_obj->name_);
+      throw std::runtime_error("Duplicate Object: " + new_obj->name_);
     objs_[new_obj->name_] = new_obj;
   }
   /**
@@ -159,7 +162,7 @@ class VectorContainer : public ObjectContainer<_T> {
     for (auto &obj: objs_)
       if (obj->name_ == name)
         return obj;
-    throw("Unable to get method name: " + name);
+    throw std::runtime_error("Unable to get method name: " + name);
   }
   /**
    * Delete all stored objects in the map.

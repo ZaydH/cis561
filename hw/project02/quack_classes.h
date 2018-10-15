@@ -7,6 +7,7 @@
 #include <vector>
 #include <iostream>
 #include <stdexcept>
+#include <algorithm>
 
 #include "container_templates.h"
 #include "quack_methods.h"

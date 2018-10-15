@@ -20,7 +20,7 @@ namespace Quack {
        classes_(classes), block_(block) {};
 
     ~Program() {
-      delete classes_;
+      //delete classes_; // Cleared when the singleton is cleared
       delete block_;
     }
 

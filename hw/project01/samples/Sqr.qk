@@ -25,7 +25,7 @@ class Rect(ll: Pt, ur: Pt) extends Obj {
 
   def translate(delta: Pt) : Pt { return Rect(ll+Pt, ur+Pt); }
 
-  def STR() {
+  def STR() : String {
       lr = Pt( this.ur._y(), this.ll._x() );  // lower right 
       ul = Pt( this.ll._x(), this.ur._y() );  // upper left
       return "(" + this.ll.STR() + ", "

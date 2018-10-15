@@ -79,8 +79,8 @@ namespace Quack {
         Quack::Program* prog = parse(f_in, file_path);
         f_in.close();
 
-        auto type_checker = Quack::TypeChecker();
-        type_checker.run();
+//        auto type_checker = Quack::TypeChecker();
+//        type_checker.run();
 
         progs_.back() = prog;
       }

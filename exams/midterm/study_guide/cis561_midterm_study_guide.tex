@@ -1,0 +1,75 @@
+\documentclass[10pt]{report}
+
+\usepackage[margin=0.3in]{geometry}
+\usepackage{multicol}
+
+\usepackage{enumitem}
+\setitemize{itemsep=0pt}
+
+\renewcommand{\thesection}{Lec.~\arabic{section}}
+\setlength{\parindent}{0pt}
+
+
+\begin{document}
+  \begin{multicols}{2}
+    \section{Introduction}
+    
+    \textbf{Compiler Stages}:
+    \begin{enumerate}
+      \item \textit{Lexer/scanner}: Read text and produce token stream. FSM-based.  Tools: (F)lex
+      \item Parser - Analyze grammatical structure.
+      \item Abstract syntax tree \& Symbol Table
+      \item Static semantics
+      \item Code generation
+    \end{enumerate}
+  
+    \section{Lexical Analysis}
+    
+    \textbf{Finite State Machine}: Consumes one character on each move and announces a pattern when matched.
+    \begin{itemize}
+      \item Linear time
+      \item Possible States: (Non-)Accepting, Start
+    \end{itemize}
+  
+    \textbf{Angelic Non-determinism}: Try all possible paths. If any ends in a final state, accept.
+    
+    \textbf{Limitations of Regular Expressions}: Not fully expressive for many regular languages.
+    \begin{enumerate}
+      \item \textit{Example}: Balanced parentheses
+      \item \textit{Intuition}: Regular expressions cannot count.
+    \end{enumerate}
+  
+    \textbf{Representing an NFA as a DFA}: If the NFA has $k$~states, the equivalent DFA will have \textit{at most} $2^{k}$ states.
+    
+    \section{Parsing}
+    
+    \textbf{LL(*)} -- Left-to-right, leftmost derivation
+    \begin{itemize}
+      \item Example: ANTLR
+      \item Top-down parser
+      \item Rely on first and follow sets
+    \end{itemize}
+  
+    \textbf{LR(*)}: Left-to-right, rightmost derivation
+    \begin{itemize}
+      \item Examples: Bison, Yacc, CUP 
+      \item Bottom-Up parser: Build leaves then parents
+    \end{itemize}
+    
+    \subsection{Bottom-Up Parser Operations}
+    
+    \textbf{Shift}: Move over a token
+    
+    \textbf{Reduce}: At end of rule, reduce to non-terminal then do a GoTo.
+    
+    \textbf{GoTo}: Move over non-terminal. \textit{Can never have a conflict}
+    
+    \subsection{Resolving Conflicts w/ Lookahead}
+    \textbf{Shift-Reduce}: Character after shift not in reduce lookahead.
+    
+    \textbf{Reduce/Reduce}: Intersection of all pairs reduce lookaheads empty.
+    
+    
+    
+  \end{multicols}
+\end{document}

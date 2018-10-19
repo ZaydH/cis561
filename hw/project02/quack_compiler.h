@@ -66,7 +66,6 @@ namespace Quack {
         Quack::Class::Container::reset();
 
         std::ifstream f_in(file_path);
-        progs_.emplace_back(nullptr);
 
         // If specified file does not exist, report an error then continue
         if (!f_in) {
@@ -79,10 +78,13 @@ namespace Quack {
         Quack::Program* prog = parse(f_in, file_path);
         f_in.close();
 
+        if (report::ok()) {
+          // ToDo improve free of programs fail to parse.
+          progs_.emplace_back(prog);
+        }
+
 //        auto type_checker = Quack::TypeChecker();
 //        type_checker.run();
-
-        progs_.back() = prog;
       }
     }
 

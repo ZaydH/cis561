@@ -1,0 +1,33 @@
+/* Empty comment */
+
+class MyClass (d : fd, rtr : tr , rtert, rt) extends Object {
+  def MyMethod () {
+
+  }
+
+  def MyMethod2 (e34: a34_34) : Int {
+    return xx + 5;
+  }
+}
+
+54654 == 548;
+x = r545;
+5 <= 5;
+656 >= 5;
+"dfdf" > """\ngsdgf\t""";
+"\t\r\n" and true;
+if (sdsf == dsf) {
+kl656 = 5;
+} elif 4 + 4 {
+  dfs / 45 == 4254 * 34;
+  fsd + 4;
+} else {
+  if (fdf + 4) {
+     fdf + hgj;
+     dfds == 45;
+  }
+  while (fd <= 4) {
+    dfdf + 45;
+    fds or 3;
+  }
+}

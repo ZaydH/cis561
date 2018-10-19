@@ -11,6 +11,7 @@
 
 #include "container_templates.h"
 #include "quack_methods.h"
+#include "quack_field.h"
 #include "keywords.h"
 
 #ifndef PROJECT02_QUACK_CLASSES_H
@@ -68,6 +69,9 @@ namespace Quack {
       : name_(name), super_type_name_(strcmp(super_type, "") == 0 ? CLASS_OBJ : super_type),
         super_(OBJECT_NOT_FOUND), constructor_params_(params), constructor_(constructor),
         methods_(methods) {
+
+      fields_ = new Field::Container();
+
 //      Container* classes = Container::singleton();
 //      if (classes->exists(name))
 //        throw("Duplicate class named \"" + name_ + "\"");
@@ -82,6 +86,7 @@ namespace Quack {
       delete constructor_;
       delete constructor_params_;
       delete methods_;
+      delete fields_;
     }
     /**
      * Checks if this class (or any of its super classes) has the specified method.
@@ -169,8 +174,6 @@ namespace Quack {
         method->return_type_ = return_type;
       }
     }
-
-
     /** Name of the class */
     const std::string name_;
     /**
@@ -217,6 +220,12 @@ namespace Quack {
       }
       super_ = classes->get(super_name);
     }
+    /**
+     * Basic configuration of method parameters including verify no parameter has type nothing
+     * and then links the parameters to their associated types.
+     *
+     * @param params Set of parameters.
+     */
     void configure_method_params(Param::Container &params) {
       for (auto &param : params) {
         if (param->type_name_ == CLASS_NOTHING) {
@@ -239,41 +248,98 @@ namespace Quack {
     Param::Container* constructor_params_;
     /** Statements in the constructor */
     AST::Block* constructor_;
-
+   protected:
     /** All methods supported by the class */
     Method::Container* methods_;
+    /** Name of all fields in the class */
+    Field::Container* fields_;
+    /**
+     * Used to add binary operation methods to the a class.  Only used for base classes
+     * like Obj, Boolean, Integer, etc.
+     *
+     * @param method_name
+     * @param return_type
+     * @param param_type
+     */
+    void add_binop_method(const std::string &method_name, const std::string &return_type,
+                          const std::string &param_type) {
+
+      auto params = new Param::Container();
+      params->add(new Param(FIELD_OTHER_LIT_NAME, param_type));
+
+      // ToDo Decide on the binary operations AST block
+      methods_->add(new Method(method_name, return_type, params, new AST::Block()));
+    }
+
+    void add_unary_op_method(const std::string &method_name, const std::string &return_type) {
+      auto params = new Param::Container();
+
+      // ToDo Decide on the binary operations AST block
+      methods_->add(new Method(method_name, return_type, params, new AST::Block()));
+    }
   };
 
   class ObjectClass : public Class {
    public:
     ObjectClass()
         : Class(strdup(CLASS_OBJ), strdup(""), new Param::Container(),
-                new AST::Block(), new Method::Container()) { }
-    // ToDo add missing Object methods
+                new AST::Block(), new Method::Container()) {
+      add_base_methods();
+    }
+    /**
+     * Create the print and equality methods for a base Object.
+     */
+    void add_base_methods() {
+      add_binop_method(METHOD_EQUALITY, CLASS_OBJ, CLASS_BOOL);
+      add_unary_op_method(METHOD_PRINT, CLASS_NOTHING);
+    }
   };
 
-  class IntClass : public Class {
+  /**
+   * Represents all literal objects (e.g., integer, boolean, string).  Encapsulated in this
+   * subclass to standardize some value information.
+   */
+  class LitClass : public Class {
    public:
-    IntClass()
-        : Class(strdup(CLASS_INT), strdup(CLASS_OBJ), new Param::Container(),
-                new AST::Block(), new Method::Container()) { }
-    // ToDo Add missing Int methods
+    explicit LitClass(char* name)
+            : Class(strdup(name), strdup(CLASS_OBJ), new Param::Container(),
+                    new AST::Block(), new Method::Container()) { }
   };
 
-  class StringClass : public Class {
+  class IntList : public LitClass {
    public:
-    StringClass()
-        : Class(strdup(CLASS_STR), strdup(CLASS_OBJ), new Param::Container(),
-                new AST::Block(), new Method::Container()) { }
-    // ToDo Add Missing String methods
+    IntList() : LitClass(strdup(CLASS_INT)) {
+      add_binop_method(METHOD_ADD, CLASS_INT, CLASS_INT);
+      add_binop_method(METHOD_SUBTRACT, CLASS_INT, CLASS_INT);
+      add_binop_method(METHOD_MULTIPLY, CLASS_INT, CLASS_INT);
+      add_binop_method(METHOD_DIVIDE, CLASS_INT, CLASS_INT);
+
+      add_binop_method(METHOD_EQUALITY, CLASS_INT, CLASS_BOOL);
+      add_binop_method(METHOD_LEQ, CLASS_INT, CLASS_BOOL);
+      add_binop_method(METHOD_LT, CLASS_INT, CLASS_BOOL);
+      add_binop_method(METHOD_GEQ, CLASS_INT, CLASS_BOOL);
+      add_binop_method(METHOD_GT, CLASS_INT, CLASS_BOOL);
+    }
   };
 
-  class BooleanClass : public Class {
+  class StringLit : public LitClass {
    public:
-    BooleanClass()
-        : Class(strdup(CLASS_BOOL), strdup(CLASS_OBJ), new Param::Container(),
-                new AST::Block(), new Method::Container()) { }
-    // ToDo Add Missing Boolean methods
+    StringLit() : LitClass(strdup(CLASS_STR)) {
+      add_binop_method(METHOD_ADD, CLASS_STR, CLASS_STR);
+
+      add_binop_method(METHOD_EQUALITY, CLASS_STR, CLASS_STR);
+      add_binop_method(METHOD_LEQ, CLASS_STR, CLASS_BOOL);
+      add_binop_method(METHOD_LT, CLASS_STR, CLASS_BOOL);
+      add_binop_method(METHOD_GEQ, CLASS_STR, CLASS_BOOL);
+      add_binop_method(METHOD_GT, CLASS_STR, CLASS_BOOL);
+    }
+  };
+
+  class BooleanLit : public LitClass {
+   public:
+    BooleanLit() : LitClass(strdup(CLASS_BOOL)) {
+      add_binop_method(METHOD_EQUALITY, CLASS_BOOL, CLASS_BOOL);
+    }
   };
 }
 

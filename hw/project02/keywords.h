@@ -16,6 +16,21 @@
 #define CLASS_BOOL "Boolean"
 #define CLASS_NOTHING "Nothing"
 
+#define FIELD_LIT_VAL "__lit_field_value__"
+#define FIELD_OTHER_LIT_NAME "other"
+
+#define METHOD_PRINT "PRINT"
+#define METHOD_EQUALITY "EQUALS"
+#define METHOD_ADD "ADD"
+#define METHOD_SUBTRACT "MINUS"
+#define METHOD_MULTIPLY "TIMES"
+
+#define METHOD_DIVIDE "DIVIDE"
+#define METHOD_GT "MORE"
+#define METHOD_LT "LESS"
+#define METHOD_GEQ "ATLEAST"
+#define METHOD_LEQ "ATMOST"
+
 #define OBJECT_NOT_FOUND nullptr
 #define BASE_CLASS nullptr
 

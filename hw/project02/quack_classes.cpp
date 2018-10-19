@@ -9,9 +9,9 @@ Quack::Class::Container* Quack::Class::Container::singleton() {
   if (all_classes_.empty()) {
     // ToDo Initialize Class Container
     all_classes_.add(new ObjectClass());
-    all_classes_.add(new BooleanClass());
-    all_classes_.add(new IntClass());
-    all_classes_.add(new StringClass());
+    all_classes_.add(new BooleanLit());
+    all_classes_.add(new IntList());
+    all_classes_.add(new StringLit());
   }
   return &all_classes_;
 }

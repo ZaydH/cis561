@@ -3,6 +3,7 @@
 
 #include <utility>
 #include <cstring>
+#include <assert.h>
 
 #include "container_templates.h"
 

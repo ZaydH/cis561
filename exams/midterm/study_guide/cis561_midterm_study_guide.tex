@@ -48,13 +48,25 @@
       \item Example: ANTLR
       \item Top-down parser
       \item Rely on first and follow sets
+      \item Construct right skewed trees
     \end{itemize}
+    \textbf{LL1}: Also known as recursive descent parser.
   
     \textbf{LR(*)}: Left-to-right, rightmost derivation
     \begin{itemize}
       \item Examples: Bison, Yacc, CUP 
       \item Bottom-Up parser: Build leaves then parents
+      \item Construct left skewed trees
     \end{itemize}
+  
+    Two parser operators:
+    \begin{enumerate}
+      \item \textit{Peak}: Check the next character and report an error if it is invalid.
+      \item \textit{Match}: Consume next token or throw an error.
+    \end{enumerate}
+  
+    \textbf{First Set}: Set of terminals that can appear at the beginning of a specific non-terminal. \textbf{Follow Set}: Set of possible terminals can that appear after a specific non-terminal.
+    
     
     \subsection{Bottom-Up Parser Operations}
     
@@ -64,12 +76,20 @@
     
     \textbf{GoTo}: Move over non-terminal. \textit{Can never have a conflict}
     
+    \textbf{Dotted Item}: Represents how far along we are in the production. \textbf{Kernel}: Set of productions yielded by applying the transition operation.
+    
     \subsection{Resolving Conflicts w/ Lookahead}
     \textbf{Shift-Reduce}: Character after shift not in reduce lookahead.
     
     \textbf{Reduce/Reduce}: Intersection of all pairs reduce lookaheads empty.
     
+    \section*{Languages}
     
+    \noindent
+    \textbf{Regular Language}: Any language that can be represented via a DFA/NFA or that can be expressed via a regular expression.
+    \begin{itemize}
+      \item All finite languages are inherently regular.
+    \end{itemize}
     
   \end{multicols}
 \end{document}

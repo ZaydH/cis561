@@ -41,6 +41,15 @@
   
     \textbf{Representing an NFA as a DFA}: If the NFA has $k$~states, the equivalent DFA will have \textit{at most} $2^{k}$ states.
     
+    
+    \textbf{Chomsky Hierarchy}: Orders languages from most to least expressive.
+    \begin{itemize}
+      \item \textbf{Type~0}: No restrictions
+      \item \textbf{Type~1}: Context sensitive
+      \item \textbf{Type~2}: Context free
+      \item \textbf{Type~3}: Right linear, i.e.,~regular
+    \end{itemize}
+    
     \section{Parsing}
     
     \textbf{LL(*)} -- Left-to-right, leftmost derivation
@@ -51,6 +60,7 @@
       \item Construct right skewed trees
     \end{itemize}
     \textbf{LL1}: Also known as recursive descent parser.
+    \textbf{Angelic Recursive Descent Parser}: Example shown in class that similar to an NFA, the angelic parser ``magically'' which production to select at any point in the input.
   
     \textbf{LR(*)}: Left-to-right, rightmost derivation
     \begin{itemize}
@@ -62,11 +72,26 @@
     Two parser operators:
     \begin{enumerate}
       \item \textit{Peak}: Check the next character and report an error if it is invalid.
-      \item \textit{Match}: Consume next token or throw an error.
+      \item \textit{Match}: Consume next token if it is the same as the expected value or throw an error.
     \end{enumerate}
   
     \textbf{First Set}: Set of terminals that can appear at the beginning of a specific non-terminal. \textbf{Follow Set}: Set of possible terminals can that appear after a specific non-terminal.
     
+    \textbf{Example Grammar with Precedence}:
+    
+    \texttt{% 
+    expr $\rightarrow$ expr '+' term\\
+    \hbox{\hspace{30pt}}| expr '-' term\\
+    \hbox{\hspace{30pt}}| term\\
+    \\
+    term $\rightarrow$ term '*' factor\\
+    \hbox{\hspace{30pt}}| term '/' factor\\
+    \hbox{\hspace{30pt}}| factor\\
+    \\
+    factor $\rightarrow$ '-' factor\\
+    \hbox{\hspace{39pt}}| prim\\
+    \\
+    prim $\rightarrow$ NUMBER}
     
     \subsection{Bottom-Up Parser Operations}
     

@@ -45,7 +45,7 @@ namespace Quack {
       params_->print_original_src(0);
       std::cout << ")";
 
-      if (return_type_name_ != "")
+      if (!return_type_name_.empty())
         std::cout << " " << ": " << return_type_name_;
 
       std::cout << " {\n";

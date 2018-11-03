@@ -2,6 +2,9 @@
 // Created by Zayd Hammoudeh on 10/4/18.
 //
 
+#ifndef PROJECT02_CONTAINER_TEMPLATES_H
+#define PROJECT02_CONTAINER_TEMPLATES_H
+
 #include <string>
 #include <map>
 #include <set>
@@ -9,10 +12,6 @@
 #include <stdexcept>
 
 #include "keywords.h"
-
-#ifndef PROJECT02_CONTAINER_TEMPLATES_H
-#define PROJECT02_CONTAINER_TEMPLATES_H
-
 
 template<typename _T>
 class ObjectContainer {

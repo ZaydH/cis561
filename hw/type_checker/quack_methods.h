@@ -2,6 +2,10 @@
 // Created by Zayd Hammoudeh on 10/4/18.
 //
 
+#ifndef PROJECT02_QUACK_METHODS_H
+#define PROJECT02_QUACK_METHODS_H
+
+
 #include <map>
 #include <string>
 #include <iostream>
@@ -10,11 +14,11 @@
 #include "ASTNode.h"
 #include "quack_params.h"
 
-#ifndef PROJECT02_QUACK_METHODS_H
-#define PROJECT02_QUACK_METHODS_H
-
 namespace Quack {
+  class TypeChecker;
+
   class Method {
+    friend class TypeChecker;
    public:
     class Container : public MapContainer<Method> {
      public:

@@ -50,6 +50,8 @@ add_executable(${BIN_NAME}
                Messages.h Messages.cpp
                ASTNode.h ASTNode.cpp
                quack_type_checker.h
-        quack_field.h)
+               quack_field.h
+               symbol_table.h
+        initialized_list.h)
 
 target_link_libraries(${BIN_NAME} ${REFLEX_LIB})

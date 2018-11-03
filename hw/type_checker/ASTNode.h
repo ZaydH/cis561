@@ -13,6 +13,7 @@
 #include <iostream>
 
 #include "keywords.h"
+#include "initialized_list.h"
 
 namespace AST {
   // Abstract syntax tree.  ASTNode is abstract base class for all other nodes.
@@ -25,6 +26,10 @@ namespace AST {
     virtual ~ASTNode() = default;
 
     virtual void print_original_src(unsigned int indent_depth = 0) = 0;
+    // ToDo remove virtual check initialized before Use. ONly here to reduce compile errors
+    virtual bool check_initialize_before_use(InitializedList &init_list) {}
+    // Updates the initialized list.  Only applies to a very small subset of blocks
+    virtual void update_initialized_list(InitializedList &init_list) {}
   };
 
   /* A block is a sequence of statements or expressions.
@@ -54,6 +59,13 @@ namespace AST {
        stmt->print_original_src(indent_depth);
        std::cout << ";";
       }
+    }
+
+    bool check_initialize_before_use(InitializedList &init_list) {
+      for (auto &stmt : stmts_)
+        if (!stmt->check_initialize_before_use(init_list))
+          return false;
+      return true;
     }
 
     bool empty() { return stmts_.empty(); }
@@ -89,6 +101,24 @@ namespace AST {
         std::cout << "\n" << indent_str << "}";
       }
     }
+    /**
+     * Specialized implementation of the initialize before use type check.  The initialized list
+     * is modified by the function and represents the set of variables in the intersection of
+     * the variables from the true and false blocks.
+     *
+     * @param init_list Initialized list modified in place
+     * @return True if the check passed.
+     */
+    bool check_initialize_before_use(InitializedList &init_list) override {
+      InitializedList false_list = init_list;
+
+      bool success = cond_->check_initialize_before_use(init_list)
+                     && truepart_->check_initialize_before_use(init_list)
+                     && falsepart_->check_initialize_before_use(false_list);
+      init_list.intersect(false_list);
+
+      return success;
+    }
   };
 
   /* Identifiers like x and literals like 42 are the
@@ -109,6 +139,13 @@ namespace AST {
   class Literal : public ASTNode {
    public:
     explicit Literal(const _T &v) : value_{v} {}
+    /**
+     * No initialization before use check for a literal.  This function simply returns true.
+     *
+     * @param init_list Set of initialized variables.  Not changed in the funciton.
+     * @return True always.
+     */
+    bool check_initialize_before_use(InitializedList &init_list) override { return true; }
 
     /** Value of the literal */
     const _T value_;
@@ -161,6 +198,16 @@ namespace AST {
       right_->print_original_src();
       std::cout << ")";
     }
+    /**
+     * Checks if the initialize before use test on the two subexpressions passes.
+     *
+     * @param init_list Set of initialized variables.
+     * @return True if the initialized before use test passes for both subexpressions.
+     */
+    bool check_initialize_before_use(InitializedList &init_list) override {
+      return left_->check_initialize_before_use(init_list)
+             && right_->check_initialize_before_use(init_list);
+    }
   };
 
   class UniOp : public ASTNode {
@@ -177,6 +224,15 @@ namespace AST {
       right_->print_original_src();
       std::cout << ")";
     }
+    /**
+     * Checks if the initialize before use test passes on the right subexpression.
+     *
+     * @param init_list Set of initialized variables.
+     * @return True if the initialized before use test passes for the right subexpression.
+     */
+    bool check_initialize_before_use(InitializedList &init_list) override {
+      return right_->check_initialize_before_use(init_list);
+    }
   };
 
   class Return : public ASTNode {
@@ -192,6 +248,15 @@ namespace AST {
     void print_original_src(unsigned int indent_depth = 0) override {
       std::cout << "return ";
       right_->print_original_src();
+    }
+    /**
+     * Checks if the initialize before use test passes on the right subexpression.
+     *
+     * @param init_list Set of initialized variables.
+     * @return True if the initialized before use test passes for the right subexpression.
+     */
+    bool check_initialize_before_use(InitializedList &init_list) override {
+      return right_->check_initialize_before_use(init_list);
     }
   };
 
@@ -219,6 +284,21 @@ namespace AST {
         std::cout << "\n";
       std::cout << indent_str << "}";
     }
+    /**
+     * Performs an initialize before use test on the while loop.  It checks the conditional
+     * statement as well as the body of the while loop.
+     *
+     * @param init_list Set of initialized variables.
+     * @return True if the initialized before use test passes for the conditional statement
+     *         as well as the body for the while loop
+     */
+    bool check_initialize_before_use(InitializedList &init_list) override {
+      bool success = cond_->check_initialize_before_use(init_list);
+
+      InitializedList body_temp_list = init_list;
+      success = body_->check_initialize_before_use(init_list);
+      return success;
+    }
   };
 
   class Assn : public ASTNode {
@@ -238,6 +318,18 @@ namespace AST {
       std::cout << " = ";
       rhs_->print_original_src(indent_depth);
     }
+
+    bool check_initialize_before_use(InitializedList &init_list) {
+      assert(false);
+      bool success = rhs_->check_initialize_before_use(init_list);
+                     && lhs_->check_initialize_before_use(init_list);
+      if (!success)
+        return false;
+
+      // ToDo Add the variable to the init list.
+      lhs_->update_initialize_before_use(init_list);
+      return true;
+    }
   };
 
   class RhsArgs : public ASTNode {
@@ -250,9 +342,15 @@ namespace AST {
       for (const auto &arg: args_)
         delete arg;
     }
-
+    /**
+     * Accessor for number of arguments in the node.
+     * @return Number of arguments
+     */
     unsigned long count() { return args_.size(); }
-
+    /**
+     * Checks whether there are any input arguments
+     * @return True if there are no arguments
+     */
     bool empty() { return args_.empty(); }
 
     void add(ASTNode* new_node) { args_.emplace_back(new_node); }

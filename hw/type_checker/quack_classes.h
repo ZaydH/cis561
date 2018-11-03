@@ -2,6 +2,9 @@
 // Created by Zayd Hammoudeh on 10/4/18.
 //
 
+#ifndef PROJECT02_QUACK_CLASSES_H
+#define PROJECT02_QUACK_CLASSES_H
+
 #include <map>
 #include <cstring>
 #include <vector>
@@ -14,12 +17,12 @@
 #include "quack_field.h"
 #include "keywords.h"
 
-#ifndef PROJECT02_QUACK_CLASSES_H
-#define PROJECT02_QUACK_CLASSES_H
-
 namespace Quack {
 
+  class TypeChecker;
+
   class Class {
+    friend class TypeChecker;
    public:
     class Container : public MapContainer<Class> {
      public:

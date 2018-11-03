@@ -13,8 +13,11 @@
 #define PROJECT02_QUACK_PROGRAM_H
 
 namespace Quack {
+  // Forward Declaration
+  class TypeChecker;
 
   class Program {
+    friend class TypeChecker;
    public:
     explicit Program(Class::Container *classes, AST::Block *block) :
        classes_(classes), block_(block) {};

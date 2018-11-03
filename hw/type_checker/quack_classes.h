@@ -167,14 +167,16 @@ namespace Quack {
         configure_method_params(*method->params_);
 
         // Check and configure the method return type.
-        if (method->return_type_name_ == CLASS_NOTHING)
+        if (method->return_type_name_ == CLASS_NOTHING) {
           method->return_type_ = BASE_CLASS;
-        Class *return_type = Container::singleton()->get(method->return_type_name_);
-        if (return_type == OBJECT_NOT_FOUND) {
-          throw std::runtime_error("Class: " + this->name_ + ", method " + method->name_
-                                   + ", unknown return type \"" + method->return_type_name_ + "\"");
+        } else {
+          method->return_type_ = Container::singleton()->get(method->return_type_name_);
+          if (method->return_type_ == OBJECT_NOT_FOUND) {
+            throw std::runtime_error("Class: " + this->name_ + ", method " + method->name_
+                                     + ", unknown return type \"" + method->return_type_name_ +
+                                     "\"");
+          }
         }
-        method->return_type_ = return_type;
       }
     }
     /** Name of the class */

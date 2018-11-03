@@ -83,8 +83,8 @@ namespace Quack {
           progs_.emplace_back(prog);
         }
 
-//        auto type_checker = Quack::TypeChecker();
-//        type_checker.run();
+        auto type_checker = Quack::TypeChecker();
+        type_checker.run(prog);
       }
     }
 

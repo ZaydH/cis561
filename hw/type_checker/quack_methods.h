@@ -15,6 +15,7 @@
 #include "quack_params.h"
 
 namespace Quack {
+  // Forward declaration
   class TypeChecker;
 
   class Method {

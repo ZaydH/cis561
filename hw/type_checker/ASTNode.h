@@ -27,7 +27,9 @@ namespace AST {
 
     virtual void print_original_src(unsigned int indent_depth = 0) = 0;
     // ToDo remove virtual check initialized before Use. ONly here to reduce compile errors
-    virtual bool check_initialize_before_use(InitializedList &init_list) {}
+    virtual bool check_initialize_before_use(InitializedList &init_list) {
+      return false;
+    }
     // Updates the initialized list.  Only applies to a very small subset of blocks
     virtual void update_initialized_list(InitializedList &init_list) {}
   };
@@ -131,6 +133,11 @@ namespace AST {
     std::string text_;
    public:
     explicit Ident(const char* txt) : text_{txt} {}
+    /**
+     * Accesses the identifier name.
+     * @return Name of the identifier.
+     */
+    const std::string& get() { return text_; }
 
     void print_original_src(unsigned int indent_depth = 0) override { std::cout << text_; }
   };
@@ -296,8 +303,7 @@ namespace AST {
       bool success = cond_->check_initialize_before_use(init_list);
 
       InitializedList body_temp_list = init_list;
-      success = body_->check_initialize_before_use(init_list);
-      return success;
+      return success && body_->check_initialize_before_use(init_list);;
     }
   };
 
@@ -318,7 +324,12 @@ namespace AST {
       std::cout << " = ";
       rhs_->print_original_src(indent_depth);
     }
-
+    /**
+     * Verifies that both the left and right hand side of statement pass the initialize before
+     * use test.  It next adds the assigned variable to the initialized list.
+     * @param init_list
+     * @return
+     */
     bool check_initialize_before_use(InitializedList &init_list) {
       assert(false);
       bool success = rhs_->check_initialize_before_use(init_list)
@@ -355,7 +366,7 @@ namespace AST {
 
     void add(ASTNode* new_node) { args_.emplace_back(new_node); }
 
-    void print_original_src(unsigned int indent_depth) {
+    void print_original_src(unsigned int indent_depth) override {
       bool is_first = true;
       for (const auto &arg : args_) {
         if (!is_first)
@@ -363,6 +374,20 @@ namespace AST {
         is_first = false;
         arg->print_original_src(indent_depth);
       }
+    }
+
+    /**
+     * Checks if the initialize before use test passes on the right subexpression.
+     *
+     * @param init_list Set of initialized variables.
+     * @return True if the initialized before use test passes for the right subexpression.
+     */
+    bool check_initialize_before_use(InitializedList &init_list) override {
+      bool success = true;
+      // ToDo verify the argument calls is valid.
+      for (auto &arg : args_)
+        success = success && arg->check_initialize_before_use(init_list);
+      return success;
     }
   };
 
@@ -378,10 +403,21 @@ namespace AST {
       delete next_;
     }
 
-    void print_original_src(unsigned int indent_depth) {
+    void print_original_src(unsigned int indent_depth) override {
       object_->print_original_src(indent_depth);
       std::cout << ".";
       next_->print_original_src(indent_depth);
+    }
+    /**
+     * Checks if the initialize before use test passes on the right subexpression.
+     *
+     * @param init_list Set of initialized variables.
+     * @return True if the initialized before use test passes for the right subexpression.
+     */
+    bool check_initialize_before_use(InitializedList &init_list) override {
+      // ToDo Need to verify only first object is checked and handle "this"
+      // ...
+      return false;
     }
   };
 
@@ -396,7 +432,22 @@ namespace AST {
       delete args_;
     }
 
-    void print_original_src(unsigned int indent_depth) {
+    /**
+     * Checks if the initialize before use test passes on the right subexpression.
+     *
+     * @param init_list Set of initialized variables.
+     * @return True if the initialized before use test passes for the right subexpression.
+     */
+    bool check_initialize_before_use(InitializedList &init_list) override {
+      bool success = true;
+      // ToDo Need to verify only first object is checked and handle "this"
+      // ...
+
+      success = success && args_->check_initialize_before_use(init_list);
+      return success;
+    }
+
+    void print_original_src(unsigned int indent_depth) override {
       std::cout << ident_ << "(";
       args_->print_original_src(indent_depth);
       std::cout << ")";
@@ -414,12 +465,17 @@ namespace AST {
     ASTNode* expr_;
     std::string type_name_;
 
-    void print_original_src(unsigned int indent_depth) {
+    void print_original_src(unsigned int indent_depth) override {
       expr_->print_original_src(indent_depth);
       if (!type_name_.empty())
         std::cout << " : " << type_name_;
     }
+    bool check_initialize_before_use(InitializedList &init_list) override {
+      // ToDo may need to handle updating the init ist
+      return expr_->check_initialize_before_use(init_list);
+    }
 
+    // ToDo ensure type checker verifies type_name_ exists
   };
 
   class TypeAlternative {

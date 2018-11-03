@@ -44,13 +44,13 @@ class MapContainer : public ObjectContainer<_T> {
    *
    * @return Iterator to the beginning of the map.
    */
-  typename std::map<std::string, _T*>::iterator begin() { return objs_.begin(); }
+  typename std::map<std::string, _T*>::iterator begin() const { return objs_.begin(); }
   /**
    * Iterator accessor for object pairs in the map container
    *
    * @return Iterator to the end of the map.
    */
-  typename std::map<std::string, _T*>::iterator end() { return objs_.end(); }
+  typename std::map<std::string, _T*>::iterator end() const { return objs_.end(); }
   /**
    * Check if the object exists in the map.
    *

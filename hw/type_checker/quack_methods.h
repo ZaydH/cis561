@@ -30,7 +30,15 @@ namespace Quack {
     ~Method() {
       delete params_;
       delete block_;
-    };
+    }
+    /**
+     * Checks that all variables in the method are initialized before use.
+     *
+     * @return True if the initialized before use test passes
+     */
+    inline bool check_initialize_before_use() {
+      return block_->check_initialize_before_use();
+    }
     /**
      * Debug method used to print the original source code.
      * @param indent_depth Amount of tabs to indent the block.

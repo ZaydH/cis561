@@ -217,7 +217,7 @@ rhs_args: rhs              { $$ = new AST::RhsArgs(); $$->add($1); }
 ifstmt: IF rhs statement_block if_alternatives { $$ = new AST::If($2, $3, $4); } ;
 if_alternatives:   %empty /* empty */          { $$ = new AST::Block(); }
                |   ELSE statement_block        { $$ = $2; };
-               |   ELIF rhs statement_block if_alterna tives
+               |   ELIF rhs statement_block if_alternatives
                                  {  $$ = new AST::Block();
                                     $$->append(new AST::If($2, $3, $4));
                                  }

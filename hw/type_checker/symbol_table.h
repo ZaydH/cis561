@@ -1,7 +1,3 @@
-//
-// Created by Zayd Hammoudeh on 11/3/18.
-//
-
 #ifndef PROJECT02_SYMBOL_TABLE_H
 #define PROJECT02_SYMBOL_TABLE_H
 

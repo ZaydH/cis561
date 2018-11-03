@@ -34,7 +34,7 @@ namespace Quack {
     ~Method() {
       delete params_;
       delete block_;
-    };
+    }
     /**
      * Debug method used to print the original source code.
      * @param indent_depth Amount of tabs to indent the block.

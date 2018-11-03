@@ -49,7 +49,7 @@ add_executable(${BIN_NAME}
                lex.yy.h lex.yy.cpp quack.tab.cxx
                Messages.h Messages.cpp
                ASTNode.h ASTNode.cpp
-               quack_type_checker.h
+        type_checker.h
                quack_field.h
                symbol_table.h
         initialized_list.h)

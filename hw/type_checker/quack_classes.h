@@ -180,6 +180,11 @@ namespace Quack {
     /** Name of the class */
     const std::string name_;
     /**
+     * Accessor for all the methods in the class.
+     * @return Methods in the class.
+     */
+    inline const Method::Container* methods() const { return methods_; }
+    /**
      * Debug function used to print a representation of the original quack source code
      * used to visualize the AST.
      *

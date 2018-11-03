@@ -321,13 +321,13 @@ namespace AST {
 
     bool check_initialize_before_use(InitializedList &init_list) {
       assert(false);
-      bool success = rhs_->check_initialize_before_use(init_list);
+      bool success = rhs_->check_initialize_before_use(init_list)
                      && lhs_->check_initialize_before_use(init_list);
       if (!success)
         return false;
 
       // ToDo Add the variable to the init list.
-      lhs_->update_initialize_before_use(init_list);
+      lhs_->update_initialized_list(init_list);
       return true;
     }
   };

@@ -1,7 +1,3 @@
-//
-// Created by Zayd Hammoudeh on 10/15/18.
-//
-
 #ifndef PROJECT02_QUACK_TYPE_CHECKER_H
 #define PROJECT02_QUACK_TYPE_CHECKER_H
 
@@ -15,18 +11,24 @@ namespace Quack {
     TypeChecker() = default;
 
     void run() {
-      Class::Container *classes = Class::Container::singleton();
-
-      for (auto &class_pair : *classes) {
-        Class * q_class = class_pair.second;
-        q_class->initial_type_check();
-      }
+      perform_initial_checks();
 
       Class::check_cyclic_inheritance();
 
+      perform_initialized_before_use_check();
+    }
+
+    void perform_initial_checks() {
+      for (auto &class_pair : *Class::Container::singleton()) {
+        Class * q_class = class_pair.second;
+        q_class->initial_type_check();
+      }
+    }
+
+    void perform_initialized_before_use_check() {
       InitializedList starter_list;
       starter_list.add("this");
-      for (auto &class_pair : *classes) {
+      for (auto &class_pair : *Class::Container::singleton()) {
         Class * q_class = class_pair.second;
 
         for (auto &method_pair : *q_class->methods_) {

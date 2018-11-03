@@ -9,7 +9,7 @@
 #include "lex.yy.h"
 #include "quack_program.h"
 #include "quack_classes.h"
-#include "quack_type_checker.h"
+#include "type_checker.h"
 
 #ifndef PROJECT01_QUACKCOMPILER_H
 #define PROJECT01_QUACKCOMPILER_H

@@ -14,8 +14,7 @@ namespace Quack {
   /**
    * Encapsulates Quack a single class field.
    */
-  class Field {
-   public:
+  struct Field {
     class Container : public MapContainer<Field> {
      public:
      /**

@@ -21,8 +21,7 @@ namespace AST {
   // that I copied over from the calculator example, and it isn't even the
   // final version from the calculator example.
 
-  class ASTNode {
-   public:
+  struct ASTNode {
     virtual ~ASTNode() = default;
 
     virtual void print_original_src(unsigned int indent_depth = 0) = 0;
@@ -30,8 +29,6 @@ namespace AST {
     virtual bool check_initialize_before_use(InitializedList &init_list) {
       return false;
     }
-    // Updates the initialized list.  Only applies to a very small subset of blocks
-    virtual void update_initialized_list(InitializedList &init_list) {}
   };
 
   /* A block is a sequence of statements or expressions.
@@ -64,10 +61,10 @@ namespace AST {
     }
 
     bool check_initialize_before_use(InitializedList &init_list) {
+      bool success = true;
       for (auto &stmt : stmts_)
-        if (!stmt->check_initialize_before_use(init_list))
-          return false;
-      return true;
+        success = success && stmt->check_initialize_before_use(init_list);
+      return success;
     }
 
     bool empty() { return stmts_.empty(); }
@@ -76,9 +73,6 @@ namespace AST {
   };
 
   class If : public ASTNode {
-    ASTNode *cond_; // The boolean expression to be evaluated
-    Block *truepart_; // Execute this block if the condition is true
-    Block *falsepart_; // Execute this block if the condition is false
    public:
     explicit If(ASTNode *cond, Block* truepart, Block* falsepart) :
         cond_{cond}, truepart_{truepart}, falsepart_{falsepart} {};
@@ -121,6 +115,10 @@ namespace AST {
 
       return success;
     }
+   private:
+    ASTNode *cond_; // The boolean expression to be evaluated
+    Block *truepart_; // Execute this block if the condition is true
+    Block *falsepart_; // Execute this block if the condition is false
   };
 
   /* Identifiers like x and literals like 42 are the
@@ -130,21 +128,18 @@ namespace AST {
    * store something in it).
    */
   class Ident : public ASTNode {
-    std::string text_;
    public:
     explicit Ident(const char* txt) : text_{txt} {}
-    /**
-     * Accesses the identifier name.
-     * @return Name of the identifier.
-     */
-    const std::string& get() { return text_; }
 
     void print_original_src(unsigned int indent_depth = 0) override { std::cout << text_; }
+    /** Add this identifier to the initialized list. */
+    void update_initialized_list(InitializedList &init_list) { init_list.add(text_); }
+   private:
+    std::string text_;
   };
 
   template <typename _T>
-  class Literal : public ASTNode {
-   public:
+  struct Literal : public ASTNode {
     explicit Literal(const _T &v) : value_{v} {}
     /**
      * No initialization before use check for a literal.  This function simply returns true.
@@ -158,8 +153,7 @@ namespace AST {
     const _T value_;
   };
 
-  class IntLit : public Literal<int>{
-   public:
+  struct IntLit : public Literal<int>{
     explicit IntLit(int v) : Literal(v) {};
 
     void print_original_src(unsigned int indent_depth = 0) override {
@@ -167,8 +161,7 @@ namespace AST {
     }
   };
 
-  class BoolLit : public Literal<bool>{
-   public:
+  struct BoolLit : public Literal<bool>{
     explicit BoolLit(bool v) : Literal(v) {};
 
     void print_original_src(unsigned int indent_depth = 0) override {
@@ -176,8 +169,7 @@ namespace AST {
     }
   };
 
-  class StrLit : public Literal<std::string> {
-   public:
+  struct StrLit : public Literal<std::string> {
     explicit StrLit(const char* v) : Literal<std::string>(std::string("")) {}
 
     void print_original_src(unsigned int indent_depth = 0) {
@@ -185,8 +177,7 @@ namespace AST {
     }
   };
 
-  class BinOp : public ASTNode {
-   public:
+  struct BinOp : public ASTNode {
     std::string opsym;
     ASTNode *left_;
     ASTNode *right_;
@@ -217,8 +208,7 @@ namespace AST {
     }
   };
 
-  class UniOp : public ASTNode {
-   public:
+  struct UniOp : public ASTNode {
     std::string opsym;
     ASTNode *right_;
 
@@ -242,8 +232,7 @@ namespace AST {
     }
   };
 
-  class Return : public ASTNode {
-   public:
+  struct Return : public ASTNode {
     ASTNode* right_;
 
     explicit Return(ASTNode* right) : right_(right) {}
@@ -267,8 +256,7 @@ namespace AST {
     }
   };
 
-  class While : public ASTNode {
-   public:
+  struct While : public ASTNode {
     ASTNode* cond_;
     Block* body_;
 
@@ -307,44 +295,7 @@ namespace AST {
     }
   };
 
-  class Assn : public ASTNode {
-   public:
-    ASTNode* lhs_;
-    ASTNode* rhs_;
-
-    Assn(ASTNode* lhs, ASTNode* rhs) : lhs_(lhs), rhs_(rhs) {};
-
-    ~Assn() {
-      delete lhs_;
-      delete rhs_;
-    }
-
-    void print_original_src(unsigned int indent_depth = 0) {
-      lhs_->print_original_src(indent_depth);
-      std::cout << " = ";
-      rhs_->print_original_src(indent_depth);
-    }
-    /**
-     * Verifies that both the left and right hand side of statement pass the initialize before
-     * use test.  It next adds the assigned variable to the initialized list.
-     * @param init_list
-     * @return
-     */
-    bool check_initialize_before_use(InitializedList &init_list) {
-      assert(false);
-      bool success = rhs_->check_initialize_before_use(init_list)
-                     && lhs_->check_initialize_before_use(init_list);
-      if (!success)
-        return false;
-
-      // ToDo Add the variable to the init list.
-      lhs_->update_initialized_list(init_list);
-      return true;
-    }
-  };
-
-  class RhsArgs : public ASTNode {
-   public:
+  struct RhsArgs : public ASTNode {
     std::vector<ASTNode*> args_;
 
     RhsArgs() {}
@@ -391,8 +342,7 @@ namespace AST {
     }
   };
 
-  class ObjectCall : public ASTNode {
-   public:
+  struct ObjectCall : public ASTNode {
     ASTNode* object_;
     ASTNode* next_;
 
@@ -421,8 +371,7 @@ namespace AST {
     }
   };
 
-  class FunctionCall : public ASTNode {
-   public:
+  struct FunctionCall : public ASTNode {
     std::string ident_;
     RhsArgs* args_;
 
@@ -454,8 +403,7 @@ namespace AST {
     }
   };
 
-  class Typing : public ASTNode {
-   public:
+  struct Typing : public ASTNode {
     Typing(ASTNode* expr, const std::string &type_name) : expr_(expr), type_name_(type_name) {}
 
     ~Typing() {
@@ -475,6 +423,9 @@ namespace AST {
       return expr_->check_initialize_before_use(init_list);
     }
 
+    void update_initialized_list(InitializedList &init_list) {
+//      expr_->update_initialized_list(&init_list);
+    }
     // ToDo ensure type checker verifies type_name_ exists
   };
 
@@ -496,8 +447,42 @@ namespace AST {
     Block* block_;
   };
 
-  class Typecase : public ASTNode {
-   public:
+
+  struct Assn : public ASTNode {
+    Typing* lhs_;
+    ASTNode* rhs_;
+
+    Assn(Typing* lhs, ASTNode* rhs) : lhs_(lhs), rhs_(rhs) {};
+
+    ~Assn() {
+      delete lhs_;
+      delete rhs_;
+    }
+
+    void print_original_src(unsigned int indent_depth = 0) {
+      lhs_->print_original_src(indent_depth);
+      std::cout << " = ";
+      rhs_->print_original_src(indent_depth);
+    }
+    /**
+     * Verifies that both the left and right hand side of statement pass the initialize before
+     * use test.  It next adds the assigned variable to the initialized list.
+     * @param init_list Set of initialized variables
+     * @return True if all initialized before use test passes.
+     */
+    bool check_initialize_before_use(InitializedList &init_list) {
+      bool success = rhs_->check_initialize_before_use(init_list)
+                     && lhs_->check_initialize_before_use(init_list);
+      if (!success)
+        return false;
+
+      // ToDo Add the variable to the init list.
+      lhs_->update_initialized_list(init_list);
+      return true;
+    }
+  };
+
+  struct Typecase : public ASTNode {
     Typecase(ASTNode* expr, std::vector<TypeAlternative*>* alts) : expr_(expr), alts_(alts) {}
 
     ~Typecase() {

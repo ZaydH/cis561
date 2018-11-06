@@ -289,8 +289,7 @@ namespace Quack {
     }
   };
 
-  class ObjectClass : public Class {
-   public:
+  struct ObjectClass : public Class {
     ObjectClass()
         : Class(strdup(CLASS_OBJ), strdup(""), new Param::Container(),
                 new AST::Block(), new Method::Container()) {
@@ -309,16 +308,14 @@ namespace Quack {
    * Represents all literal objects (e.g., integer, boolean, string).  Encapsulated in this
    * subclass to standardize some value information.
    */
-  class LitClass : public Class {
-   public:
-    explicit LitClass(char* name)
+  struct PrimitiveClass : public Class {
+    explicit PrimitiveClass(char* name)
             : Class(strdup(name), strdup(CLASS_OBJ), new Param::Container(),
                     new AST::Block(), new Method::Container()) { }
   };
 
-  class IntList : public LitClass {
-   public:
-    IntList() : LitClass(strdup(CLASS_INT)) {
+  struct IntClass : public PrimitiveClass {
+    IntClass() : PrimitiveClass(strdup(CLASS_INT)) {
       add_binop_method(METHOD_ADD, CLASS_INT, CLASS_INT);
       add_binop_method(METHOD_SUBTRACT, CLASS_INT, CLASS_INT);
       add_binop_method(METHOD_MULTIPLY, CLASS_INT, CLASS_INT);
@@ -332,9 +329,8 @@ namespace Quack {
     }
   };
 
-  class StringLit : public LitClass {
-   public:
-    StringLit() : LitClass(strdup(CLASS_STR)) {
+  struct StringClass : public PrimitiveClass {
+    StringClass() : PrimitiveClass(strdup(CLASS_STR)) {
       add_binop_method(METHOD_ADD, CLASS_STR, CLASS_STR);
 
       add_binop_method(METHOD_EQUALITY, CLASS_STR, CLASS_STR);
@@ -345,9 +341,8 @@ namespace Quack {
     }
   };
 
-  class BooleanLit : public LitClass {
-   public:
-    BooleanLit() : LitClass(strdup(CLASS_BOOL)) {
+  struct BooleanClass : public PrimitiveClass {
+    BooleanClass() : PrimitiveClass(strdup(CLASS_BOOL)) {
       add_binop_method(METHOD_EQUALITY, CLASS_BOOL, CLASS_BOOL);
     }
   };

@@ -93,9 +93,9 @@ namespace Quack {
 
       if (classes->empty()) {
         classes->add(new ObjectClass());
-        classes->add(new IntList());
-        classes->add(new StringLit());
-        classes->add(new BooleanLit());
+        classes->add(new IntClass());
+        classes->add(new StringClass());
+        classes->add(new BooleanClass());
       }
     }
 

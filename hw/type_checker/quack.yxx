@@ -51,6 +51,7 @@
     AST::ASTNode* node;
     AST::Block* block;
     AST::RhsArgs* actual_args;
+    AST::Typing* typing;
 
     std::vector<AST::TypeAlternative*>* type_alt;
 }
@@ -82,7 +83,8 @@
 %type <str> var_type
 
 %type <block> statement_block block if_alternatives
-%type <node> stmt ifstmt lhs lexpr rhs function_call return ident
+%type <node> stmt ifstmt lexpr rhs function_call return ident
+%type <typing> lhs
 %type <actual_args> actual_args rhs_args
 %type <type_alt> type_alternative
 

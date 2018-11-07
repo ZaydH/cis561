@@ -29,6 +29,13 @@ namespace AST {
     virtual bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) {
       return true;
     }
+    /**
+     * Updates the initialized list in the initialized per use check.
+     *
+     * @param inits Set of initialized variables.
+     * @param is_constructor True if the function being checked is a constructor.
+     */
+    virtual void update_initialized_list(InitializedList &inits, bool is_constructor) {}
   };
 
   /* A block is a sequence of statements or expressions.
@@ -102,7 +109,7 @@ namespace AST {
      * is modified by the function and represents the set of variables in the intersection of
      * the variables from the true and false blocks.
      *
-     * @param init_list Initialized list modified in place
+     * @param inits Initialized list modified in place
      * @return True if the check passed.
      */
     bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
@@ -133,17 +140,55 @@ namespace AST {
    * can also be evaluated for location (when we want to
    * store something in it).
    */
-  class Ident : public ASTNode {
-   public:
+  struct Ident : public ASTNode {
     explicit Ident(const char* txt) : text_{txt} {}
 
     void print_original_src(unsigned int indent_depth = 0) override { std::cout << text_; }
-//    /** Add this identifier to the initialized list. */
-//    void update_initialized_list(InitializedList &init_list) {
-//      init_list.add(text_);
-//    }
-   private:
-    std::string text_;
+
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
+      return check_ident_initialized(inits, all_inits, false);
+    }
+    /**
+     * Generalized function for checking identifiers including constructor identifiers.
+     *
+     * @param inits Initialized variable set
+     * @param all_inits All initialized variables so far
+     * @param is_field True if the identifier corresponds to a field
+     * @return True if the identifier is initialized
+     */
+    bool check_ident_initialized(InitializedList &inits, InitializedList *all_inits,
+                                 bool is_field=false) {
+      if (!inits.exists(text_, is_field)) {
+        std::stringstream ss;
+        ss << (is_field ? "Field v" : "V") << "ariable " << text_
+           << "is used before initialization.";
+        throw ss.str();
+//        return false;
+      }
+      return true;
+    }
+    /**
+     * Adds the implicit identifier to the initialized variable list.  If this function is called
+     * directly, the initialized variable is marked as not a field of the class.
+     *
+     * @param inits Set of initialized variables.
+     * @param is_constructor True if the function is a constructor.  It has no effect in this
+     *                       function.
+     */
+    void update_initialized_list(InitializedList &inits, bool is_constructor) override {
+      add_identifier_to_initialized(inits, false);
+    }
+    /**
+     * Add the identifier to the initialized variable list.
+     *
+     * @param inits Set of initialized variables
+     * @param is_field True if the identifier corresponds to a field.
+     */
+    void add_identifier_to_initialized(InitializedList &inits, bool is_field) {
+      inits.add(text_, is_field);
+    }
+    /** Identifier name */
+    const std::string text_;
   };
 
   template <typename _T>
@@ -152,7 +197,7 @@ namespace AST {
     /**
      * No initialization before use check for a literal.  This function simply returns true.
      *
-     * @param init_list Set of initialized variables.  Not changed in the funciton.
+     * @param inits Set of initialized variables.  Not changed in the funciton.
      * @return True always.
      */
     bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
@@ -209,7 +254,7 @@ namespace AST {
     /**
      * Checks if the initialize before use test on the two subexpressions passes.
      *
-     * @param init_list Set of initialized variables.
+     * @param inits Set of initialized variables.
      * @return True if the initialized before use test passes for both subexpressions.
      */
     bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
@@ -234,7 +279,7 @@ namespace AST {
     /**
      * Checks if the initialize before use test passes on the right subexpression.
      *
-     * @param init_list Set of initialized variables.
+     * @param inits Set of initialized variables.
      * @return True if the initialized before use test passes for the right subexpression.
      */
     bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
@@ -258,7 +303,7 @@ namespace AST {
     /**
      * Checks if the initialize before use test passes on the right subexpression.
      *
-     * @param init_list Set of initialized variables.
+     * @param inits Set of initialized variables.
      * @return True if the initialized before use test passes for the right subexpression.
      */
     bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
@@ -293,7 +338,7 @@ namespace AST {
      * Performs an initialize before use test on the while loop.  It checks the conditional
      * statement as well as the body of the while loop.
      *
-     * @param init_list Set of initialized variables.
+     * @param inits Set of initialized variables.
      * @return True if the initialized before use test passes for the conditional statement
      *         as well as the body for the while loop
      */
@@ -345,7 +390,7 @@ namespace AST {
     /**
      * Checks if the initialize before use test passes on the right subexpression.
      *
-     * @param init_list Set of initialized variables.
+     * @param inits Set of initialized variables.
      * @return True if the initialized before use test passes for the right subexpression.
      */
     bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
@@ -376,13 +421,33 @@ namespace AST {
     /**
      * Checks if the initialize before use test passes on the right subexpression.
      *
-     * @param init_list Set of initialized variables.
+     * @param inits Set of initialized variables.
      * @return True if the initialized before use test passes for the right subexpression.
      */
     bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
-      // ToDo Need to verify only first object is checked and handle "this"
-      // ...
-      return false;
+      if (auto obj = dynamic_cast<Ident*>(object_)) {
+        if (all_inits != nullptr && obj->text_ == OBJECT_SELF)
+          if (auto next = dynamic_cast<Ident*>(next_))
+            return next->check_ident_initialized(inits, all_inits, true);
+      }
+
+      bool success = object_->check_initialize_before_use(inits, all_inits);
+      if (auto next = dynamic_cast<Ident*>(next_))
+        return success;
+
+      return success && next_->check_initialize_before_use(inits, all_inits);
+    }
+
+
+
+    void update_initialized_list(InitializedList &inits, bool is_constructor) override {
+      if (auto obj = dynamic_cast<Ident*>(object_)) {
+        if (is_constructor && obj->text_ == OBJECT_SELF) {
+          if (auto next = dynamic_cast<Ident*>(next_)) {
+            next->add_identifier_to_initialized(inits, true);
+          }
+        }
+      }
     }
   };
 
@@ -399,7 +464,7 @@ namespace AST {
     /**
      * Checks if the initialize before use test passes on the right subexpression.
      *
-     * @param init_list Set of initialized variables.
+     * @param inits Set of initialized variables.
      * @return True if the initialized before use test passes for the right subexpression.
      */
     bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
@@ -433,14 +498,28 @@ namespace AST {
       if (!type_name_.empty())
         std::cout << " : " << type_name_;
     }
+    /**
+     * Helper function used to check if the specified type name actually exists.
+     *
+     * @param type_name Name of the type used
+     * @return True if the type_name_ is a valid class.
+     */
+    bool check_type_name_exists(const std::string &type_name) const;
+
     bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
+      if (!check_type_name_exists(type_name_))
+        return false;
       // ToDo may need to handle updating the init ist
       return expr_->check_initialize_before_use(inits, all_inits);
     }
-
-    void update_initialized_list(InitializedList &init_list) {
-      assert(false);
-//      expr_->update_initialized_list(&init_list);
+    /**
+     * Used in an assignment statement to update the set of initialized variables.
+     *
+     * @param inits Set of initialized variables.
+     * @param is_constructor True if the function is a constructor.
+     */
+    void update_initialized_list(InitializedList &inits, bool is_constructor) override {
+      expr_->update_initialized_list(inits, is_constructor);
     }
     // ToDo ensure type checker verifies type_name_ exists
   };
@@ -483,22 +562,21 @@ namespace AST {
     /**
      * Verifies that both the left and right hand side of statement pass the initialize before
      * use test.  It next adds the assigned variable to the initialized list.
-     * @param init_list Set of initialized variables
+     * @param inits Set of initialized variables
      * @return True if all initialized before use test passes.
      */
     bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
-      bool success = rhs_->check_initialize_before_use(inits, all_inits)
-                     && lhs_->check_initialize_before_use(inits, all_inits);
+      bool success = rhs_->check_initialize_before_use(inits, all_inits);
       if (!success)
         return false;
 
       // ToDo Add the variable to the init list.
-      lhs_->update_initialized_list(inits);
-
-      if (all_inits != nullptr)
+      bool is_constructor = (all_inits != nullptr);
+      lhs_->update_initialized_list(inits, is_constructor);
+      if (is_constructor)
         all_inits->var_union(inits);
 
-      return true;
+      return lhs_->check_initialize_before_use(inits, all_inits);;
     }
   };
 

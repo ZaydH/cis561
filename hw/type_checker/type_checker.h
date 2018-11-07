@@ -97,7 +97,7 @@ namespace Quack {
      */
     bool all_super_fields_initialized() {
       // ToDo create all super fields initialized method.
-      assert(false;)
+      assert(false);
     }
   };
 }

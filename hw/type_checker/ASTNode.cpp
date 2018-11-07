@@ -14,7 +14,7 @@ namespace AST {
   // Nothing here yet.
 
   bool Typing::check_type_name_exists(const std::string &type_name) const {
-    if (Quack::Class::Container::singleton()->exists(type_name)) {
+    if (!type_name.empty() && !Quack::Class::Container::singleton()->exists(type_name)) {
       throw "Unknown type " + type_name + " used.";
 //      return false;
     }

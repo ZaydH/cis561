@@ -14,6 +14,7 @@
 
 #include "keywords.h"
 #include "initialized_list.h"
+#include "exceptions.h"
 
 namespace AST {
   // Abstract syntax tree.  ASTNode is abstract base class for all other nodes.
@@ -159,10 +160,7 @@ namespace AST {
     bool check_ident_initialized(InitializedList &inits, InitializedList *all_inits,
                                  bool is_field=false) {
       if (!inits.exists(text_, is_field)) {
-        std::stringstream ss;
-        ss << (is_field ? "Field v" : "V") << "ariable " << text_
-           << "is used before initialization.";
-        throw ss.str();
+        throw InitializeBeforeUseException(typeid(this).name(), text_, is_field);
 //        return false;
       }
       return true;
@@ -441,13 +439,10 @@ namespace AST {
 
 
     void update_initialized_list(InitializedList &inits, bool is_constructor) override {
-      if (auto obj = dynamic_cast<Ident*>(object_)) {
-        if (is_constructor && obj->text_ == OBJECT_SELF) {
-          if (auto next = dynamic_cast<Ident*>(next_)) {
+      if (auto obj = dynamic_cast<Ident*>(object_))
+        if (is_constructor && obj->text_ == OBJECT_SELF)
+          if (auto next = dynamic_cast<Ident*>(next_))
             next->add_identifier_to_initialized(inits, true);
-          }
-        }
-      }
     }
   };
 

@@ -12,6 +12,7 @@
 #include <stdexcept>
 
 #include "keywords.h"
+#include "exceptions.h"
 
 template<typename _T>
 class ObjectContainer {
@@ -152,7 +153,7 @@ class VectorContainer : public ObjectContainer<_T> {
    */
   void add(_T* new_obj) override {
     if (exists(new_obj->name_))
-      throw("Duplicate parameter name: " + new_obj->name_);
+      throw DuplicateParamException(new_obj->name_);
     objs_.emplace_back(new_obj);
     names_.emplace(new_obj->name_);
   };

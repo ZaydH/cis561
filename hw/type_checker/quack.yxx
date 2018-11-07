@@ -93,16 +93,16 @@
 // for compactness.  We declare operator precedence from lowest
 // to highest, with associativity, e.g., MINUS is left_ associative
 // so a-b-c is (a-b)-c and not a-(b-c).
-%left '.'
-%precedence NOT NEG  // No direction since unary operator
-%left  '*' '/'
-%left  '-' '+'
-%left  ATLEAST ATMOST '>' '<'
-%left  EQUALS
-%left  AND
-%left  OR
-%left  '='
 %left  ','
+%left  '='
+%left  OR
+%left  AND
+%left  EQUALS
+%left  ATLEAST ATMOST '>' '<'
+%left  '-' '+'
+%left  '*' '/'
+%precedence NOT NEG  // No direction since unary operator
+%left  '.'
 %%
 
 /*

@@ -27,7 +27,8 @@ namespace AST {
 
     virtual void print_original_src(unsigned int indent_depth = 0) = 0;
     // ToDo remove virtual check initialized before Use. ONly here to reduce compile errors
-    virtual bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) {
+    virtual bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
+                                             bool is_method) {
       return true;
     }
     /**
@@ -68,10 +69,11 @@ namespace AST {
       }
     }
 
-    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) {
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
+                                     bool is_method) {
       bool success = true;
       for (auto &stmt : stmts_)
-        success = success && stmt->check_initialize_before_use(inits, all_inits);
+        success = success && stmt->check_initialize_before_use(inits, all_inits, is_method);
       return success;
     }
 
@@ -113,12 +115,13 @@ namespace AST {
      * @param inits Initialized list modified in place
      * @return True if the check passed.
      */
-    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
+                                     bool is_method) override {
       InitializedList false_lits = inits;
 
-      bool success = cond_->check_initialize_before_use(inits, all_inits)
-                     && truepart_->check_initialize_before_use(inits, all_inits)
-                     && falsepart_->check_initialize_before_use(false_lits, all_inits);
+      bool success = cond_->check_initialize_before_use(inits, all_inits, is_method)
+                     && truepart_->check_initialize_before_use(inits, all_inits, is_method)
+                     && falsepart_->check_initialize_before_use(false_lits, all_inits, is_method);
       // This is used in the constructor to make sure fields initialized on all paths
       if (all_inits != nullptr) {
         *all_inits = inits;
@@ -146,7 +149,8 @@ namespace AST {
 
     void print_original_src(unsigned int indent_depth = 0) override { std::cout << text_; }
 
-    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
+                                     bool is_method) override {
       return check_ident_initialized(inits, all_inits, false);
     }
     /**
@@ -198,7 +202,8 @@ namespace AST {
      * @param inits Set of initialized variables.  Not changed in the funciton.
      * @return True always.
      */
-    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
+                                     bool is_method) override {
       return true;
     }
 
@@ -255,9 +260,10 @@ namespace AST {
      * @param inits Set of initialized variables.
      * @return True if the initialized before use test passes for both subexpressions.
      */
-    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
-      return left_->check_initialize_before_use(inits, all_inits)
-             && right_->check_initialize_before_use(inits, all_inits);
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
+                                     bool is_method) override {
+      return left_->check_initialize_before_use(inits, all_inits, is_method)
+             && right_->check_initialize_before_use(inits, all_inits, is_method);
     }
   };
 
@@ -280,8 +286,9 @@ namespace AST {
      * @param inits Set of initialized variables.
      * @return True if the initialized before use test passes for the right subexpression.
      */
-    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
-      return right_->check_initialize_before_use(inits, all_inits);
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
+                                     bool is_method) override {
+      return right_->check_initialize_before_use(inits, all_inits, is_method);
     }
   };
 
@@ -304,8 +311,9 @@ namespace AST {
      * @param inits Set of initialized variables.
      * @return True if the initialized before use test passes for the right subexpression.
      */
-    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
-      return right_->check_initialize_before_use(inits, all_inits);
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
+                                     bool is_method) override {
+      return right_->check_initialize_before_use(inits, all_inits, is_method);
     }
   };
 
@@ -340,11 +348,12 @@ namespace AST {
      * @return True if the initialized before use test passes for the conditional statement
      *         as well as the body for the while loop
      */
-    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
-      bool success = cond_->check_initialize_before_use(inits, all_inits);
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
+                                     bool is_method) override {
+      bool success = cond_->check_initialize_before_use(inits, all_inits, is_method);
 
       InitializedList body_temp_list = inits;
-      success = success && body_->check_initialize_before_use(body_temp_list, all_inits);
+      success = success && body_->check_initialize_before_use(body_temp_list, all_inits, is_method);
 
       if (all_inits != nullptr)
         all_inits->var_union(body_temp_list);
@@ -391,11 +400,11 @@ namespace AST {
      * @param inits Set of initialized variables.
      * @return True if the initialized before use test passes for the right subexpression.
      */
-    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
+                                     bool is_method) override {
       bool success = true;
-      // ToDo verify the argument calls is valid.
       for (auto &arg : args_)
-        success = success && arg->check_initialize_before_use(inits, all_inits);
+        success = success && arg->check_initialize_before_use(inits, all_inits, is_method);
       return success;
     }
   };
@@ -422,18 +431,23 @@ namespace AST {
      * @param inits Set of initialized variables.
      * @return True if the initialized before use test passes for the right subexpression.
      */
-    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
+                                     bool is_method) override {
       if (auto obj = dynamic_cast<Ident*>(object_)) {
-        if (all_inits != nullptr && obj->text_ == OBJECT_SELF)
-          if (auto next = dynamic_cast<Ident*>(next_))
+        if (all_inits != nullptr && obj->text_ == OBJECT_SELF) {
+          if (auto next = dynamic_cast<Ident *>(next_))
             return next->check_ident_initialized(inits, all_inits, true);
+        } else if(is_method && obj->text_ == OBJECT_SELF) {
+          // No need to check fields for this class outside the constructor
+          return true;
+        }
       }
 
-      bool success = object_->check_initialize_before_use(inits, all_inits);
+      bool success = object_->check_initialize_before_use(inits, all_inits, is_method);
       if (auto next = dynamic_cast<Ident*>(next_))
         return success;
 
-      return success && next_->check_initialize_before_use(inits, all_inits);
+      return success && next_->check_initialize_before_use(inits, all_inits, is_method);
     }
 
 
@@ -462,13 +476,9 @@ namespace AST {
      * @param inits Set of initialized variables.
      * @return True if the initialized before use test passes for the right subexpression.
      */
-    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
-      bool success = true;
-      // ToDo Need to verify only first object is checked and handle "this"
-      // ...
-
-      success = success && args_->check_initialize_before_use(inits, all_inits);
-      return success;
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
+                                     bool is_method) override {
+      return args_->check_initialize_before_use(inits, all_inits, is_method);
     }
 
     void print_original_src(unsigned int indent_depth) override {
@@ -501,11 +511,12 @@ namespace AST {
      */
     bool check_type_name_exists(const std::string &type_name) const;
 
-    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
+                                     bool is_method) override {
       if (!check_type_name_exists(type_name_))
         return false;
-      // ToDo may need to handle updating the init ist
-      return expr_->check_initialize_before_use(inits, all_inits);
+
+      return expr_->check_initialize_before_use(inits, all_inits, is_method);
     }
     /**
      * Used in an assignment statement to update the set of initialized variables.
@@ -560,18 +571,18 @@ namespace AST {
      * @param inits Set of initialized variables
      * @return True if all initialized before use test passes.
      */
-    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
-      bool success = rhs_->check_initialize_before_use(inits, all_inits);
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
+                                     bool is_method) override {
+      bool success = rhs_->check_initialize_before_use(inits, all_inits, is_method);
       if (!success)
         return false;
 
-      // ToDo Add the variable to the init list.
       bool is_constructor = (all_inits != nullptr);
       lhs_->update_initialized_list(inits, is_constructor);
       if (is_constructor)
         all_inits->var_union(inits);
 
-      return lhs_->check_initialize_before_use(inits, all_inits);;
+      return lhs_->check_initialize_before_use(inits, all_inits, is_method);
     }
   };
 
@@ -607,7 +618,8 @@ namespace AST {
       std::cout << indent_str << "}";
     }
 
-    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
+                                     bool is_method) override {
       // ToDo not implemented yet
       assert(false);
     }

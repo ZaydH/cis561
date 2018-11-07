@@ -53,13 +53,13 @@ namespace Quack {
 
           InitializedList init_list(param_list);
           add_params_to_initialized_list(init_list, method->params_);
-          method->block_->check_initialize_before_use(init_list, nullptr);
+          method->block_->check_initialize_before_use(init_list, nullptr, true);
         }
       }
 
       // Verifies the main block
       InitializedList empty_list;
-      prog->block_->check_initialize_before_use(empty_list, nullptr);
+      prog->block_->check_initialize_before_use(empty_list, nullptr, false);
     }
 
     /**
@@ -70,16 +70,13 @@ namespace Quack {
      * @param q_class Class whose constructor is being checked
      */
     void perform_constructor_initialize_before_use(Quack::Class * q_class) {
-      // ToDo remove constructor skip
       std::string name = q_class->name_;
-      if (name == CLASS_OBJ || name == CLASS_INT || name == CLASS_BOOL || name == CLASS_STR)
-        return;
 
       InitializedList init_list;
       add_params_to_initialized_list(init_list, q_class->constructor_params_);
 
       auto all_inits = new InitializedList(init_list);
-      q_class->constructor_->check_initialize_before_use(init_list, all_inits);
+      q_class->constructor_->check_initialize_before_use(init_list, all_inits, true);
 
       if (init_list.count() != all_inits->count())
         throw ("Constructor for class " + q_class->name_ + " does not initialize on all paths");
@@ -110,7 +107,6 @@ namespace Quack {
      * @return True if all fields of the super class are initialized in the subclass.
      */
     bool all_super_fields_initialized() {
-      // ToDo create all super fields initialized method
       Class::Container* all_classes = Class::Container::singleton();
 
       for (auto &class_pair : *all_classes) {

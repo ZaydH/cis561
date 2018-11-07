@@ -38,13 +38,13 @@ namespace Quack {
 
           InitializedList init_list;
           add_params_to_initialized_list(init_list, method->params_);
-          method->block_->check_initialize_before_use(init_list);
+          method->block_->check_initialize_before_use(init_list, nullptr);
         }
       }
 
       // Verifies the main block
       InitializedList empty_list;
-      prog->block_->check_initialize_before_use(empty_list);
+      prog->block_->check_initialize_before_use(empty_list, nullptr);
     }
 
     /**
@@ -61,7 +61,13 @@ namespace Quack {
 
       InitializedList init_list;
       add_params_to_initialized_list(init_list, q_class->constructor_params_);
-      q_class->constructor_->check_initialize_before_use(init_list, true);
+
+      InitializedList * all_inits = new InitializedList();
+      q_class->constructor_->check_initialize_before_use(init_list, all_inits);
+
+      if (init_list.count() != all_inits->count())
+        throw("Constructor for class " + q_class->name_ + " does not initialize on all paths")l
+      delete all_inits;
 
       for (const auto &var_info : init_list.vars_) {
         if (!var_info.second)

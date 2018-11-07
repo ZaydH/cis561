@@ -86,7 +86,12 @@ class InitializedList {
     for (const auto &var_info : other.vars_)
       add(var_info.first, var_info.second);
   }
-
+  /**
+   * Accessor for the number of variables in the initialized list.
+   *
+   * @return Initialized list count.
+   */
+  inline unsigned count() { return vars_.size(); }
 
 
  protected:

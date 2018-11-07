@@ -130,12 +130,14 @@ class VectorContainer : public ObjectContainer<_T> {
    *
    * @return Pointer to the beginning of the objects container.
    */
+  typename std::vector<_T*>::const_iterator begin() const { return objs_.begin(); }
   typename std::vector<_T*>::iterator begin() { return objs_.begin(); }
   /**
    * Accessor for an iterator to the end of the objects container.
    *
    * @return Pointer to the end of the objects container.
    */
+  typename std::vector<_T*>::const_iterator end() const { return objs_.end(); }
   typename std::vector<_T*>::iterator end() { return objs_.end(); }
   /**
    * Check if the specified parameter name exists.
@@ -192,6 +194,12 @@ class VectorContainer : public ObjectContainer<_T> {
   }
 
  private:
+  /**
+   * Builds a constant version of this object.  Used in code avoiding duplication of const methods.
+   * @return Const version of this.
+   */
+  const VectorContainer<_T>* get_const() { return static_cast<const VectorContainer<_T>*>(this); }
+
   std::vector<_T*> objs_;
   std::set<std::string> names_;
 };

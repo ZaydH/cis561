@@ -1,3 +1,5 @@
+#include <utility>
+
 #ifndef PROJECT02_QUACK_FIELD_H
 #define PROJECT02_QUACK_FIELD_H
 
@@ -15,8 +17,7 @@ namespace Quack {
    * Encapsulates Quack a single class field.
    */
   struct Field {
-    class Container : public MapContainer<Field> {
-     public:
+    struct Container : public MapContainer<Field> {
      /**
        * Prints the user defined classes only.  It will raise a runtime error if called.  Never
        * need to print the fields.
@@ -27,13 +28,19 @@ namespace Quack {
         // Do not implement.  Makes no sense since not needed.
         assert(false);
       }
+      /**
+       * Modified version of the field that automates boxing the field objects.
+       *
+       * @param name Name of the field to add.
+       */
+      void add_by_name(const std::string &name) {
+        add(new Field(name));
+      }
     };
 
-    Field(std::string name, std::string type_name)
-      : name_(std::move(name)), type_name_(std::move(type_name)) { };
+    explicit Field(std::string name) : name_(std::move(name)), type_(nullptr) { }
 
     std::string name_;
-    std::string type_name_;
     Class* type_ = nullptr;
   };
 }

@@ -107,7 +107,7 @@ namespace Quack {
     /**
      * Checks all classes for any cyclical inheritance.
      */
-    static void check_cyclic_inheritance() {
+    static void check_well_formed_hierarchy() {
       for (auto & class_pair : *Container::singleton()) {
         Class* quack_class = class_pair.second;
 

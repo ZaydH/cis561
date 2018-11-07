@@ -21,10 +21,8 @@ namespace Quack {
   /**
    * Parameter to a class constructor or a method.
    */
-  class Param {
-   public:
-    class Container : public VectorContainer<Param> {
-     public:
+  struct Param {
+    struct Container : public VectorContainer<Param> {
       const void print_original_src(unsigned int indent_depth) {
         VectorContainer<Param>::print_original_src_(indent_depth, ", ");
       }

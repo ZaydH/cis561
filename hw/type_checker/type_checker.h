@@ -29,9 +29,14 @@ namespace Quack {
     void perform_initialized_before_use_check(Program* prog) {
       // Class type checker
       for (auto &class_pair : *Class::Container::singleton()) {
-        Class * q_class = class_pair.second;
-
+        Class *q_class = class_pair.second;
         perform_constructor_initialize_before_use(q_class);
+      }
+
+      all_super_fields_initialized();
+
+      for (auto &class_pair : *Class::Container::singleton()) {
+        Class *q_class = class_pair.second;
 
         for (auto &method_pair : *q_class->methods_) {
           Method * method = method_pair.second;
@@ -62,7 +67,7 @@ namespace Quack {
       InitializedList init_list;
       add_params_to_initialized_list(init_list, q_class->constructor_params_);
 
-      InitializedList * all_inits = new InitializedList();
+      auto all_inits = new InitializedList();
       q_class->constructor_->check_initialize_before_use(init_list, all_inits);
 
       if (init_list.count() != all_inits->count())
@@ -84,6 +89,15 @@ namespace Quack {
                                                const Param::Container * params) {
       for (const auto &param : *params)
         init_list.add(param->name_, false);
+    }
+    /**
+     * This verifies that all fields of a superclass are initialized in the subclass.
+     *
+     * @return
+     */
+    bool all_super_fields_initialized() {
+      // ToDo create all super fields initialized method.
+      assert(false;)
     }
   };
 }

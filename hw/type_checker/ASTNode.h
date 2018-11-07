@@ -26,8 +26,8 @@ namespace AST {
 
     virtual void print_original_src(unsigned int indent_depth = 0) = 0;
     // ToDo remove virtual check initialized before Use. ONly here to reduce compile errors
-    virtual bool check_initialize_before_use(InitializedList &init_list) {
-      return false;
+    virtual bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) {
+      return true;
     }
   };
 
@@ -60,10 +60,10 @@ namespace AST {
       }
     }
 
-    bool check_initialize_before_use(InitializedList &init_list) {
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) {
       bool success = true;
       for (auto &stmt : stmts_)
-        success = success && stmt->check_initialize_before_use(init_list);
+        success = success && stmt->check_initialize_before_use(inits, all_inits);
       return success;
     }
 
@@ -105,13 +105,19 @@ namespace AST {
      * @param init_list Initialized list modified in place
      * @return True if the check passed.
      */
-    bool check_initialize_before_use(InitializedList &init_list) override {
-      InitializedList false_list = init_list;
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
+      InitializedList false_lits = inits;
 
-      bool success = cond_->check_initialize_before_use(init_list)
-                     && truepart_->check_initialize_before_use(init_list)
-                     && falsepart_->check_initialize_before_use(false_list);
-      init_list.intersect(false_list);
+      bool success = cond_->check_initialize_before_use(inits, all_inits)
+                     && truepart_->check_initialize_before_use(inits, all_inits)
+                     && falsepart_->check_initialize_before_use(false_lits, all_inits);
+      // This is used in the constructor to make sure fields initialized on all paths
+      if (all_inits != nullptr) {
+        *all_inits = inits;
+        all_inits->var_union(false_lits);
+      }
+
+      inits.var_intersect(false_lits);
 
       return success;
     }
@@ -132,8 +138,10 @@ namespace AST {
     explicit Ident(const char* txt) : text_{txt} {}
 
     void print_original_src(unsigned int indent_depth = 0) override { std::cout << text_; }
-    /** Add this identifier to the initialized list. */
-    void update_initialized_list(InitializedList &init_list) { init_list.add(text_); }
+//    /** Add this identifier to the initialized list. */
+//    void update_initialized_list(InitializedList &init_list) {
+//      init_list.add(text_);
+//    }
    private:
     std::string text_;
   };
@@ -147,7 +155,9 @@ namespace AST {
      * @param init_list Set of initialized variables.  Not changed in the funciton.
      * @return True always.
      */
-    bool check_initialize_before_use(InitializedList &init_list) override { return true; }
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
+      return true;
+    }
 
     /** Value of the literal */
     const _T value_;
@@ -202,9 +212,9 @@ namespace AST {
      * @param init_list Set of initialized variables.
      * @return True if the initialized before use test passes for both subexpressions.
      */
-    bool check_initialize_before_use(InitializedList &init_list) override {
-      return left_->check_initialize_before_use(init_list)
-             && right_->check_initialize_before_use(init_list);
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
+      return left_->check_initialize_before_use(inits, all_inits)
+             && right_->check_initialize_before_use(inits, all_inits);
     }
   };
 
@@ -227,8 +237,8 @@ namespace AST {
      * @param init_list Set of initialized variables.
      * @return True if the initialized before use test passes for the right subexpression.
      */
-    bool check_initialize_before_use(InitializedList &init_list) override {
-      return right_->check_initialize_before_use(init_list);
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
+      return right_->check_initialize_before_use(inits, all_inits);
     }
   };
 
@@ -251,8 +261,8 @@ namespace AST {
      * @param init_list Set of initialized variables.
      * @return True if the initialized before use test passes for the right subexpression.
      */
-    bool check_initialize_before_use(InitializedList &init_list) override {
-      return right_->check_initialize_before_use(init_list);
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
+      return right_->check_initialize_before_use(inits, all_inits);
     }
   };
 
@@ -287,11 +297,16 @@ namespace AST {
      * @return True if the initialized before use test passes for the conditional statement
      *         as well as the body for the while loop
      */
-    bool check_initialize_before_use(InitializedList &init_list) override {
-      bool success = cond_->check_initialize_before_use(init_list);
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
+      bool success = cond_->check_initialize_before_use(inits, all_inits);
 
-      InitializedList body_temp_list = init_list;
-      return success && body_->check_initialize_before_use(init_list);;
+      InitializedList body_temp_list = inits;
+      success = success && body_->check_initialize_before_use(body_temp_list, all_inits);
+
+      if (all_inits != nullptr)
+        all_inits->var_union(body_temp_list);
+
+      return success;
     }
   };
 
@@ -333,11 +348,11 @@ namespace AST {
      * @param init_list Set of initialized variables.
      * @return True if the initialized before use test passes for the right subexpression.
      */
-    bool check_initialize_before_use(InitializedList &init_list) override {
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
       bool success = true;
       // ToDo verify the argument calls is valid.
       for (auto &arg : args_)
-        success = success && arg->check_initialize_before_use(init_list);
+        success = success && arg->check_initialize_before_use(inits, all_inits);
       return success;
     }
   };
@@ -364,7 +379,7 @@ namespace AST {
      * @param init_list Set of initialized variables.
      * @return True if the initialized before use test passes for the right subexpression.
      */
-    bool check_initialize_before_use(InitializedList &init_list) override {
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
       // ToDo Need to verify only first object is checked and handle "this"
       // ...
       return false;
@@ -387,12 +402,12 @@ namespace AST {
      * @param init_list Set of initialized variables.
      * @return True if the initialized before use test passes for the right subexpression.
      */
-    bool check_initialize_before_use(InitializedList &init_list) override {
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
       bool success = true;
       // ToDo Need to verify only first object is checked and handle "this"
       // ...
 
-      success = success && args_->check_initialize_before_use(init_list);
+      success = success && args_->check_initialize_before_use(inits, all_inits);
       return success;
     }
 
@@ -418,12 +433,13 @@ namespace AST {
       if (!type_name_.empty())
         std::cout << " : " << type_name_;
     }
-    bool check_initialize_before_use(InitializedList &init_list) override {
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
       // ToDo may need to handle updating the init ist
-      return expr_->check_initialize_before_use(init_list);
+      return expr_->check_initialize_before_use(inits, all_inits);
     }
 
     void update_initialized_list(InitializedList &init_list) {
+      assert(false);
 //      expr_->update_initialized_list(&init_list);
     }
     // ToDo ensure type checker verifies type_name_ exists
@@ -459,7 +475,7 @@ namespace AST {
       delete rhs_;
     }
 
-    void print_original_src(unsigned int indent_depth = 0) {
+    void print_original_src(unsigned int indent_depth = 0) override {
       lhs_->print_original_src(indent_depth);
       std::cout << " = ";
       rhs_->print_original_src(indent_depth);
@@ -470,19 +486,24 @@ namespace AST {
      * @param init_list Set of initialized variables
      * @return True if all initialized before use test passes.
      */
-    bool check_initialize_before_use(InitializedList &init_list) {
-      bool success = rhs_->check_initialize_before_use(init_list)
-                     && lhs_->check_initialize_before_use(init_list);
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
+      bool success = rhs_->check_initialize_before_use(inits, all_inits)
+                     && lhs_->check_initialize_before_use(inits, all_inits);
       if (!success)
         return false;
 
       // ToDo Add the variable to the init list.
-      lhs_->update_initialized_list(init_list);
+      lhs_->update_initialized_list(inits);
+
+      if (all_inits != nullptr)
+        all_inits->var_union(inits);
+
       return true;
     }
   };
 
   struct Typecase : public ASTNode {
+    // ToDo No typechecking in typecase
     Typecase(ASTNode* expr, std::vector<TypeAlternative*>* alts) : expr_(expr), alts_(alts) {}
 
     ~Typecase() {
@@ -492,7 +513,7 @@ namespace AST {
       delete alts_;
     }
 
-    void print_original_src(unsigned int indent_depth) {
+    void print_original_src(unsigned int indent_depth) override {
       std::string indent_str = std::string(indent_depth, '\t');
       std::cout << KEY_TYPECASE << " ";
       expr_->print_original_src(0);
@@ -511,6 +532,11 @@ namespace AST {
       if (!alts_->empty())
         std::cout << "\n";
       std::cout << indent_str << "}";
+    }
+
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits) override {
+      // ToDo not implemented yet
+      assert(false);
     }
 
    private:

@@ -66,7 +66,7 @@ namespace Quack {
       q_class->constructor_->check_initialize_before_use(init_list, all_inits);
 
       if (init_list.count() != all_inits->count())
-        throw("Constructor for class " + q_class->name_ + " does not initialize on all paths")l
+        throw("Constructor for class " + q_class->name_ + " does not initialize on all paths");
       delete all_inits;
 
       for (const auto &var_info : init_list.vars_) {

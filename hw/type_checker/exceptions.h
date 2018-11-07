@@ -26,6 +26,17 @@ class TypeCheckerException : public std::exception
 };
 
 
+class UnknownTypeException : public TypeCheckerException {
+ public:
+  explicit UnknownTypeException(const std::string &class_name)
+                                 : TypeCheckerException("TypeError", build_error_msg(class_name)) {}
+ private:
+  static const char* build_error_msg(const std::string &class_name) {
+    return ("Unknown class \"" + class_name + "\"").c_str();
+  }
+};
+
+
 class InitializeBeforeUseException : public TypeCheckerException {
  public:
   InitializeBeforeUseException(const char *type, const std::string &var_name,
@@ -37,6 +48,17 @@ class InitializeBeforeUseException : public TypeCheckerException {
     ss << (is_field ? "Field v" : "V") << "ariable " << var_name
        << " is used before initialization.";
     return ss.str().c_str();
+  }
+};
+
+
+class MissingSuperFieldsException : public TypeCheckerException {
+ public:
+  explicit MissingSuperFieldsException(const std::string &class_name)
+                            : TypeCheckerException("MissingField", build_error_msg(class_name)) { }
+ private:
+  static const char* build_error_msg(const std::string &class_name) {
+    return ("Class " + class_name + " missing fields from its super class.").c_str();
   }
 };
 

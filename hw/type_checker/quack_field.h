@@ -36,6 +36,19 @@ namespace Quack {
       void add_by_name(const std::string &name) {
         add(new Field(name));
       }
+      /**
+       * Checks whether the implicit Field::Container() object is a superset of \p other's fields.
+       *
+       * @param other Set of fields to be checked against the implicit container.
+       * @return True if the implicit container is a superset.
+       */
+      bool is_super_set(Container *other) {
+        for (const auto field_info : *other) {
+          if (!exists(field_info.first))
+            return false;
+        }
+        return true;
+      }
     };
 
     explicit Field(std::string name) : name_(std::move(name)), type_(nullptr) { }

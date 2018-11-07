@@ -4,6 +4,7 @@
 
 #include "ASTNode.h"
 #include "quack_classes.h"
+#include "exceptions.h"
 
 namespace AST {
   // Abstract syntax tree.  ASTNode is abstract base class for all other nodes.
@@ -15,7 +16,7 @@ namespace AST {
 
   bool Typing::check_type_name_exists(const std::string &type_name) const {
     if (!type_name.empty() && !Quack::Class::Container::singleton()->exists(type_name)) {
-      throw "Unknown type " + type_name + " used.";
+      throw UnknownTypeException(type_name);
 //      return false;
     }
     return true;

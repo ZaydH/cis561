@@ -82,7 +82,7 @@ namespace Quack {
       q_class->constructor_->check_initialize_before_use(init_list, all_inits);
 
       if (init_list.count() != all_inits->count())
-        throw("Constructor for class " + q_class->name_ + " does not initialize on all paths");
+        throw ("Constructor for class " + q_class->name_ + " does not initialize on all paths");
       delete all_inits;
 
       for (const auto &var_info : init_list.vars_) {
@@ -103,13 +103,29 @@ namespace Quack {
         init_list.add(param->name_, is_field);
     }
     /**
-     * This verifies that all fields of a superclass are initialized in the subclass.
+     * This verifies that all fields of a superclass are initialized in the subclass.  The overall
+     * algorithm only checks each class with its parent.  If all parent pairwise tests pass,
+     * then the field structure is valid.
      *
-     * @return
+     * @return True if all fields of the super class are initialized in the subclass.
      */
     bool all_super_fields_initialized() {
-      // ToDo create all super fields initialized method.
-      assert(false);
+      // ToDo create all super fields initialized method
+      Class::Container* all_classes = Class::Container::singleton();
+
+      for (auto &class_pair : *all_classes) {
+        Class *q_class = class_pair.second;
+        if (!q_class->is_user_class())
+          continue;
+
+        if (q_class->super_ == all_classes->get(CLASS_OBJ))
+          continue;
+
+        if (!q_class->fields_->is_super_set(q_class->super_->fields_))
+          throw MissingSuperFieldsException(q_class->name_);
+      }
+
+      return true;
     }
   };
 }

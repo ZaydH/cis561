@@ -85,7 +85,7 @@ namespace Quack {
     /**
      * Clear all dynamic memory in the object.
      */
-    ~Class() {
+    virtual ~Class() {
       delete constructor_;
       delete constructor_params_;
       delete methods_;
@@ -210,6 +210,14 @@ namespace Quack {
 
       std::cout << "\n" << indent_str << "}";
     }
+    /**
+     * Base classes are built into the Quack language and include Boolean, Integer, String,
+     * and Object.  User classes are NOT built into the Quack language by default and are
+     * defined by the user..
+     *
+     * @return True if the class is abase class.
+     */
+    virtual bool is_user_class() const { return true; }
    private:
     /**
      * Configures the super class pointer for the object.
@@ -302,6 +310,13 @@ namespace Quack {
       add_binop_method(METHOD_EQUALITY, CLASS_OBJ, CLASS_BOOL);
       add_unary_op_method(METHOD_PRINT, CLASS_NOTHING);
     }
+    /**
+     * Object class is a base class in Quack so this function always returns true since if it is
+     * a base class, it cannot be a user class.
+     *
+     * @return True always.
+     */
+    bool is_user_class() const { return false; }
   };
 
   /**
@@ -312,6 +327,13 @@ namespace Quack {
     explicit PrimitiveClass(char* name)
             : Class(strdup(name), strdup(CLASS_OBJ), new Param::Container(),
                     new AST::Block(), new Method::Container()) { }
+    /**
+    * Primitives are all base (i.e., not user) classes in Quack so this function always returns
+    * true.
+    *
+    * @return True always.
+    */
+    bool is_user_class() const { return false; }
   };
 
   struct IntClass : public PrimitiveClass {

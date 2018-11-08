@@ -7,7 +7,7 @@
 #include "compiler_utils.h" // Uses hash for map
 #include "quack_param.h"
 #include "quack_field.h"
-#include "quack_classes.h"
+#include "quack_class.h"
 #include "exceptions.h"
 
 typedef std::pair<std::string, bool> SymbolKey;
@@ -32,9 +32,12 @@ class Symbol {
     void add_new(const std::string &symbol_name, bool is_field, Quack::Class *new_class) {
       SymbolKey key(symbol_name, is_field);
       objs_[key] = new Symbol(symbol_name, is_field);
+
+      is_dirty_ = true;
     }
     /**
-     * Updates the class of the specified symbol.
+     * Updates the class of the specified symbol.  If the object class has changed, the symbol
+     * table is marked as dirty.
      *
      * @param symbol_name Name of the symbol to update.
      * @param new_class True if the corresponding symbol is a class field.
@@ -43,7 +46,7 @@ class Symbol {
       SymbolKey key(symbol_name, is_field);
 
       assert(exists(key));
-
+      is_dirty_ = is_dirty_ || (objs_[key]->get_class() != new_class);
       objs_[key]->set_class(new_class);
     }
     /**
@@ -67,6 +70,17 @@ class Symbol {
         update(field->name_, true, field->type_);
       }
     }
+    /**
+     * Accessor for whether the symbol table is dirty, i.e., whether it has changed since the
+     * last time the dirty was clear.
+     *
+     * @return True if a change has occurred.
+     */
+    const bool is_dirty() const { return is_dirty_; }
+    /**
+     * Resets the dirty flag for the symbol table.
+     */
+    void clear_dirty() { is_dirty_ = false; }
    private:
     /**
      * Checks whether the specified key exists in the symbol table.
@@ -79,6 +93,8 @@ class Symbol {
     }
 
     std::map<SymbolKey,Symbol*> objs_;
+
+    bool is_dirty_ = false;
   };
   /**
    * Initialize a new symbol.  The class is set to
@@ -91,15 +107,18 @@ class Symbol {
   Symbol(std::string name, bool is_field, Quack::Class* q_class)
       : name_(std::move(name)), is_field_(is_field), class_(q_class) {}
 
-  bool has_method(const std::string &method_name) const {
-    return class_->has_method(method_name);
-  }
   /**
    * Updates the class of the symbol.
    *
    * @param q_class New class for the symbol.
    */
   void set_class(Quack::Class* q_class) { class_ = q_class; }
+  /**
+   * Updates the class of the symbol.
+   *
+   * @param q_class New class for the symbol.
+   */
+  const Quack::Class* get_class() { return class_; }
 
  private:
   std::string name_;

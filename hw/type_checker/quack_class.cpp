@@ -2,7 +2,7 @@
 // Created by Zayd Hammoudeh on 10/15/18.
 //
 
-#include "quack_classes.h"
+#include "quack_class.h"
 
 Quack::Class::Container* Quack::Class::Container::singleton() {
   static Container all_classes_;

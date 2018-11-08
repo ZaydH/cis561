@@ -1,7 +1,7 @@
 #ifndef PROJECT02_QUACK_TYPE_CHECKER_H
 #define PROJECT02_QUACK_TYPE_CHECKER_H
 
-#include "quack_classes.h"
+#include "quack_class.h"
 #include "quack_program.h"
 #include "initialized_list.h"
 #include "symbol_table.h"
@@ -47,7 +47,7 @@ namespace Quack {
         Class *q_class = class_pair.second;
 
         InitializedList param_list = InitializedList();
-        add_params_to_initialized_list(param_list, q_class->constructor_params_, true);
+        add_params_to_initialized_list(param_list, q_class->constructor_->params_, true);
 
         for (auto &method_pair : *q_class->methods_) {
           Method * method = method_pair.second;
@@ -60,7 +60,7 @@ namespace Quack {
 
       // Verifies the main block
       InitializedList empty_list;
-      prog->block_->check_initialize_before_use(empty_list, nullptr, false);
+      prog->main_->block_->check_initialize_before_use(empty_list, nullptr, false);
     }
 
     /**
@@ -74,10 +74,10 @@ namespace Quack {
       std::string name = q_class->name_;
 
       InitializedList init_list;
-      add_params_to_initialized_list(init_list, q_class->constructor_params_);
+      add_params_to_initialized_list(init_list, q_class->constructor_->params_);
 
       auto all_inits = new InitializedList(init_list);
-      q_class->constructor_->check_initialize_before_use(init_list, all_inits, true);
+      q_class->constructor_->block_->check_initialize_before_use(init_list, all_inits, true);
 
       if (init_list.count() != all_inits->count())
         throw ("Constructor for class " + q_class->name_ + " does not initialize on all paths");
@@ -131,30 +131,37 @@ namespace Quack {
       for (auto &class_info : *Quack::Class::Container::singleton()) {
         Quack::Class * q_class = class_info.second;
         // Test constructor first
-        function_type_inference(q_class, q_class->constructor_, q_class->constructor_params_);
+        function_type_inference(q_class, q_class->constructor_);
         // Perform type inference on each method
         for (auto &method_info : *q_class->methods_) {
           auto * method = method_info.second;
-          function_type_inference(q_class, method->block_, method->params_);
+          function_type_inference(q_class, method);
         }
       }
 
       // Performs inference on the main function
-      function_type_inference(nullptr, prog->block_, nullptr);
+      function_type_inference(nullptr, prog->main_);
     }
 
-    void function_type_inference(Quack::Class * q_class, AST::Block* block,
-                                 Param::Container* params) {
-      Symbol::Table st;
+    void function_type_inference(Quack::Class * q_class, Quack::Method* method) {
+      Symbol::Table* st = new Symbol::Table();
       // Add any field variables to the symbol table.
       if (q_class && q_class->fields_ && !q_class->fields_->empty())
-        st.add_fields(q_class->fields_);
+        st->add_fields(q_class->fields_);
       // Add any parameters to the symbol table
-      if (params && !params->empty())
-        st.add_params(params);
+      if (method->params_ && !method->params_->empty())
+        st->add_params(method->params_);
+
+      do {
+        st->clear_dirty();
+
+      } while (st->is_dirty());
+      method->symbol_table_ = st;
 
       assert(false);
     }
+
+
   };
 }
 

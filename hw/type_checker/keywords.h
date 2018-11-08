@@ -18,6 +18,9 @@
 
 #define FIELD_OTHER_LIT_NAME "other"
 
+#define METHOD_MAIN "main"
+#define METHOD_CONSTRUCTOR "CONSTRUCTOR"
+
 #define METHOD_PRINT "PRINT"
 #define METHOD_EQUALITY "EQUALS"
 #define METHOD_ADD "ADD"

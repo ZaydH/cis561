@@ -70,10 +70,10 @@ namespace Quack {
     Class(char* name, char * super_type, Param::Container* params,
           AST::Block* constructor, Method::Container* methods)
       : name_(name), super_type_name_(strcmp(super_type, "") == 0 ? CLASS_OBJ : super_type),
-        super_(OBJECT_NOT_FOUND), constructor_params_(params), constructor_(constructor),
-        methods_(methods) {
+        super_(OBJECT_NOT_FOUND), methods_(methods) {
 
       fields_ = new Field::Container();
+      constructor_ = new Method(METHOD_CONSTRUCTOR, CLASS_NOTHING, params, constructor);
 
 //      Container* classes = Container::singleton();
 //      if (classes->exists(name))
@@ -87,7 +87,6 @@ namespace Quack {
      */
     virtual ~Class() {
       delete constructor_;
-      delete constructor_params_;
       delete methods_;
       delete fields_;
     }
@@ -161,7 +160,7 @@ namespace Quack {
     void initial_type_check() {
       configure_super_class();
 
-      configure_method_params(*constructor_params_);
+      configure_method_params(*constructor_->params_);
       for (auto &method_pair : *methods_) {
         Method * method = method_pair.second;
         configure_method_params(*method->params_);
@@ -181,11 +180,11 @@ namespace Quack {
     }
     /** Name of the class */
     const std::string name_;
-    /**
-     * Accessor for all the methods in the class.
-     * @return Methods in the class.
-     */
-    inline const Method::Container* methods() const { return methods_; }
+//    /**
+//     * Accessor for all the methods in the class.
+//     * @return Methods in the class.
+//     */
+//    inline const Method::Container* methods() const { return methods_; }
     /**
      * Debug function used to print a representation of the original quack source code
      * used to visualize the AST.
@@ -196,14 +195,14 @@ namespace Quack {
       std::string indent_str = std::string(indent_depth, '\t');
       std::cout << indent_str << KEY_CLASS << " " << name_ << "(";
 
-      constructor_params_->print_original_src(0);
+      constructor_->params_->print_original_src(0);
       std::cout << ")";
       if (!super_type_name_.empty())
         std::cout << " " << KEY_EXTENDS << " " << super_type_name_;
       std::cout << " {\n";
 
       constructor_->print_original_src(indent_depth + 1);
-      if (!constructor_->empty() && !methods_->empty()) {
+      if (!constructor_->block_->empty() && !methods_->empty()) {
         std::cout << "\n\n";
       }
       methods_->print_original_src(indent_depth + 1);
@@ -263,9 +262,8 @@ namespace Quack {
     const std::string super_type_name_;
     /** Pointer to the super class of this class. */
     Class *super_;
-    Param::Container* constructor_params_;
     /** Statements in the constructor */
-    AST::Block* constructor_;
+    Method* constructor_;
    protected:
     /** All methods supported by the class */
     Method::Container* methods_;

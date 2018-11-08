@@ -13,13 +13,18 @@
 #include "keywords.h"
 #include "ASTNode.h"
 #include "quack_param.h"
+#include "symbol_table.h"
 
 namespace Quack {
-  // Forward declaration
+  // Forward declarations
   class TypeChecker;
+  class Class;
+  class Program;
 
   class Method {
     friend class TypeChecker;
+    friend class Quack::Class;
+    friend class Quack::Program;
    public:
     class Container : public MapContainer<Method> {
      public:
@@ -30,11 +35,13 @@ namespace Quack {
 
     Method(const std::string &name, const std::string &return_type,
            Param::Container* params, AST::Block* block)
-      : name_(name), return_type_name_(return_type), params_(params), block_(block) { };
+      : name_(name), return_type_name_(return_type), params_(params), symbol_table_(nullptr),
+        block_(block) { };
 
     ~Method() {
       delete params_;
       delete block_;
+      delete symbol_table_;
     }
     /**
      * Debug method used to print the original source code.
@@ -62,6 +69,8 @@ namespace Quack {
     Class* return_type_;
 
     Param::Container* params_;
+
+    Symbol::Table* symbol_table_;
    private:
     /** Statements (if any) to perform in method */
     AST::Block* block_;

@@ -3,7 +3,7 @@
 //
 
 #include "ASTNode.h"
-#include "quack_classes.h"
+#include "quack_class.h"
 #include "exceptions.h"
 
 namespace AST {

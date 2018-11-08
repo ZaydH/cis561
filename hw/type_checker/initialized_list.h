@@ -8,18 +8,10 @@
 #include <unordered_set>
 #include <string>
 
-typedef std::pair<std::string, bool> InitVar;
+#include "compiler_utils.h" // Used for hash
 
-namespace std {
-  template<>
-  struct hash<InitVar> {
-    inline size_t operator()(const InitVar &v) const {
-      std::hash<bool> bool_hasher;
-      std::hash<std::string> string_hasher;
-      return string_hasher(v.first) ^ bool_hasher(v.second);
-    }
-  };
-}
+
+typedef std::pair<std::string, bool> InitVar;
 
 // Forward Declaration
 namespace Quack {

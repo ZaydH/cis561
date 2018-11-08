@@ -54,6 +54,6 @@ add_executable(${BIN_NAME}
                symbol_table.h
                initialized_list.h
                exceptions.h
-              )
+               compiler_utils.h)
 
 target_link_libraries(${BIN_NAME} ${REFLEX_LIB})

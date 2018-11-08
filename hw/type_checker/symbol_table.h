@@ -1,22 +1,21 @@
 #ifndef PROJECT02_SYMBOL_TABLE_H
 #define PROJECT02_SYMBOL_TABLE_H
 
-#include <unordered_map>
+#include <string>
+#include <map>
+
+#include "compiler_utils.h" // Uses hash for map
 #include "quack_param.h"
 #include "quack_field.h"
 #include "quack_classes.h"
 #include "exceptions.h"
 
+typedef std::pair<std::string, bool> SymbolKey;
+
 class Symbol {
  public:
   class Table {
    public:
-    struct Key {
-      std::string name_;
-      bool is_field_;
-
-      Key(const std::string &name, bool is_field) : name_(name), is_field_(is_field) {}
-    };
     /**
      * Adds a new symbol the table.  The symbol is set to the base class of all classes.
      * @param symbol_name Name of the symbol
@@ -31,7 +30,7 @@ class Symbol {
      * @param new_class
      */
     void add_new(const std::string &symbol_name, bool is_field, Quack::Class *new_class) {
-      Key key(symbol_name, is_field);
+      SymbolKey key(symbol_name, is_field);
       objs_[key] = new Symbol(symbol_name, is_field);
     }
     /**
@@ -41,7 +40,7 @@ class Symbol {
      * @param new_class True if the corresponding symbol is a class field.
      */
     void update(const std::string &symbol_name, bool is_field, Quack::Class *new_class) {
-      Key key(symbol_name, is_field);
+      SymbolKey key(symbol_name, is_field);
 
       assert(exists(key));
 
@@ -75,12 +74,11 @@ class Symbol {
      * @param key Symbol key
      * @return True if the key exists.
      */
-    bool exists(const Key &key) const {
-      return objs_[key] != objs_.end();
+    bool exists(const SymbolKey &key) const {
+      return objs_.find(key) != objs_.end();
     }
 
-
-    std::unordered_map<Key,Symbol*> objs_;
+    std::map<SymbolKey,Symbol*> objs_;
   };
   /**
    * Initialize a new symbol.  The class is set to

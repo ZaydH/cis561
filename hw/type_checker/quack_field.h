@@ -24,7 +24,7 @@ namespace Quack {
        *
        * @param indent_depth Depth to tab the contents.
        */
-      const void print_original_src(unsigned int indent_depth) {
+      const void print_original_src(unsigned int indent_depth) override {
         // Do not implement.  Makes no sense since not needed.
         assert(false);
       }

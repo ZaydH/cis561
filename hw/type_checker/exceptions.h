@@ -9,6 +9,23 @@
 #include <string>
 #include <sstream>
 
+
+class UnknownBinOpException : public std::exception
+{
+ public:
+  UnknownBinOpException(const std::string &op) {
+    std::stringstream ss;
+    ss << "(UnknownOp): Unknown binary operator \"" << op << "\"";
+    msg_ = ss.str();
+  };
+  virtual const char *what() const throw() {
+    return msg_.c_str();
+  };
+
+ protected:
+  std::string msg_;
+};
+
 class TypeCheckerException : public std::exception
 {
  public:

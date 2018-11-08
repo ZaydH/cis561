@@ -46,7 +46,7 @@ namespace Quack {
        *
        * @param indent_depth Depth to tab the contents.
        */
-      const void print_original_src(unsigned int indent_depth = 0) {
+      const void print_original_src(unsigned int indent_depth = 0) override {
         auto print_class = new Container();
 
         for (const auto &pair : objs_) {

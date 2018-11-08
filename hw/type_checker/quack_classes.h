@@ -13,7 +13,7 @@
 #include <algorithm>
 
 #include "container_templates.h"
-#include "quack_methods.h"
+#include "quack_method.h"
 #include "quack_field.h"
 #include "keywords.h"
 

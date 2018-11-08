@@ -4,6 +4,7 @@
 #include "quack_classes.h"
 #include "quack_program.h"
 #include "initialized_list.h"
+#include "symbol_table.h"
 
 namespace Quack {
   class TypeChecker {
@@ -122,6 +123,37 @@ namespace Quack {
       }
 
       return true;
+    }
+
+    bool type_inference(Program* prog) {
+      assert(false);
+
+      for (auto &class_info : *Quack::Class::Container::singleton()) {
+        Quack::Class * q_class = class_info.second;
+        // Test constructor first
+        function_type_inference(q_class, q_class->constructor_, q_class->constructor_params_);
+        // Perform type inference on each method
+        for (auto &method_info : *q_class->methods_) {
+          auto * method = method_info.second;
+          function_type_inference(q_class, method->block_, method->params_);
+        }
+      }
+
+      // Performs inference on the main function
+      function_type_inference(nullptr, prog->block_, nullptr);
+    }
+
+    void function_type_inference(Quack::Class * q_class, AST::Block* block,
+                                 Param::Container* params) {
+      Symbol::Table st;
+      // Add any field variables to the symbol table.
+      if (q_class && q_class->fields_ && !q_class->fields_->empty())
+        st.add_fields(q_class->fields_);
+      // Add any parameters to the symbol table
+      if (params && !params->empty())
+        st.add_params(params);
+
+      assert(false);
     }
   };
 }

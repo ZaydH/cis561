@@ -12,7 +12,7 @@
 
 #include "keywords.h"
 #include "ASTNode.h"
-#include "quack_params.h"
+#include "quack_param.h"
 
 namespace Quack {
   // Forward declaration

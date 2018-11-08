@@ -15,6 +15,8 @@
 #include "keywords.h"
 #include "initialized_list.h"
 #include "exceptions.h"
+#include "symbol_table.h"
+
 
 namespace AST {
   // Abstract syntax tree.  ASTNode is abstract base class for all other nodes.
@@ -77,6 +79,13 @@ namespace AST {
       return success;
     }
 
+    bool perform_type_inference(Symbol::Table * st) {
+      assert(false);
+//      for (auto *stmt : stmts_)
+//        stmt->perform_type_inference(st);
+      return true;
+    }
+
     bool empty() { return stmts_.empty(); }
    private:
     std::vector<ASTNode *> stmts_;
@@ -132,6 +141,16 @@ namespace AST {
 
       return success;
     }
+
+//    bool perform_type_inference(Symbol::Table * st) {
+//      // ToDo Ensure conditional type inference is correct
+//      bool success = cond_->perform_type_inference(st);
+//
+//      success = success && truepart_->perform_type_inference(st);
+//      success = success && falsepart_->perform_type_inference(st);
+//
+//      return success;
+//    }
    private:
     ASTNode *cond_; // The boolean expression to be evaluated
     Block *truepart_; // Execute this block if the condition is true

@@ -18,8 +18,16 @@ namespace Quack {
 
       // ToDo manage what to do with an initialize before use failure
       perform_initialized_before_use_check(prog);
-    }
 
+      type_inference(prog);
+
+      check_super_type_field_types();
+    }
+   private:
+    /**
+     * Updates the most basic type structure.  This includes that all type names
+     * exist and that the super class exists.
+     */
     void perform_initial_checks() {
       for (auto &class_pair : *Class::Container::singleton()) {
         Class * q_class = class_pair.second;
@@ -124,7 +132,14 @@ namespace Quack {
 
       return true;
     }
-
+    /**
+     * Performs flow insensitive type inference of all class methods, the class constructors,
+     * and the program's main method.
+     *
+     * @param prog Quack program to analyze.
+     *
+     * @return True if type inference passed.
+     */
     bool type_inference(Program* prog) {
       assert(false);
 
@@ -132,6 +147,9 @@ namespace Quack {
         Quack::Class * q_class = class_info.second;
         // Test constructor first
         function_type_inference(q_class, q_class->constructor_);
+
+        update_field_classes(q_class);
+
         // Perform type inference on each method
         for (auto &method_info : *q_class->methods_) {
           auto * method = method_info.second;
@@ -141,27 +159,61 @@ namespace Quack {
 
       // Performs inference on the main function
       function_type_inference(nullptr, prog->main_);
+      return true;
+    }
+    /**
+     * Updates the Class' field container so
+     * @param q_class
+     */
+    void update_field_classes(Quack::Class * q_class) {
+      for (auto &field_info : *q_class->fields_) {
+        Field* field = field_info.second;
+        const Symbol* sym = q_class->constructor_->symbol_table_->get(field->name_, true);
+
+        field->type_ = const_cast<Class*>(sym->get_class());
+      }
     }
 
-    void function_type_inference(Quack::Class * q_class, Quack::Method* method) {
-      Symbol::Table* st = new Symbol::Table();
+    bool function_type_inference(Quack::Class * q_class, Quack::Method* method) {
+      auto* st = new Symbol::Table();
       // Add any field variables to the symbol table.
-      if (q_class && q_class->fields_ && !q_class->fields_->empty())
-        st->add_fields(q_class->fields_);
+      if (q_class && q_class->fields_) {
+        for (auto field_info : *q_class->fields_) {
+          Quack::Field *field = field_info.second;
+          st->add_new(field->name_, true, field->type_);
+        }
+      }
       // Add any parameters to the symbol table
-      if (method->params_ && !method->params_->empty())
-        st->add_params(method->params_);
+      if (method->params_ && !method->params_->empty()) {
+        for (auto *param : *method->params_)
+          // Parameters can never be fields.
+          st->add_new(param->name_, false, param->type_class_);
+      }
 
       do {
         st->clear_dirty();
-
+        method->block_->perform_type_inference(st);
       } while (st->is_dirty());
+
+      // Store the symbol
+      st->clear_dirty();
       method->symbol_table_ = st;
 
       assert(false);
+      return true;
     }
+    /**
+     * Function checks that the type of subclass fields is complaint with the type of super class
+     * fields.  Compliance is determined by the subclass fields being the same or subclasses of
+     * the super type fields.
+     *
+     * @return True if the super class field type check passes.
+     */
+    bool check_super_type_field_types() {
+      assert(false);
 
-
+      return true;
+    }
   };
 }
 

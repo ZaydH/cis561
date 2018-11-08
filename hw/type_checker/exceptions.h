@@ -46,10 +46,21 @@ class TypeCheckerException : public std::exception
 class UnknownTypeException : public TypeCheckerException {
  public:
   explicit UnknownTypeException(const std::string &class_name)
-                                 : TypeCheckerException("TypeError", build_error_msg(class_name)) {}
+      : TypeCheckerException("TypeError", build_error_msg(class_name)) {}
  private:
   static const char* build_error_msg(const std::string &class_name) {
     return ("Unknown class \"" + class_name + "\"").c_str();
+  }
+};
+
+
+class UnknownSymbolException : public TypeCheckerException {
+ public:
+  explicit UnknownSymbolException(const std::string &symbol_name)
+      : TypeCheckerException("SymbolError", build_error_msg(symbol_name)) {}
+ private:
+  static const char* build_error_msg(const std::string &symbol_name) {
+    return ("Unknown symbol \"" + symbol_name + "\"").c_str();
   }
 };
 

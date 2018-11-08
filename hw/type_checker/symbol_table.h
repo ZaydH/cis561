@@ -5,12 +5,13 @@
 #include <map>
 
 #include "compiler_utils.h" // Uses hash for map
-#include "quack_param.h"
-#include "quack_field.h"
-#include "quack_class.h"
+//#include "quack_class.h"
 #include "exceptions.h"
 
 typedef std::pair<std::string, bool> SymbolKey;
+
+// Forward declarations
+namespace Quack{ class Class; }
 
 class Symbol {
  public:
@@ -50,27 +51,6 @@ class Symbol {
       objs_[key]->set_class(new_class);
     }
     /**
-     * Adds the specified parameters to the symbol table.
-     *
-     * @param params Parameter objects to add.
-     */
-    void add_params(Quack::Param::Container *params) {
-      for (auto *param : *params)
-        // Parameters can never be fields.
-        add_new(param->name_, false, param->type_class_);
-    }
-    /**
-     * Adds a class's fields to the symbol table.
-     *
-     * @param fields Set of class fields.
-     */
-    void add_fields(Quack::Field::Container *fields) {
-      for (auto field_info : *fields) {
-        Quack::Field *field = field_info.second;
-        update(field->name_, true, field->type_);
-      }
-    }
-    /**
      * Accessor for whether the symbol table is dirty, i.e., whether it has changed since the
      * last time the dirty was clear.
      *
@@ -81,6 +61,23 @@ class Symbol {
      * Resets the dirty flag for the symbol table.
      */
     void clear_dirty() { is_dirty_ = false; }
+    /**
+     * Accessor for a symbol table item.
+     *
+     * @param symbol_name Name of the symbol
+     * @param is_field True if the symbol is a field.
+     *
+     * @return Corresponding symbol object.
+     */
+    Symbol* get(const std::string &symbol_name, bool is_field) const {
+      SymbolKey key(symbol_name, is_field);
+      assert(exists(key));
+
+      auto itr = objs_.find(key);
+      if (itr == objs_.end())
+        throw UnknownSymbolException(symbol_name);
+      return itr->second;
+    }
    private:
     /**
      * Checks whether the specified key exists in the symbol table.
@@ -118,7 +115,7 @@ class Symbol {
    *
    * @param q_class New class for the symbol.
    */
-  const Quack::Class* get_class() { return class_; }
+  const Quack::Class* get_class() const { return class_; }
 
  private:
   std::string name_;

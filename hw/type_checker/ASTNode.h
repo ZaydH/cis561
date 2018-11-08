@@ -18,6 +18,9 @@
 #include "symbol_table.h"
 
 
+namespace Quack { class Class; }
+
+
 namespace AST {
   // Abstract syntax tree.  ASTNode is abstract base class for all other nodes.
   // This is not the final AST for Quack ... it's a quick-and-dirty version
@@ -40,6 +43,30 @@ namespace AST {
      * @param is_constructor True if the function being checked is a constructor.
      */
     virtual void update_initialized_list(InitializedList &inits, bool is_constructor) {}
+    /**
+     * Implements type inference for a single note in the AST.
+     *
+     * @param st Symbol table for the function.
+     * @return True if type inference was successful.
+     */
+    virtual bool perform_type_inference(Symbol::Table * st) {
+      // ToDo Switch perform type inference to pure virtual
+      throw ("Should not be here");
+    };
+    /**
+     * Updates the type for the node.
+     *
+     * @param type New type for the node
+     */
+    inline void set_node_type(Quack::Class * new_type) { type_ = new_type; }
+    /**
+     * Accessor for the type of the node.
+     * @return Node type
+     */
+    inline Quack::Class* get_node_type() { return type_; }
+   protected:
+    /** Type for the node */
+    Quack::Class * type_ = nullptr;
   };
 
   /* A block is a sequence of statements or expressions.
@@ -81,8 +108,8 @@ namespace AST {
 
     bool perform_type_inference(Symbol::Table * st) {
       assert(false);
-//      for (auto *stmt : stmts_)
-//        stmt->perform_type_inference(st);
+      for (auto *stmt : stmts_)
+        stmt->perform_type_inference(st);
       return true;
     }
 
@@ -142,15 +169,7 @@ namespace AST {
       return success;
     }
 
-//    bool perform_type_inference(Symbol::Table * st) {
-//      // ToDo Ensure conditional type inference is correct
-//      bool success = cond_->perform_type_inference(st);
-//
-//      success = success && truepart_->perform_type_inference(st);
-//      success = success && falsepart_->perform_type_inference(st);
-//
-//      return success;
-//    }
+    bool perform_type_inference(Symbol::Table * st) override;
    private:
     ASTNode *cond_; // The boolean expression to be evaluated
     Block *truepart_; // Execute this block if the condition is true
@@ -208,6 +227,8 @@ namespace AST {
     void add_identifier_to_initialized(InitializedList &inits, bool is_field) {
       inits.add(text_, is_field);
     }
+
+    bool perform_type_inference(Symbol::Table *st) override { return true; }
     /** Identifier name */
     const std::string text_;
   };
@@ -226,6 +247,10 @@ namespace AST {
       return true;
     }
 
+    bool perform_type_inference(Symbol::Table *st) override {
+      throw AmbiguousInferenceException(typeid(this).name(), "Not able to infer type for literal");
+    }
+
     /** Value of the literal */
     const _T value_;
   };
@@ -236,6 +261,8 @@ namespace AST {
     void print_original_src(unsigned int indent_depth = 0) override {
       std::cout << std::to_string(value_);
     }
+
+    bool perform_type_inference(Symbol::Table * st) override;
   };
 
   struct BoolLit : public Literal<bool>{
@@ -244,14 +271,18 @@ namespace AST {
     void print_original_src(unsigned int indent_depth = 0) override {
       std::cout << (value_ ? "true" : "false");
     }
+
+    bool perform_type_inference(Symbol::Table * st) override;
   };
 
   struct StrLit : public Literal<std::string> {
     explicit StrLit(const char* v) : Literal<std::string>(std::string("")) {}
 
-    void print_original_src(unsigned int indent_depth = 0) {
+    void print_original_src(unsigned int indent_depth = 0) override {
       std::cout  << "\"" << value_ << "\"";
     }
+
+    bool perform_type_inference(Symbol::Table * st) override;
   };
 
   struct BinOp : public ASTNode {
@@ -379,6 +410,8 @@ namespace AST {
 
       return success;
     }
+
+    bool perform_type_inference(Symbol::Table *st) override;
   };
 
   struct RhsArgs : public ASTNode {
@@ -411,6 +444,13 @@ namespace AST {
         is_first = false;
         arg->print_original_src(indent_depth);
       }
+    }
+
+    bool perform_type_inference(Symbol::Table *st) override {
+      bool success = true;
+      for (auto &arg : args_)
+        success = success && arg->perform_type_inference(st);
+      return success;
     }
 
     /**

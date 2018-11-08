@@ -18,6 +18,13 @@ class Symbol {
   class Table {
    public:
     /**
+     * Deletes all symbols in the table.
+     */
+    ~Table() {
+      for (const auto &symbol_info : objs_)
+        delete symbol_info.second;
+    }
+    /**
      * Adds a new symbol the table.  The symbol is set to the base class of all classes.
      * @param symbol_name Name of the symbol
      * @param is_field True if the new symbol is a field

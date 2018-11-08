@@ -65,6 +65,23 @@ class UnknownSymbolException : public TypeCheckerException {
 };
 
 
+class AmbiguousInferenceException : public std::exception
+{
+ public:
+  AmbiguousInferenceException(const char *type, const char *error) {
+    std::stringstream ss;
+    ss << "(" << type << "): " << error;
+    msg_ = ss.str();
+  };
+  virtual const char *what() const throw() {
+    return msg_.c_str();
+  };
+
+ protected:
+  std::string msg_;
+};
+
+
 class InitializeBeforeUseException : public TypeCheckerException {
  public:
   InitializeBeforeUseException(const char *type, const std::string &var_name,

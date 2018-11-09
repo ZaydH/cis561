@@ -142,4 +142,36 @@ namespace AST {
     }
     return true;
   }
+
+  bool BinOp::perform_type_inference(Symbol::Table *st, Quack::Class *return_type,
+                                     Quack::Class *parent_type) {
+
+    bool success = left_->perform_type_inference(st, return_type, parent_type);
+
+    // Check the method information
+    std::string msg, method_name = op_lookup(opsym);
+    Quack::Class * l_type = left_->get_node_type();
+    Quack::Method* method = l_type->get_method(method_name);
+    if (method == OBJECT_NOT_FOUND) {
+      msg = "Operator \"" + opsym + "\" does not exist for class " + l_type->name_;
+      throw TypeInferenceException("BinOp", msg.c_str());
+    }
+    if (method->params_->count() != 1) {
+      msg = "Binary operator \"" + opsym + "\" for class \"" + l_type->name_
+            + "\" should take exactly one argument";
+      throw TypeInferenceException("BinOp", msg.c_str());
+    }
+
+    // Verify the right type is valid
+    Quack::Param* param = (*method->params_)[0];
+    success = success && right_->perform_type_inference(st, return_type, parent_type);
+    Quack::Class * r_type = right_->get_node_type();
+
+    if (!r_type->is_subtype(param->type_)) {
+      msg = "Invalid right type \"" + r_type->name_ + "\" for operator \"" + opsym + "\"";
+      throw TypeInferenceException("BinOp", msg.c_str());
+    }
+
+    return success;
+  }
 }

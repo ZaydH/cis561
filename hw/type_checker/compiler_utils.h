@@ -10,33 +10,6 @@
 #include "keywords.h"
 #include "exceptions.h"
 
-namespace Compiler {
-
-  class Utils {
-    static const std::string binop_lookup(const std::string &op) {
-      if (op == "+")
-        return METHOD_ADD;
-      else if (op == "-")
-        return METHOD_SUBTRACT;
-      else if (op =="*")
-        return METHOD_MULTIPLY;
-      else if (op =="/")
-        return METHOD_DIVIDE;
-      else if (op ==">=")
-        return METHOD_GEQ;
-      else if (op ==">")
-        return METHOD_GT;
-      else if (op =="<=")
-        return METHOD_LEQ;
-      else if (op =="<")
-        return METHOD_LT;
-      throw UnknownBinOpException(op);
-    }
-  };
-
-}
-
-
 namespace std {
   template<>
   struct hash<std::pair<std::string, bool>> {

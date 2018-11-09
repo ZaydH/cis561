@@ -122,7 +122,7 @@ class Symbol {
    *
    * @param q_class New class for the symbol.
    */
-  const Quack::Class* get_class() const { return class_; }
+  Quack::Class* get_class() const { return class_; }
 
  private:
   std::string name_;

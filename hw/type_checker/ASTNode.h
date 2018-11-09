@@ -234,7 +234,10 @@ namespace AST {
 
     bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
                                 Quack::Class * parent_type) override {
-      assert(false);
+      // ToDo verify the type inference is correct for an identifier
+      Symbol * sym = st->get(text_, parent_type == BASE_CLASS);
+      type_ = sym->get_class();
+      return true;
     }
     /** Identifier name */
     const std::string text_;
@@ -326,11 +329,35 @@ namespace AST {
       return left_->check_initialize_before_use(inits, all_inits, is_method)
              && right_->check_initialize_before_use(inits, all_inits, is_method);
     }
+    /**
+     * Helper function to get the method name that desugars the binary operator.
+     *
+     * @param op Binary operator value
+     *
+     * @return Desugared method name.
+     */
+    static const std::string op_lookup(const std::string &op) {
+      if (op == "+")
+        return METHOD_ADD;
+      else if (op == "-")
+        return METHOD_SUBTRACT;
+      else if (op =="*")
+        return METHOD_MULTIPLY;
+      else if (op =="/")
+        return METHOD_DIVIDE;
+      else if (op ==">=")
+        return METHOD_GEQ;
+      else if (op ==">")
+        return METHOD_GT;
+      else if (op =="<=")
+        return METHOD_LEQ;
+      else if (op =="<")
+        return METHOD_LT;
+      throw UnknownBinOpException(op);
+    }
 
     bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
-                                Quack::Class * parent_type) override {
-      assert(false);
-    }
+                                Quack::Class * parent_type) override;
   };
 
   struct UniOp : public ASTNode {

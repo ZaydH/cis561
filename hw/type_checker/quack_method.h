@@ -35,10 +35,10 @@ namespace Quack {
       }
     };
 
-    Method(std::string name, std::string return_type,
+    Method(std::string name, const std::string &return_type,
            Param::Container* params, AST::Block* block)
-      : name_(std::move(name)), return_type_name_(std::move(return_type)), params_(params),
-        symbol_table_(nullptr), init_list_(nullptr), block_(block) { };
+      : name_(std::move(name)), params_(params), symbol_table_(nullptr), init_list_(nullptr),
+        return_type_name_(return_type.empty()? CLASS_NOTHING : return_type), block_(block) { };
 
     ~Method() {
       delete params_;
@@ -65,9 +65,7 @@ namespace Quack {
     }
 
     /** Name of the method */
-    std::string name_;
-    /** Name of the return type of the method (if any) */
-    std::string return_type_name_;
+    const std::string name_;
     /** Type of the return object */
     Class* return_type_;
 
@@ -76,6 +74,8 @@ namespace Quack {
     Symbol::Table* symbol_table_;
 
     InitializedList* init_list_;
+    /** Name of the return type of the method (if any) */
+    const std::string return_type_name_;
    private:
     /** Statements (if any) to perform in method */
     AST::Block* block_;

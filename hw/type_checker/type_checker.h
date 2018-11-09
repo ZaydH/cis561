@@ -87,9 +87,14 @@ namespace Quack {
       auto all_inits = new InitializedList(init_list);
       q_class->constructor_->block_->check_initialize_before_use(init_list, all_inits, true);
 
-      if (init_list.count() != all_inits->count())
-        throw ("Constructor for class " + q_class->name_ + " does not initialize on all paths");
-      delete all_inits;
+      for (auto init_var : all_inits->all_items()) {
+        // Only consider the class fields when caring about initialized before use.
+        if (!init_var.second)
+          continue;
+        if (!init_list.exists(init_var.first, init_var.second))
+          throw ("Constructor for class " + q_class->name_ + " does not initialize on all paths");
+      }
+      q_class->constructor_->init_list_ = all_inits;
 
       for (const auto &var_info : init_list.vars_) {
         if (!var_info.second)
@@ -162,8 +167,10 @@ namespace Quack {
       return true;
     }
     /**
-     * Updates the Class' field container so
-     * @param q_class
+     * Updates the Class' field container and sets the type of each field.  It relies on the
+     * constructor's symbol table.
+     *
+     * @param q_class Class whose fields are being updated
      */
     void update_field_classes(Quack::Class * q_class) {
       for (auto &field_info : *q_class->fields_) {
@@ -173,33 +180,33 @@ namespace Quack {
         field->type_ = const_cast<Class*>(sym->get_class());
       }
     }
-
+    /**
+     * Performs type inference for the method. This may be a class method or main.
+     *
+     * @param q_class Class associated with the method
+     * @param method
+     * @return True if type inference is successful.
+     */
     bool function_type_inference(Quack::Class * q_class, Quack::Method* method) {
       auto* st = new Symbol::Table();
-      // Add any field variables to the symbol table.
-      if (q_class && q_class->fields_) {
-        for (auto field_info : *q_class->fields_) {
-          Quack::Field *field = field_info.second;
-          st->add_new(field->name_, true, field->type_);
-        }
-      }
-      // Add any parameters to the symbol table
-      if (method->params_ && !method->params_->empty()) {
-        for (auto *param : *method->params_)
-          // Parameters can never be fields.
-          st->add_new(param->name_, false, param->type_class_);
+
+      for (auto &init_var : *method->init_list_) {
+        std::string var_name = init_var.first;
+        bool is_field = init_var.second;
+
+        Class * field_type = is_field ? q_class->fields_->get(var_name)->type_ : nullptr;
+        st->add_new(var_name, is_field, field_type);
       }
 
       do {
         st->clear_dirty();
-        method->block_->perform_type_inference(st);
+        method->block_->perform_type_inference(st, method->return_type_);
       } while (st->is_dirty());
 
       // Store the symbol
       st->clear_dirty();
       method->symbol_table_ = st;
 
-      assert(false);
       return true;
     }
     /**
@@ -210,8 +217,23 @@ namespace Quack {
      * @return True if the super class field type check passes.
      */
     bool check_super_type_field_types() {
-      assert(false);
+      for (auto class_info : *Quack::Class::Container::singleton()) {
+        Class * q_class = class_info.second;
+        if (!q_class->is_user_class())
+          continue;
 
+        Class * super = q_class->super_;
+        for (auto field_info : *q_class->fields_) {
+          Field * field = field_info.second;
+          // If super class does not have this object, move on
+          if (!super->fields_->exists(field->name_))
+            continue;
+
+          Class * super_field_type = super->fields_->get(field->name_)->type_;
+          if (!field->type_->is_subtype(super_field_type))
+            throw SubTypeFieldTypeException(q_class->name_, field->name_);
+        }
+      }
       return true;
     }
   };

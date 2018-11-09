@@ -14,6 +14,8 @@
 #include "ASTNode.h"
 #include "quack_param.h"
 #include "symbol_table.h"
+#include "initialized_list.h"
+
 
 namespace Quack {
   // Forward declarations
@@ -33,15 +35,16 @@ namespace Quack {
       }
     };
 
-    Method(const std::string &name, const std::string &return_type,
+    Method(std::string name, std::string return_type,
            Param::Container* params, AST::Block* block)
-      : name_(name), return_type_name_(return_type), params_(params), symbol_table_(nullptr),
-        block_(block) { };
+      : name_(std::move(name)), return_type_name_(std::move(return_type)), params_(params),
+        symbol_table_(nullptr), init_list_(nullptr), block_(block) { };
 
     ~Method() {
       delete params_;
       delete block_;
       delete symbol_table_;
+      delete init_list_;
     }
     /**
      * Debug method used to print the original source code.
@@ -71,6 +74,8 @@ namespace Quack {
     Param::Container* params_;
 
     Symbol::Table* symbol_table_;
+
+    InitializedList* init_list_;
    private:
     /** Statements (if any) to perform in method */
     AST::Block* block_;

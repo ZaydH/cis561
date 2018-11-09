@@ -193,6 +193,15 @@ class VectorContainer : public ObjectContainer<_T> {
       obj->print_original_src(indent_depth);
     }
   }
+  /**
+   * Accessor for the index of the container.
+   *
+   * @param i Index to
+   * @return
+   */
+  _T* operator [](int i) {
+    return objs_[i];
+  }
 
  private:
   /**

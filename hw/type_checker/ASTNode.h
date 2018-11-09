@@ -47,9 +47,13 @@ namespace AST {
      * Implements type inference for a single note in the AST.
      *
      * @param st Symbol table for the function.
+     * @param return_type Return type from the block
+     * @param parent_type Type of the parent node.  If parent node has no type, then BASE_CLASS.
+     *
      * @return True if type inference was successful.
      */
-    virtual bool perform_type_inference(Symbol::Table * st) {
+    virtual bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
+                                        Quack::Class * parent_type) {
       // ToDo Switch perform type inference to pure virtual
       throw ("Should not be here");
     };
@@ -106,10 +110,9 @@ namespace AST {
       return success;
     }
 
-    bool perform_type_inference(Symbol::Table * st) {
-      assert(false);
+    bool perform_type_inference(Symbol::Table *st, Quack::Class* return_type) {
       for (auto *stmt : stmts_)
-        stmt->perform_type_inference(st);
+        stmt->perform_type_inference(st, return_type, nullptr);
       return true;
     }
 
@@ -169,7 +172,8 @@ namespace AST {
       return success;
     }
 
-    bool perform_type_inference(Symbol::Table * st) override;
+    bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
+                                Quack::Class * parent_type) override;
    private:
     ASTNode *cond_; // The boolean expression to be evaluated
     Block *truepart_; // Execute this block if the condition is true
@@ -228,7 +232,10 @@ namespace AST {
       inits.add(text_, is_field);
     }
 
-    bool perform_type_inference(Symbol::Table *st) override { return true; }
+    bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
+                                Quack::Class * parent_type) override {
+      assert(false);
+    }
     /** Identifier name */
     const std::string text_;
   };
@@ -247,7 +254,8 @@ namespace AST {
       return true;
     }
 
-    bool perform_type_inference(Symbol::Table *st) override {
+    bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
+                                Quack::Class * parent_type) override {
       throw AmbiguousInferenceException(typeid(this).name(), "Not able to infer type for literal");
     }
 
@@ -262,7 +270,8 @@ namespace AST {
       std::cout << std::to_string(value_);
     }
 
-    bool perform_type_inference(Symbol::Table * st) override;
+    bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
+                                Quack::Class * parent_type) override;
   };
 
   struct BoolLit : public Literal<bool>{
@@ -272,7 +281,8 @@ namespace AST {
       std::cout << (value_ ? "true" : "false");
     }
 
-    bool perform_type_inference(Symbol::Table * st) override;
+    bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
+                                Quack::Class * parent_type) override;
   };
 
   struct StrLit : public Literal<std::string> {
@@ -282,7 +292,8 @@ namespace AST {
       std::cout  << "\"" << value_ << "\"";
     }
 
-    bool perform_type_inference(Symbol::Table * st) override;
+    bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
+                                Quack::Class * parent_type) override;
   };
 
   struct BinOp : public ASTNode {
@@ -315,6 +326,11 @@ namespace AST {
       return left_->check_initialize_before_use(inits, all_inits, is_method)
              && right_->check_initialize_before_use(inits, all_inits, is_method);
     }
+
+    bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
+                                Quack::Class * parent_type) override {
+      assert(false);
+    }
   };
 
   struct UniOp : public ASTNode {
@@ -340,6 +356,9 @@ namespace AST {
                                      bool is_method) override {
       return right_->check_initialize_before_use(inits, all_inits, is_method);
     }
+
+    bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
+                                Quack::Class * parent_type) override;
   };
 
   struct Return : public ASTNode {
@@ -365,6 +384,9 @@ namespace AST {
                                      bool is_method) override {
       return right_->check_initialize_before_use(inits, all_inits, is_method);
     }
+
+    bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
+                                Quack::Class * parent_type) override;
   };
 
   struct While : public ASTNode {
@@ -411,7 +433,8 @@ namespace AST {
       return success;
     }
 
-    bool perform_type_inference(Symbol::Table *st) override;
+    bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
+                                Quack::Class * parent_type) override;
   };
 
   struct RhsArgs : public ASTNode {
@@ -446,11 +469,9 @@ namespace AST {
       }
     }
 
-    bool perform_type_inference(Symbol::Table *st) override {
-      bool success = true;
-      for (auto &arg : args_)
-        success = success && arg->perform_type_inference(st);
-      return success;
+    bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
+                                Quack::Class * parent_type) override {
+      throw std::runtime_error("Type inference not valid for right hand side args");
     }
 
     /**
@@ -509,8 +530,6 @@ namespace AST {
       return success && next_->check_initialize_before_use(inits, all_inits, is_method);
     }
 
-
-
     void update_initialized_list(InitializedList &inits, bool is_constructor) override {
       if (auto obj = dynamic_cast<Ident*>(object_))
         if (is_constructor && obj->text_ == OBJECT_SELF)
@@ -520,7 +539,7 @@ namespace AST {
   };
 
   struct FunctionCall : public ASTNode {
-    std::string ident_;
+    const std::string ident_;
     RhsArgs* args_;
 
     FunctionCall(char* ident, RhsArgs* args) : ident_(ident), args_(args) {}
@@ -528,7 +547,6 @@ namespace AST {
     ~FunctionCall() {
       delete args_;
     }
-
     /**
      * Checks if the initialize before use test passes on the right subexpression.
      *
@@ -545,6 +563,9 @@ namespace AST {
       args_->print_original_src(indent_depth);
       std::cout << ")";
     }
+
+    bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
+                                Quack::Class * parent_type) override;
   };
 
   struct Typing : public ASTNode {

@@ -16,6 +16,9 @@
 #define CLASS_BOOL "Boolean"
 #define CLASS_NOTHING "Nothing"
 
+#define UNARY_OP_NOT "not"
+#define UNARY_OP_NEG "-"
+
 #define FIELD_OTHER_LIT_NAME "other"
 
 #define METHOD_MAIN "main"

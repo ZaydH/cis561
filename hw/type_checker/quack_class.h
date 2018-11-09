@@ -46,7 +46,7 @@ namespace Quack {
        *
        * @param indent_depth Depth to tab the contents.
        */
-      const void print_original_src(unsigned int indent_depth = 0) override {
+      const void print_original_src(unsigned int indent_depth) override {
         auto print_class = new Container();
 
         for (const auto &pair : objs_) {
@@ -56,6 +56,30 @@ namespace Quack {
           print_class->add(pair.second);
         }
         print_class->MapContainer<Class>::print_original_src_(indent_depth, "\n\n");
+      }
+      /**
+       * Static accessor to get the Integer class.
+       *
+       * @return Integer class reference.
+       */
+      static Class* Int() {
+        return singleton()->get(CLASS_INT);
+      }
+      /**
+       * Static accessor to get the Boolean class.
+       *
+       * @return Boolean class reference.
+       */
+      static Class* Bool() {
+        return singleton()->get(CLASS_BOOL);
+      }
+      /**
+       * Static accessor to get the String class.
+       *
+       * @return String class reference.
+       */
+      static Class* Str() {
+        return singleton()->get(CLASS_STR);
       }
 
       Container(Container const&) = delete;       // Don't Implement
@@ -104,6 +128,15 @@ namespace Quack {
       return false;
     }
     /**
+     * Accessor for a method by the method's name.
+     *
+     * @param name Method's name
+     * @return Method pointer.
+     */
+    Method* get_method(const std::string &name) {
+      return methods_->get(name);
+    }
+    /**
      * Checks all classes for any cyclical inheritance.
      */
     static void check_well_formed_hierarchy() {
@@ -141,6 +174,40 @@ namespace Quack {
       return super_->has_no_cyclic_inheritance(all_super);
     }
     /**
+     * Helper function used to find the least common ancestor of two classes.  If there is no
+     * common ancestor, the function
+     * @param c1 First class to compare
+     * @param c2 Second class to compare
+     * @return Class shared by the two classes in the hierarchy
+     */
+    static Class* least_common_ancestor(Class* c1, Class* c2) {
+      std::vector<std::vector<Class*>> class_paths;
+      Class* classes[] = {c1, c2};
+      // Build the list of paths
+      for (int i = 0; i < 2; i++) {
+        Class * q_class = classes[i];
+        do {
+          class_paths[i].emplace_back(q_class);
+          q_class = q_class->super_;
+        } while (q_class != BASE_CLASS);
+      }
+
+      // iterate through the lists in reverse to find last class both share
+      int size0 = class_paths[0].size();
+      int size1 = class_paths[1].size();
+      int min_len = std::min<int>(size0, size1);
+      Class * last_shared = BASE_CLASS;
+      for (int i = 1; i <= min_len; i++) {
+        if (class_paths[0][size0 - i] != class_paths[1][size1 - i]) {
+          assert(last_shared != BASE_CLASS);
+          return last_shared;
+        }
+
+        last_shared = class_paths[0][size0 - i];
+      }
+      return last_shared;
+    }
+    /**
      * Check if the class is of the specified type.
      *
      * @param name Name of the type
@@ -151,6 +218,24 @@ namespace Quack {
         return true;
       if (super_)
         return super_->is_type(name);
+      return false;
+    }
+    /**
+     * Determines if the implicit class is a subtype of the specified type.
+     *
+     * @param other_type Type to check whether this class is a subtype
+     * @return True if this class is a subtype of \p other_type.
+     */
+    bool is_subtype(Class * other_type) {
+      if (other_type == BASE_CLASS)
+        return true;
+
+      Class * super = this;
+      while (super != BASE_CLASS) {
+        if (super == other_type)
+          return true;
+        super = super->super_;
+      }
       return false;
     }
     /**
@@ -217,6 +302,12 @@ namespace Quack {
      * @return True if the class is abase class.
      */
     virtual bool is_user_class() const { return true; }
+    /**
+     * Accessor for the class constructor.
+     *
+     * @return Constructor method
+     */
+    Method* get_constructor() { return constructor_; }
    private:
     /**
      * Configures the super class pointer for the object.
@@ -255,7 +346,7 @@ namespace Quack {
           throw std::runtime_error("Parameter " + param->name_ + " has undefined type \""
                                    + param->type_name_ + "\"");
         }
-        param->type_class_ = type_class;
+        param->type_ = type_class;
       }
     }
     /** Name of the super class of this type */

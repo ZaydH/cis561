@@ -13,7 +13,7 @@
 class UnknownBinOpException : public std::exception
 {
  public:
-  UnknownBinOpException(const std::string &op) {
+  explicit UnknownBinOpException(const std::string &op) {
     std::stringstream ss;
     ss << "(UnknownOp): Unknown binary operator \"" << op << "\"";
     msg_ = ss.str();
@@ -107,12 +107,37 @@ class MissingSuperFieldsException : public TypeCheckerException {
   }
 };
 
+class SubTypeFieldTypeException : public TypeCheckerException {
+ public:
+  explicit SubTypeFieldTypeException(const std::string &class_name, const std::string &field_name)
+      : TypeCheckerException("SubtypeFieldType", build_error_msg(class_name, field_name)) { }
+ private:
+  static const char* build_error_msg(const std::string &class_name, const std::string &field_name) {
+    return ("Class " + class_name + " field \"" + field_name +
+            "\" type not subtype of super class.").c_str();
+  }
+};
+
 
 class DuplicateParamException : public TypeCheckerException {
  public:
   explicit DuplicateParamException(const std::string &param_name)
-                  : TypeCheckerException("Unknown Class",
+                  : TypeCheckerException("DuplicateParam",
                                          ("Duplicate parameter \"" + param_name + "\"").c_str()) {}
+};
+
+class UnknownConstructorException : TypeCheckerException {
+ public:
+  explicit UnknownConstructorException(const std::string &type_name)
+    : TypeCheckerException("ClassError",
+                           ("Unknown class for constructor \"" + type_name + "\"").c_str()) {}
+};
+
+
+class TypeInferenceException : TypeCheckerException {
+ public:
+  explicit TypeInferenceException(const char*  node_type, const char* msg)
+      : TypeCheckerException(node_type, msg) {}
 };
 
 #endif //PROJECT02_EXCEPTIONS_H

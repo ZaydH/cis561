@@ -30,7 +30,7 @@ namespace Quack {
 
     Param(const std::string &name, const std::string &type_name = "")
         : name_(name), type_name_(type_name) {
-      type_class_ = nullptr;
+      type_ = nullptr;
     }
 
     void print_original_src(unsigned int indent_depth = 0) {
@@ -45,7 +45,7 @@ namespace Quack {
 
     std::string name_;
     std::string type_name_;
-    Class * type_class_;
+    Class * type_;
   };
 }
 

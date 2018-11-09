@@ -25,13 +25,13 @@ namespace AST {
     // Handle the initial typing
     bool success = configure_initial_typing(inferred_type);
 
-    type_ = Quack::Class::least_common_ancestor(type_, inferred_type);
+    success = success && expr_->update_inferred_type(settings, inferred_type, is_field);
+
+    type_ = Quack::Class::least_common_ancestor(type_, expr_->get_node_type());
     if (type_ == BASE_CLASS) {
       std::string msg = "Unable to reconcile types " + type_name_ + " and " + inferred_type->name_;
       throw TypeInferenceException("TypingError", msg);
     }
-
-    success = success && expr_->update_inferred_type(settings, type_, is_field);
 
     success = success && verify_typing();
     return success;
@@ -144,8 +144,9 @@ namespace AST {
       if (get_node_type() == BASE_CLASS) {
         set_node_type(rtrn_type);
       } else {
-        if (!rtrn_type->is_subtype(get_node_type()))
-          throw TypeInferenceException("FunctionCall", "Incompatible constructor type");
+        set_node_type(rtrn_type->least_common_ancestor(get_node_type()));
+        if (get_node_type() == BASE_CLASS)
+          throw TypeInferenceException("FunctionCall", "Unable to reconcile FunctionCall return");
       }
     }
     return true;
@@ -232,20 +233,14 @@ namespace AST {
   bool Ident::update_inferred_type(TypeCheck::Settings &settings, Quack::Class *inferred_type,
                                    bool is_field) {
     Symbol * sym = settings.st_->get(text_, is_field);
-    assert(sym != nullptr);
+    assert(sym != OBJECT_NOT_FOUND);
 
     // ToDo This is needed due to the constructor. May need to revisit
-    if (is_field) {
-      if (settings.is_constructor_) {
-        if (sym->get_type() == BASE_CLASS)
-          settings.st_->update(sym, inferred_type);
-        else
-          settings.st_->update(sym, inferred_type->least_common_ancestor(sym->get_type()));
-      }
-    } else {
-      Quack::Class *updated_type = inferred_type->least_common_ancestor(sym->get_type());
-      settings.st_->update(sym, updated_type);
-    }
+    if (((is_field && settings.is_constructor_) || !is_field) && sym->get_type() == BASE_CLASS)
+      settings.st_->update(sym, inferred_type);
+    else
+      settings.st_->update(sym, inferred_type->least_common_ancestor(sym->get_type()));
+
     type_ = (type_ == BASE_CLASS) ? sym->get_type() : sym->get_type()->least_common_ancestor(type_);
     if (type_ == BASE_CLASS)
       throw TypeInferenceException("TypeUpdateFail",

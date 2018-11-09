@@ -206,6 +206,7 @@ namespace Quack {
     bool function_type_inference(Quack::Class * q_class, Quack::Method* method) {
       auto* st = new Symbol::Table();
 
+      // Use init list to build list of variables
       for (auto &init_var : *method->init_list_) {
         std::string var_name = init_var.first;
         bool is_field = init_var.second;
@@ -214,6 +215,7 @@ namespace Quack {
         st->add_new(var_name, is_field, field_type);
       }
 
+      // Populate the type of function parameters
       for (auto * param : *method->params_)
         st->update(param->name_, false, param->type_);
 

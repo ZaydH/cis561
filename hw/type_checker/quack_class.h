@@ -233,7 +233,8 @@ namespace Quack {
 
         last_shared = class_paths[0][size0 - i];
       }
-      throw TypeInferenceException("LCA", "Least common ancestor unexpected state reached");
+      // One is a proper subset of the other
+      return last_shared;
     }
     /**
      * Check if the class is of the specified type.
@@ -425,7 +426,7 @@ namespace Quack {
      * Create the print and equality methods for a base Object.
      */
     void add_base_methods() {
-      add_binop_method(METHOD_EQUALITY, CLASS_OBJ, CLASS_BOOL);
+      add_binop_method(METHOD_EQUALITY, CLASS_BOOL, CLASS_OBJ);
       // Unary op ok to use since function takes no args
       add_unary_op_method(METHOD_PRINT, CLASS_NOTHING);
     }
@@ -462,11 +463,11 @@ namespace Quack {
       add_binop_method(METHOD_MULTIPLY, CLASS_INT, CLASS_INT);
       add_binop_method(METHOD_DIVIDE, CLASS_INT, CLASS_INT);
 
-      add_binop_method(METHOD_EQUALITY, CLASS_INT, CLASS_BOOL);
-      add_binop_method(METHOD_LEQ, CLASS_INT, CLASS_BOOL);
-      add_binop_method(METHOD_LT, CLASS_INT, CLASS_BOOL);
-      add_binop_method(METHOD_GEQ, CLASS_INT, CLASS_BOOL);
-      add_binop_method(METHOD_GT, CLASS_INT, CLASS_BOOL);
+      add_binop_method(METHOD_EQUALITY, CLASS_BOOL, CLASS_INT);
+      add_binop_method(METHOD_LEQ, CLASS_BOOL, CLASS_INT);
+      add_binop_method(METHOD_LT, CLASS_BOOL, CLASS_INT);
+      add_binop_method(METHOD_GEQ, CLASS_BOOL, CLASS_INT);
+      add_binop_method(METHOD_GT, CLASS_BOOL, CLASS_INT);
     }
   };
 
@@ -474,11 +475,11 @@ namespace Quack {
     StringClass() : PrimitiveClass(strdup(CLASS_STR)) {
       add_binop_method(METHOD_ADD, CLASS_STR, CLASS_STR);
 
-      add_binop_method(METHOD_EQUALITY, CLASS_STR, CLASS_STR);
-      add_binop_method(METHOD_LEQ, CLASS_STR, CLASS_BOOL);
-      add_binop_method(METHOD_LT, CLASS_STR, CLASS_BOOL);
-      add_binop_method(METHOD_GEQ, CLASS_STR, CLASS_BOOL);
-      add_binop_method(METHOD_GT, CLASS_STR, CLASS_BOOL);
+      add_binop_method(METHOD_EQUALITY, CLASS_BOOL, CLASS_STR);
+      add_binop_method(METHOD_LEQ, CLASS_BOOL, CLASS_STR);
+      add_binop_method(METHOD_LT, CLASS_BOOL, CLASS_STR);
+      add_binop_method(METHOD_GEQ, CLASS_BOOL, CLASS_STR);
+      add_binop_method(METHOD_GT, CLASS_BOOL, CLASS_STR);
     }
   };
 

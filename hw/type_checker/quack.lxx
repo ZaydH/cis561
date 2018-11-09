@@ -95,8 +95,8 @@ and      { return parser::token::AND; }
 or       { return parser::token::OR; }
 not      { return parser::token::NOT; }
 
-True     { return parser::token::TRUE; }
-False    { return parser::token::FALSE; }
+true     { return parser::token::TRUE; }
+false    { return parser::token::FALSE; }
 
    /* The following tokens are value-bearing:
     * We pass a value back to the parser by copying

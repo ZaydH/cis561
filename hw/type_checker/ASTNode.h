@@ -295,7 +295,7 @@ namespace AST {
     explicit BoolLit(bool v) : Literal(v) {};
 
     void print_original_src(unsigned int indent_depth = 0) override {
-      std::cout << (value_ ? "True" : "False");
+      std::cout << (value_ ? "true" : "false");
     }
 
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;

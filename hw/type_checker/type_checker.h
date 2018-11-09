@@ -104,8 +104,12 @@ namespace Quack {
         // Only consider the class fields when caring about initialized before use.
         if (!init_var.second)
           continue;
-        if (!init_list.exists(init_var.first, init_var.second))
-          throw ("Constructor for class " + q_class->name_ + " does not initialize on all paths");
+        if (!init_list.exists(init_var.first, init_var.second)) {
+          std::string msg = "Constructor for class " + q_class->name_
+                            + " does not initialize on all paths";
+          throw TypeCheckerException("Constructor", msg);
+        }
+
       }
       q_class->constructor_->init_list_ = all_inits;
 

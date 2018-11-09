@@ -78,7 +78,7 @@ namespace AST {
   }
 
   bool IntLit::perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) {
-    set_node_type(Quack::Class::Container::Bool());
+    set_node_type(Quack::Class::Container::Int());
     return true;
   }
 

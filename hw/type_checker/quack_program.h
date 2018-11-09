@@ -23,7 +23,7 @@ namespace Quack {
    public:
     explicit Program(Class::Container *classes, AST::Block *block) :
       classes_(classes) {
-      main_ = new Method(METHOD_MAIN, CLASS_NOTHING, nullptr, block);
+      main_ = new Method(METHOD_MAIN, CLASS_NOTHING, new Param::Container(), block);
     }
 
     ~Program() {

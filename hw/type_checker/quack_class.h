@@ -145,7 +145,11 @@ namespace Quack {
      * @return Method pointer.
      */
     Method* get_method(const std::string &name) {
-      return methods_->get(name);
+      if (methods_->exists(name))
+        return methods_->get(name);
+      if (super_ == BASE_CLASS)
+        return OBJECT_NOT_FOUND;
+      return super_->get_method(name);
     }
     /**
      * Checks all classes for any cyclical inheritance.
@@ -422,6 +426,7 @@ namespace Quack {
      */
     void add_base_methods() {
       add_binop_method(METHOD_EQUALITY, CLASS_OBJ, CLASS_BOOL);
+      // Unary op ok to use since function takes no args
       add_unary_op_method(METHOD_PRINT, CLASS_NOTHING);
     }
     /**

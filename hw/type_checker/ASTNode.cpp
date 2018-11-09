@@ -216,6 +216,16 @@ namespace AST {
       throw TypeInferenceException("BinOp", msg);
     }
 
+    if (type_ == nullptr)
+      type_ =  method->return_type_;
+    else
+      type_ = type_->least_common_ancestor(method->return_type_);
+
+    // Reconcile binary operator return type
+    if (type_ == BASE_CLASS) {
+      msg = "Invalid return type for binary operator \"" + opsym + "\"";
+      throw TypeInferenceException("BinOp", msg);
+    }
     return success;
   }
 
@@ -304,8 +314,9 @@ namespace AST {
     else
       type_ = type_->least_common_ancestor(next_->get_node_type());
 
-    if (type_ == BASE_CLASS)
-      throw TypeInferenceException("ObjectCall", "Unable to resolve object call");
+    // Some methods (e.g., print) return Nothing
+//    if (type_ == BASE_CLASS)
+//      throw TypeInferenceException("ObjectCall", "Unable to resolve object call");
     return success;
   }
 }

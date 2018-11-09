@@ -174,6 +174,15 @@ namespace Quack {
       return super_->has_no_cyclic_inheritance(all_super);
     }
     /**
+     * Perform least common ancestor determination on the implicit class and the \p other class.
+     *
+     * @param other Another
+     * @return
+     */
+    Class* least_common_ancestor(Class * other) {
+      return Class::least_common_ancestor(this, other);
+    }
+    /**
      * Helper function used to find the least common ancestor of two classes.  If there is no
      * common ancestor, the function
      * @param c1 First class to compare
@@ -181,7 +190,11 @@ namespace Quack {
      * @return Class shared by the two classes in the hierarchy
      */
     static Class* least_common_ancestor(Class* c1, Class* c2) {
-      std::vector<std::vector<Class*>> class_paths;
+      assert(c1 != nullptr && c2 != nullptr);
+      if (c1 == c2)
+        return c1;
+
+      std::vector<std::vector<Class*>> class_paths(2);
       Class* classes[] = {c1, c2};
       // Build the list of paths
       for (int i = 0; i < 2; i++) {
@@ -193,9 +206,9 @@ namespace Quack {
       }
 
       // iterate through the lists in reverse to find last class both share
-      int size0 = class_paths[0].size();
-      int size1 = class_paths[1].size();
-      int min_len = std::min<int>(size0, size1);
+      unsigned long size0 = class_paths[0].size();
+      unsigned long size1 = class_paths[1].size();
+      auto min_len = std::min<unsigned long>(size0, size1);
       Class * last_shared = BASE_CLASS;
       for (int i = 1; i <= min_len; i++) {
         if (class_paths[0][size0 - i] != class_paths[1][size1 - i]) {
@@ -205,7 +218,7 @@ namespace Quack {
 
         last_shared = class_paths[0][size0 - i];
       }
-      return last_shared;
+      throw TypeInferenceException("LCA", "Least common ancestor unexpected state reached");
     }
     /**
      * Check if the class is of the specified type.
@@ -376,6 +389,7 @@ namespace Quack {
 
       // ToDo Decide on the binary operations AST block
       methods_->add(new Method(method_name, return_type, params, new AST::Block()));
+      methods_->get(method_name)->init_list_ = new InitializedList();
     }
 
     void add_unary_op_method(const std::string &method_name, const std::string &return_type) {
@@ -405,7 +419,7 @@ namespace Quack {
      *
      * @return True always.
      */
-    bool is_user_class() const { return false; }
+    bool is_user_class() const override { return false; }
   };
 
   /**
@@ -422,7 +436,7 @@ namespace Quack {
     *
     * @return True always.
     */
-    bool is_user_class() const { return false; }
+    bool is_user_class() const override { return false; }
   };
 
   struct IntClass : public PrimitiveClass {
@@ -455,6 +469,9 @@ namespace Quack {
   struct BooleanClass : public PrimitiveClass {
     BooleanClass() : PrimitiveClass(strdup(CLASS_BOOL)) {
       add_binop_method(METHOD_EQUALITY, CLASS_BOOL, CLASS_BOOL);
+
+      add_binop_method(METHOD_OR, CLASS_BOOL, CLASS_BOOL);
+      add_binop_method(METHOD_AND, CLASS_BOOL, CLASS_BOOL);
     }
   };
 }

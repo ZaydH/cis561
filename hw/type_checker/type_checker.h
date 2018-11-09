@@ -146,10 +146,13 @@ namespace Quack {
      * @return True if type inference passed.
      */
     bool type_inference(Program* prog) {
-      assert(false);
-
       for (auto &class_info : *Quack::Class::Container::singleton()) {
         Quack::Class * q_class = class_info.second;
+
+        // ToDo Remove base class skip
+        if (!q_class->is_user_class())
+          continue;
+
         // Test constructor first
         function_type_inference(q_class, q_class->constructor_);
 
@@ -177,7 +180,7 @@ namespace Quack {
         Field* field = field_info.second;
         const Symbol* sym = q_class->constructor_->symbol_table_->get(field->name_, true);
 
-        field->type_ = const_cast<Class*>(sym->get_class());
+        field->type_ = sym->get_class();
       }
     }
     /**
@@ -198,9 +201,13 @@ namespace Quack {
         st->add_new(var_name, is_field, field_type);
       }
 
+      for (auto * param : *method->params_)
+        st->update(param->name_, false, param->type_);
+
       do {
         st->clear_dirty();
-        method->block_->perform_type_inference(st, method->return_type_);
+        Quack::Class * constructor_class = method->name_ == METHOD_CONSTRUCTOR ? q_class : nullptr;
+        method->block_->perform_type_inference(st, method->return_type_, constructor_class);
       } while (st->is_dirty());
 
       // Store the symbol

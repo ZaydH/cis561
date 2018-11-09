@@ -136,8 +136,11 @@ class UnknownConstructorException : TypeCheckerException {
 
 class TypeInferenceException : TypeCheckerException {
  public:
-  explicit TypeInferenceException(const char*  node_type, const char* msg)
-      : TypeCheckerException(node_type, msg) {}
+  explicit TypeInferenceException(const char* error_name, const char* msg)
+      : TypeCheckerException(error_name, msg) {}
+
+  explicit TypeInferenceException(const char* error_name, const std::string &msg)
+      : TypeCheckerException(error_name, msg.c_str()) {}
 };
 
 #endif //PROJECT02_EXCEPTIONS_H

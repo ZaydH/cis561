@@ -46,17 +46,30 @@ namespace AST {
     /**
      * Implements type inference for a single note in the AST.
      *
-     * @param st Symbol table for the function.
+     * @param st Symbol table for the method
      * @param return_type Return type from the block
      * @param parent_type Type of the parent node.  If parent node has no type, then BASE_CLASS.
      *
      * @return True if type inference was successful.
      */
     virtual bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
-                                        Quack::Class * parent_type) {
+                                        Quack::Class * parent_type, Quack::Class * this_class) {
       // ToDo Switch perform type inference to pure virtual
       throw ("Should not be here");
     };
+    /**
+     * Updates the symbol table and the nodes using an inferred type
+     *
+     * @param st Symbol table for the method
+     * @param inferred_type Type inferred for updating
+     * @param this_class Class type of the object
+     *
+     * @return True if the update is successful
+     */
+    virtual bool update_inferred_type(Symbol::Table *st, Quack::Class * inferred_type,
+                                      bool is_field, Quack::Class * this_class) {
+      throw std::runtime_error("Unpredicted node type encountered in inferred type update");
+    }
     /**
      * Updates the type for the node.
      *
@@ -110,9 +123,10 @@ namespace AST {
       return success;
     }
 
-    bool perform_type_inference(Symbol::Table *st, Quack::Class* return_type) {
+    bool perform_type_inference(Symbol::Table *st, Quack::Class* return_type,
+                                Quack::Class * this_class) {
       for (auto *stmt : stmts_)
-        stmt->perform_type_inference(st, return_type, nullptr);
+        stmt->perform_type_inference(st, return_type, nullptr, this_class);
       return true;
     }
 
@@ -173,7 +187,7 @@ namespace AST {
     }
 
     bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
-                                Quack::Class * parent_type) override;
+                                Quack::Class * parent_type, Quack::Class * this_class) override;
    private:
     ASTNode *cond_; // The boolean expression to be evaluated
     Block *truepart_; // Execute this block if the condition is true
@@ -231,11 +245,21 @@ namespace AST {
     void add_identifier_to_initialized(InitializedList &inits, bool is_field) {
       inits.add(text_, is_field);
     }
+    /**
+     * Updates the symbol table and the node of the symbol in the symbol table and the AST>
+     *
+     * @param st Symbol table
+     * @param inferred_type Inferred type of the symbol
+     *
+     * @return True if the inferred type was successfully updated
+     */
+    bool update_inferred_type(Symbol::Table *st, Quack::Class * inferred_type,
+                              bool is_field, Quack::Class * this_class) override;
 
     bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
-                                Quack::Class * parent_type) override {
+                                Quack::Class * parent_type, Quack::Class * this_class) override {
       // ToDo verify the type inference is correct for an identifier
-      Symbol * sym = st->get(text_, parent_type == BASE_CLASS);
+      Symbol * sym = st->get(text_, parent_type != BASE_CLASS);
       type_ = sym->get_class();
       return true;
     }
@@ -258,7 +282,7 @@ namespace AST {
     }
 
     bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
-                                Quack::Class * parent_type) override {
+                                Quack::Class * parent_type, Quack::Class * this_class) override {
       throw AmbiguousInferenceException(typeid(this).name(), "Not able to infer type for literal");
     }
 
@@ -274,7 +298,7 @@ namespace AST {
     }
 
     bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
-                                Quack::Class * parent_type) override;
+                                Quack::Class * parent_type, Quack::Class * this_class) override;
   };
 
   struct BoolLit : public Literal<bool>{
@@ -285,7 +309,7 @@ namespace AST {
     }
 
     bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
-                                Quack::Class * parent_type) override;
+                                Quack::Class * parent_type, Quack::Class * this_class) override;
   };
 
   struct StrLit : public Literal<std::string> {
@@ -296,7 +320,7 @@ namespace AST {
     }
 
     bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
-                                Quack::Class * parent_type) override;
+                                Quack::Class * parent_type, Quack::Class * this_class) override;
   };
 
   struct BinOp : public ASTNode {
@@ -341,23 +365,25 @@ namespace AST {
         return METHOD_ADD;
       else if (op == "-")
         return METHOD_SUBTRACT;
-      else if (op =="*")
+      else if (op == "*")
         return METHOD_MULTIPLY;
-      else if (op =="/")
+      else if (op == "/")
         return METHOD_DIVIDE;
-      else if (op ==">=")
+      else if (op == ">=")
         return METHOD_GEQ;
-      else if (op ==">")
+      else if (op == ">")
         return METHOD_GT;
-      else if (op =="<=")
+      else if (op == "<=")
         return METHOD_LEQ;
-      else if (op =="<")
+      else if (op == "<")
         return METHOD_LT;
+      else if (op == "==")
+        return METHOD_EQUALITY;
       throw UnknownBinOpException(op);
     }
 
     bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
-                                Quack::Class * parent_type) override;
+                                Quack::Class * parent_type, Quack::Class * this_class) override;
   };
 
   struct UniOp : public ASTNode {
@@ -385,7 +411,7 @@ namespace AST {
     }
 
     bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
-                                Quack::Class * parent_type) override;
+                                Quack::Class * parent_type, Quack::Class * this_class) override;
   };
 
   struct Return : public ASTNode {
@@ -413,7 +439,7 @@ namespace AST {
     }
 
     bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
-                                Quack::Class * parent_type) override;
+                                Quack::Class * parent_type, Quack::Class * this_class) override;
   };
 
   struct While : public ASTNode {
@@ -461,7 +487,7 @@ namespace AST {
     }
 
     bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
-                                Quack::Class * parent_type) override;
+                                Quack::Class * parent_type, Quack::Class * this_class) override;
   };
 
   struct RhsArgs : public ASTNode {
@@ -478,11 +504,11 @@ namespace AST {
      * @return Number of arguments
      */
     unsigned long count() { return args_.size(); }
-    /**
-     * Checks whether there are any input arguments
-     * @return True if there are no arguments
-     */
-    bool empty() { return args_.empty(); }
+//    /**
+//     * Checks whether there are any input arguments
+//     * @return True if there are no arguments
+//     */
+//    bool empty() { return args_.empty(); }
 
     void add(ASTNode* new_node) { args_.emplace_back(new_node); }
 
@@ -497,7 +523,7 @@ namespace AST {
     }
 
     bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
-                                Quack::Class * parent_type) override {
+                                Quack::Class * parent_type, Quack::Class * this_class) override {
       throw std::runtime_error("Type inference not valid for right hand side args");
     }
 
@@ -557,12 +583,15 @@ namespace AST {
       return success && next_->check_initialize_before_use(inits, all_inits, is_method);
     }
 
-    void update_initialized_list(InitializedList &inits, bool is_constructor) override {
+    void update_initialized_list(InitializedList &inits, bool is_field) override {
       if (auto obj = dynamic_cast<Ident*>(object_))
-        if (is_constructor && obj->text_ == OBJECT_SELF)
+        if (is_field && obj->text_ == OBJECT_SELF)
           if (auto next = dynamic_cast<Ident*>(next_))
             next->add_identifier_to_initialized(inits, true);
     }
+
+    bool update_inferred_type(Symbol::Table *st, Quack::Class * inferred_type,
+                              bool is_field, Quack::Class * this_class) override;
   };
 
   struct FunctionCall : public ASTNode {
@@ -592,7 +621,7 @@ namespace AST {
     }
 
     bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
-                                Quack::Class * parent_type) override;
+                                Quack::Class * parent_type, Quack::Class * this_class) override;
   };
 
   struct Typing : public ASTNode {
@@ -634,7 +663,33 @@ namespace AST {
     void update_initialized_list(InitializedList &inits, bool is_constructor) override {
       expr_->update_initialized_list(inits, is_constructor);
     }
+
+    bool update_inferred_type(Symbol::Table *st, Quack::Class * inferred_type,
+                              bool is_field, Quack::Class * this_class) override;
+
+    bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
+                                Quack::Class * parent_type, Quack::Class * this_class) override {
+      configure_initial_typing(BASE_CLASS);
+
+      bool success = expr_->perform_type_inference(st, return_type, parent_type, this_class);
+
+      return success && verify_typing();
+    }
     // ToDo ensure type checker verifies type_name_ exists
+   private:
+    /**
+     * Configures the initial typing of the node predicated on the specified type name.
+     *
+     * @param other_type Other type n
+     * @return
+     */
+    bool configure_initial_typing(Quack::Class* other_type);
+    /**
+     * Checks that the typing of the expression is compatible with the typing of the node (if any)
+     *
+     * @return True if typing successfully verified
+     */
+    bool verify_typing();
   };
 
   class TypeAlternative {
@@ -690,6 +745,17 @@ namespace AST {
         all_inits->var_union(inits);
 
       return lhs_->check_initialize_before_use(inits, all_inits, is_method);
+    }
+
+    bool perform_type_inference(Symbol::Table *st, Quack::Class * return_type,
+                                Quack::Class * parent_type, Quack::Class * this_class) override {
+
+      bool success = rhs_->perform_type_inference(st, return_type, nullptr, this_class);
+
+      success = success && lhs_->update_inferred_type(st, rhs_->get_node_type(), false, this_class);
+
+      success = success && lhs_->perform_type_inference(st, nullptr, nullptr, this_class);
+      return success;
     }
   };
 

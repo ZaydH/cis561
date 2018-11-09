@@ -63,11 +63,11 @@ class Symbol {
      *
      * @return True if a change has occurred.
      */
-    const bool is_dirty() const { return is_dirty_; }
+    inline const bool is_dirty() const { return is_dirty_; }
     /**
      * Resets the dirty flag for the symbol table.
      */
-    void clear_dirty() { is_dirty_ = false; }
+    inline void clear_dirty() { is_dirty_ = false; }
     /**
      * Accessor for a symbol table item.
      *

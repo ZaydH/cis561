@@ -22,7 +22,7 @@
 #define FIELD_OTHER_LIT_NAME "other"
 
 #define METHOD_MAIN "main"
-#define METHOD_CONSTRUCTOR "CONSTRUCTOR"
+#define METHOD_CONSTRUCTOR "__CONSTRUCTOR__"
 
 #define METHOD_PRINT "PRINT"
 #define METHOD_EQUALITY "EQUALS"
@@ -35,6 +35,9 @@
 #define METHOD_LT "LESS"
 #define METHOD_GEQ "ATLEAST"
 #define METHOD_LEQ "ATMOST"
+
+#define METHOD_AND "and"
+#define METHOD_OR "or"
 
 #define OBJECT_SELF "this"
 #define OBJECT_NOT_FOUND nullptr

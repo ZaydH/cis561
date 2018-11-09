@@ -115,16 +115,25 @@ namespace Quack {
       delete fields_;
     }
     /**
+     * Checks whether this class (or any of its super classes) has a field with the specified name.
+     *
+     * @param name Field name
+     * @return True if the field exists
+     */
+    bool has_field(const std::string &name) {
+      if (fields_->exists(name) || (super_ && super_->has_field(name)))
+        return true;
+      return false;
+    }
+    /**
      * Checks if this class (or any of its super classes) has the specified method.
      *
      * @param name Name of the method to check
      * @return True if the class has a method with the specified name
      */
     bool has_method(const std::string &name) {
-      if (methods_->exists(name))
+      if (methods_->exists(name) || (super_ && super_->has_method(name)))
         return true;
-      if (super_)
-        return super_->has_method(name);
       return false;
     }
     /**

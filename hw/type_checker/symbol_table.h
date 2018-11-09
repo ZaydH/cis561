@@ -14,6 +14,7 @@ typedef std::pair<std::string, bool> SymbolKey;
 namespace Quack{ class Class; }
 
 class Symbol {
+  friend class Table;
  public:
   class Table {
    public:
@@ -24,14 +25,14 @@ class Symbol {
       for (const auto &symbol_info : objs_)
         delete symbol_info.second;
     }
-    /**
-     * Adds a new symbol the table.  The symbol is set to the base class of all classes.
-     * @param symbol_name Name of the symbol
-     * @param is_field True if the new symbol is a field
-     */
-    void add_new(const std::string &symbol_name, bool is_field) {
-      add_new(symbol_name, is_field, BASE_CLASS);
-    }
+//    /**
+//     * Adds a new symbol the table.  The symbol is set to the base class of all classes.
+//     * @param symbol_name Name of the symbol
+//     * @param is_field True if the new symbol is a field
+//     */
+//    void add_new(const std::string &symbol_name, bool is_field) {
+//      add_new(symbol_name, is_field, BASE_CLASS);
+//    }
     /**
      * Updates the class of the specified
      * @param symbol
@@ -54,8 +55,18 @@ class Symbol {
       SymbolKey key(symbol_name, is_field);
 
       assert(exists(key));
-      is_dirty_ = is_dirty_ || (objs_[key]->get_class() != new_class);
-      objs_[key]->set_class(new_class);
+      is_dirty_ = is_dirty_ || (objs_[key]->get_type() != new_class);
+      objs_[key]->set_type(new_class);
+    }
+    /**
+     * Updates the class of the specified symbol.  If the object class has changed, the symbol
+     * table is marked as dirty.
+     *
+     * @param symbol_name Name of the symbol to update.
+     * @param new_class True if the corresponding symbol is a class field.
+     */
+    void update(const Symbol * symbol, Quack::Class *new_class) {
+      update(symbol->name_, symbol->is_field_, new_class);
     }
     /**
      * Accessor for whether the symbol table is dirty, i.e., whether it has changed since the
@@ -110,21 +121,21 @@ class Symbol {
 
   Symbol(std::string name, bool is_field, Quack::Class* q_class)
       : name_(std::move(name)), is_field_(is_field), class_(q_class) {}
-
   /**
    * Updates the class of the symbol.
    *
    * @param q_class New class for the symbol.
    */
-  void set_class(Quack::Class* q_class) { class_ = q_class; }
-  /**
-   * Updates the class of the symbol.
-   *
-   * @param q_class New class for the symbol.
-   */
-  Quack::Class* get_class() const { return class_; }
+  Quack::Class* get_type() const { return class_; }
 
  private:
+  /**
+   * Updates the class of the symbol.
+   *
+   * @param q_class New class for the symbol.
+   */
+  void set_type(Quack::Class *q_class) { class_ = q_class; }
+
   std::string name_;
   bool is_field_;
   Quack::Class * class_;

@@ -180,7 +180,7 @@ namespace Quack {
         Field* field = field_info.second;
         const Symbol* sym = q_class->constructor_->symbol_table_->get(field->name_, true);
 
-        field->type_ = sym->get_class();
+        field->type_ = sym->get_type();
       }
     }
     /**
@@ -204,14 +204,18 @@ namespace Quack {
       for (auto * param : *method->params_)
         st->update(param->name_, false, param->type_);
 
+      TypeCheck::Settings settings;
+      settings.st_ = st;
+      settings.is_constructor_ = method->name_ == METHOD_CONSTRUCTOR;
+      settings.return_type_ = settings.is_constructor_ ? nullptr : method->return_type_;
+      settings.this_class_ = q_class;
+
       do {
         st->clear_dirty();
-        Quack::Class * constructor_class = method->name_ == METHOD_CONSTRUCTOR ? q_class : nullptr;
-        method->block_->perform_type_inference(st, method->return_type_, constructor_class);
+        method->block_->perform_type_inference(settings);
       } while (st->is_dirty());
 
       // Store the symbol
-      st->clear_dirty();
       method->symbol_table_ = st;
 
       return true;

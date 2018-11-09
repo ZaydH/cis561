@@ -33,7 +33,11 @@ class TypeCheckerException : public std::exception
     std::stringstream ss;
     ss << "(" << type << "): " << error;
     msg_ = ss.str();
-  };
+  }
+
+  TypeCheckerException(const char *type, const std::string &error)
+          : TypeCheckerException(type, error.c_str()) {}
+
   virtual const char *what() const throw() {
     return msg_.c_str();
   };

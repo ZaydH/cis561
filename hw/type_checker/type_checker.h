@@ -48,21 +48,30 @@ namespace Quack {
         perform_constructor_initialize_before_use(q_class);
       }
 
-      all_super_fields_initialized();
+      verify_all_super_fields_initialized();
 
       // Checks all methods other than the constructor
       for (auto &class_pair : *Class::Container::singleton()) {
         Class *q_class = class_pair.second;
 
-        InitializedList param_list = InitializedList();
-        add_params_to_initialized_list(param_list, q_class->constructor_->params_, true);
+        // For all methods, the class fields are initialized
+        InitializedList fields_list;
+        for (auto &field_info : *q_class->fields_) {
+          Field * field = field_info.second;
+          fields_list.add(field->name_, true);
+        }
 
         for (auto &method_pair : *q_class->methods_) {
           Method * method = method_pair.second;
 
-          InitializedList init_list(param_list);
+          InitializedList init_list(fields_list);
           add_params_to_initialized_list(init_list, method->params_);
-          method->block_->check_initialize_before_use(init_list, nullptr, true);
+
+          auto * all_inits = new InitializedList(init_list);
+          method->block_->check_initialize_before_use(init_list, all_inits, true);
+
+          all_inits->var_union(init_list);
+          method->init_list_ = all_inits;
         }
       }
 
@@ -120,7 +129,7 @@ namespace Quack {
      *
      * @return True if all fields of the super class are initialized in the subclass.
      */
-    bool all_super_fields_initialized() {
+    bool verify_all_super_fields_initialized() {
       Class::Container* all_classes = Class::Container::singleton();
 
       for (auto &class_pair : *all_classes) {

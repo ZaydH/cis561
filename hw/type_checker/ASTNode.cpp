@@ -164,11 +164,11 @@ namespace AST {
 
     right_->perform_type_inference(settings, nullptr);
 
-    Quack::Class * r_type = right_->get_node_type();
-    if (r_type == nullptr)
-      throw TypeCheckerException("ReturnType", "return has no type");
-    if (!r_type->is_subtype(type_))
-      throw TypeCheckerException("ReturnType", ("Invalid return type " + r_type->name_).c_str());
+    Quack::Class * right_type = right_->get_node_type();
+    if (right_type == nullptr)
+      throw TypeCheckerException("ReturnType", "Return has no type");
+    if (!right_type->is_subtype(type_))
+      throw TypeCheckerException("ReturnType", "Invalid return type \"" + right_type->name_ + "\"");
 
     return true;
   }

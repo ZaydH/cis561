@@ -40,7 +40,7 @@ class Symbol {
      */
     void add_new(const std::string &symbol_name, bool is_field, Quack::Class *new_class) {
       SymbolKey key(symbol_name, is_field);
-      objs_[key] = new Symbol(symbol_name, is_field);
+      objs_[key] = new Symbol(symbol_name, is_field, new_class);
 
       is_dirty_ = true;
     }

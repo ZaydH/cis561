@@ -97,7 +97,9 @@ namespace Quack {
         super_(OBJECT_NOT_FOUND), methods_(methods) {
 
       fields_ = new Field::Container();
-      constructor_ = new Method(METHOD_CONSTRUCTOR, CLASS_NOTHING, params, constructor);
+
+      constructor_ = new Method(METHOD_CONSTRUCTOR, this->name_, params, constructor);
+      constructor_->return_type_ = this;
 
 //      Container* classes = Container::singleton();
 //      if (classes->exists(name))

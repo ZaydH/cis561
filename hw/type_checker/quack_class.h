@@ -98,7 +98,8 @@ namespace Quack {
 
       fields_ = new Field::Container();
 
-      constructor_ = new Method(METHOD_CONSTRUCTOR, this->name_, params, constructor);
+      // Constructor has same function name as the class
+      constructor_ = new Method(name, this->name_, params, constructor);
       constructor_->return_type_ = this;
 
 //      Container* classes = Container::singleton();

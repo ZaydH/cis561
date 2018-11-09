@@ -70,6 +70,8 @@
 
 %token TYPECASE
 
+%token TRUE FALSE
+
 // Abstract syntax tree nodes
 %type <program> program
 %type <classes> classes
@@ -202,11 +204,11 @@ rhs: '(' rhs ')'       { $$ = $2; }
    | NOT rhs           { $$ = new AST::UniOp("not", $2); }
    | INT_LIT           { $$ = new AST::IntLit($1); }
    | rhs '.' function_call { $$ = new AST::ObjectCall($1, $3); }
+   | TRUE              { $$ = new AST::BoolLit(true); }
+   | FALSE             { $$ = new AST::BoolLit(false); }
+   | STRING_LIT        { $$ = new AST::StrLit($1); }
    | lexpr             { $$ = $1; }
    | function_call     { $$ = $1; }
-   | STRING_LIT        { $$ = new AST::StrLit($1); }
-   | "true"            { $$ = new AST::BoolLit(true); }
-   | "false"           { $$ = new AST::BoolLit(false); }
    ;
 function_call: IDENT '(' actual_args ')' { $$ = new AST::FunctionCall($1, $3); }
 actual_args: %empty        { $$ = new AST::RhsArgs(); }

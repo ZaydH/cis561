@@ -221,7 +221,7 @@ namespace Quack {
 
       TypeCheck::Settings settings;
       settings.st_ = st;
-      settings.is_constructor_ = method->name_ == METHOD_CONSTRUCTOR;
+      settings.is_constructor_ = (q_class != nullptr && method->name_ == q_class->name_);
       settings.return_type_ = settings.is_constructor_ ? nullptr : method->return_type_;
       settings.this_class_ = q_class;
 

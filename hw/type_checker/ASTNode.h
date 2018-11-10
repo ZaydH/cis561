@@ -370,6 +370,10 @@ namespace AST {
         return METHOD_LT;
       else if (op == "==")
         return METHOD_EQUALITY;
+      else if (op == "and")
+        return METHOD_AND;
+      else if (op == "or")
+        return METHOD_OR;
       throw UnknownBinOpException(op);
     }
 

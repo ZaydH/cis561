@@ -1,0 +1,7 @@
+[DEFAULT]
+name =  Zayd Hammoudeh
+host =  ix-dev.cs.uoregon.edu
+path =  /home/users/zayd/repos/cis561/hw/type_checker/bin
+program = type_checker
+repo = https://github.com/ZaydH/cis561
+repo_folder = hw/type_checker/

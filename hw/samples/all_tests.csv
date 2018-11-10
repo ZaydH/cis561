@@ -16,3 +16,7 @@ Pt2.qk,PASS
 Pt.qk,PASS
 LexChallenge.qk,INIT_BEFORE_USE
 simple_lhs.qk,PARSER
+circular_dependency.qk,CLASS_HIERARCHY
+adv_constructor_init.qk,PASS
+invalid_super.qk,CLASS_HIERARCHY
+unknown_return_type.qk,CLASS_HIERARCHY

@@ -155,9 +155,10 @@ namespace AST {
   bool Return::perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) {
     type_ = settings.return_type_;
     if (settings.is_constructor_) {
-      if (right_ != nullptr)
-        throw TypeInferenceException("InvalidReturn", "Cannot return anything in a constructor");
-      return true;
+      bool success = right_->perform_type_inference(settings, parent_type);
+      if (right_->get_node_type() != settings.this_class_)
+        throw TypeInferenceException("InvalidReturn", "Constructor return must match class");
+      return success;
     }
 
     if ((type_ == nullptr || right_ == nullptr) && (type_ != nullptr || right_ != nullptr))

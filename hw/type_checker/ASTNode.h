@@ -68,7 +68,8 @@ namespace AST {
      */
     virtual bool update_inferred_type(TypeCheck::Settings &settings, Quack::Class *inferred_type,
                                       bool is_field) {
-      throw std::runtime_error("Unpredicted node type encountered in inferred type update");
+      std::string msg = "Unpredicted node type encountered in inferred type update";
+      throw TypeCheckerException("Unexpected", msg);
     }
     /**
      * Updates the type for the node.
@@ -217,6 +218,9 @@ namespace AST {
      */
     bool check_ident_initialized(InitializedList &inits, InitializedList *all_inits,
                                  bool is_field=false) {
+      if (text_ == OBJECT_SELF)
+        return true;
+
       if (!inits.exists(text_, is_field)) {
         throw UnitializedVarException(typeid(this).name(), text_, is_field);
 //        return false;

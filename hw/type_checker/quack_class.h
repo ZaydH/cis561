@@ -107,7 +107,7 @@ namespace Quack {
 //        throw("Duplicate class named \"" + name_ + "\"");
 
       if (name_ == CLASS_NOTHING)
-        throw std::runtime_error("Invalid class name \"" + name_ + "\"");
+        throw ParserException("Invalid class name \"" + name_ + "\"");
     }
     /**
      * Clear all dynamic memory in the object.
@@ -163,8 +163,7 @@ namespace Quack {
         Class* base_parent = quack_class->has_no_cyclic_inheritance(super_list);
 
         if (base_parent != BASE_CLASS) {
-          std::string str = "Class " + quack_class->name_ + " has a cyclic dependency with class \""
-                            + base_parent->name_ + "\"";
+          std::string str = "Class " + quack_class->name_ + " has a cyclic inheritance";
           throw CyclicInheritenceException("CyclicInheritance", str);
         }
       }
@@ -286,7 +285,7 @@ namespace Quack {
         } else {
           method->return_type_ = Container::singleton()->get(method->return_type_name_);
           if (method->return_type_ == OBJECT_NOT_FOUND) {
-            throw std::runtime_error("Class: " + this->name_ + ", method " + method->name_
+            throw UnknownTypeException("Class: " + this->name_ + ", method " + method->name_
                                      + ", unknown return type \"" + method->return_type_name_ +
                                      "\"");
           }
@@ -353,8 +352,8 @@ namespace Quack {
 
       Container* classes = Container::singleton();
       if (!classes->exists(super_type_name_)) {
-        throw std::runtime_error("For class, \"" + name_ + "\", unknown super class: "
-                                 + super_type_name_);
+        std::string msg = "For class, \"" + name_ + "\", unknown super class: " + super_type_name_;
+        throw ClassHierarchyException("UnknownSuper", msg);
       }
       super_ = classes->get(super_name);
     }
@@ -367,15 +366,13 @@ namespace Quack {
     void configure_method_params(Param::Container &params) {
       for (auto &param : params) {
         if (param->type_name_ == CLASS_NOTHING) {
-          throw std::runtime_error("Parameter " + param->name_ + " cannot have type \""
-                                   + CLASS_NOTHING + "\"");
+          std::string msg = "Parameter " + param->name_ + " cannot have type \"" CLASS_NOTHING "\"";
+          throw ClassHierarchyException("NothingParam", msg);
         }
 
         Class* type_class = Container::singleton()->get(param->type_name_);
-        if (type_class == OBJECT_NOT_FOUND) {
-          throw std::runtime_error("Parameter " + param->name_ + " has undefined type \""
-                                   + param->type_name_ + "\"");
-        }
+        if (type_class == OBJECT_NOT_FOUND)
+          throw UnknownTypeException(param->type_name_);
         param->type_ = type_class;
       }
     }

@@ -29,8 +29,9 @@ test_code_file () {
         ((PASSING_CNT++))
         printf "Test #${TOTAL_TESTS}: ${TEST_FILE} passed with return code ${RETURN_CODE}\n"
     else
-
         printf "Test #${TOTAL_TESTS}: ${TEST_FILE} ${RED}FAILED${NOCOLOR} with return code ${RETURN_CODE}\n"
+        # Rerun the command so the error message is visible.  Can comment out.
+        ${BIN} ${SAMPLES_FOLDER}/${TEST_FILE}
     fi
 }
 

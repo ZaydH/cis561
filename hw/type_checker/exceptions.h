@@ -103,6 +103,9 @@ struct UnknownTypeException : public ClassHierarchyException {
   explicit UnknownTypeException(const std::string &class_name)
       : ClassHierarchyException("TypeError", build_error_msg(class_name)) {}
 
+  explicit UnknownTypeException(const char *type, const std::string &msg)
+      : ClassHierarchyException("TypeError", msg) {}
+
  private:
   static std::string build_error_msg(const std::string &class_name) {
     return "Unknown class \"" + class_name + "\"";
@@ -133,8 +136,8 @@ struct UnitializedVarException : public InitializeBeforeUseException {
  private:
   static std::string build_error_msg(const std::string &var_name, bool is_field) {
     std::stringstream ss;
-    ss << (is_field ? "Field v" : "V") << "ariable " << var_name
-       << " is used before initialization.";
+    ss << (is_field ? "Field v" : "V") << "ariable \"" << var_name
+       << "\" is used before initialization.";
     return ss.str();
   }
 };
@@ -145,7 +148,7 @@ struct MissingSuperFieldsException : public TypeCheckerException {
                             : TypeCheckerException("MissingField", build_error_msg(class_name)) { }
  private:
   static const std::string build_error_msg(const std::string &class_name) {
-    return "Class " + class_name + " missing fields from its super class.";
+    return "Class \"" + class_name + "\" missing fields from its super class.";
   }
 };
 

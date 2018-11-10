@@ -325,4 +325,39 @@ namespace AST {
 //      throw TypeInferenceException("ObjectCall", "Unable to resolve object call");
     return success;
   }
+
+  bool Typecase::perform_type_inference(TypeCheck::Settings &settings, Quack::Class *parent_type) {
+    // type case does not have a type
+    type_ = Quack::Class::Container::singleton()->get(CLASS_NOTHING);
+    Quack::Class::Container * all_classes = Quack::Class::Container::singleton();
+
+    bool success = expr_->perform_type_inference(settings, nullptr);
+
+    for (auto * alt : *alts_) {
+      std::string new_sym_name = alt->type_names_[0];
+      std::string new_sym_type_name = alt->type_names_[1];
+
+      Quack::Class * new_sym_type = all_classes->get(new_sym_type_name);
+      if (new_sym_type == OBJECT_NOT_FOUND)
+        throw UnknownTypeException(new_sym_type_name);
+
+      // Check and configure the type for the typecase symbol
+      Symbol * sym = settings.st_->get(new_sym_name, false);
+      if (sym->get_type() != nullptr && !new_sym_type->is_subtype(sym->get_type())) {
+        std::string msg = "Cannot reconcile type for variable " + new_sym_name;
+        throw TypeInferenceException("TypecaseError", msg);
+      }
+      settings.st_->update(new_sym_name, false, new_sym_type);
+
+      success = success && alt->block_->perform_type_inference(settings);
+
+      // Verify the symbol name did not change after inference
+      if (sym->get_type() != new_sym_type) {
+        std::string msg = "Typecase var \"" + new_sym_name + "\" inferred type mismatch.";
+        throw TypeInferenceException("TypecaseMismatch", msg);
+      }
+    }
+
+    return success;
+  }
 }

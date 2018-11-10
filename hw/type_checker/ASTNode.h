@@ -777,11 +777,30 @@ namespace AST {
       std::cout << indent_str << "}";
     }
 
+    bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
+
     bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
                                      bool is_method) override {
-      // ToDo not implemented yet
-      assert(false);
-      return false;
+      bool success = expr_->check_initialize_before_use(inits, all_inits, false);
+      all_inits->var_intersect(inits);
+
+      for (unsigned i = 0; i < alts_->size(); i++) {
+        TypeAlternative * alt = (*alts_)[i];
+        InitializedList type_init(inits);
+
+        // Add the typed object
+        type_init.add(alt->type_names_[0], false);
+        success = success && alt->block_->check_initialize_before_use(type_init, all_inits, false);
+
+        // Update the initialized variable lists.
+        if (i == 0)
+          inits = type_init;
+        else
+          inits.var_intersect(type_init);
+        all_inits->var_union(type_init);
+      }
+
+      return success;
     }
 
    private:

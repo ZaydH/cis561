@@ -99,6 +99,17 @@ struct CyclicInheritenceException : public ClassHierarchyException {
       : CyclicInheritenceException(type, error.c_str()) {}
 };
 
+struct InheritedMethodReturnTypeException : public ClassHierarchyException {
+  InheritedMethodReturnTypeException(const std::string &class_name, const std::string &method_name)
+      : ClassHierarchyException("InheritedMethodType", build_error_msg(class_name, method_name)) {}
+
+ private:
+  static std::string build_error_msg(const std::string &class_name, const std::string &method_name){
+    return "Class \"" + class_name + "\" has method \"" + method_name + "\" whose return type "
+           + "is not a subtype of its super class.";
+  }
+};
+
 struct UnknownTypeException : public ClassHierarchyException {
   explicit UnknownTypeException(const std::string &class_name)
       : ClassHierarchyException("TypeError", build_error_msg(class_name)) {}

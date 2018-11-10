@@ -67,7 +67,7 @@ class MapContainer : public ObjectContainer<_T> {
    */
   void add(_T *new_obj) override {
     if (exists(new_obj->name_))
-      throw std::runtime_error("Duplicate Object: " + new_obj->name_);
+      throw ParserException("Duplicate object: " + new_obj->name_);
     objs_[new_obj->name_] = new_obj;
   }
   /**
@@ -164,7 +164,7 @@ class VectorContainer : public ObjectContainer<_T> {
     for (auto &obj: objs_)
       if (obj->name_ == name)
         return obj;
-    throw std::runtime_error("Unable to get objected with key: " + name);
+    throw std::runtime_error("Unable to get object with key: " + name);
   }
   /**
    * Delete all stored objects in the map.

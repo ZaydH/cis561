@@ -1,4 +1,16 @@
 #!/usr/bin/env bash
+# Quack Compiler Testbench
+#
+# Written by: Zayd Hammoudeh
+# (zhammoud@uoregon.edu)
+#
+# Test bench for the Quack compiler although it should be portable to other languages as well.
+# It reads an input CSV formatted as rows in the form "<test_file>,<exit_code>", where <exit_code>
+# is the expected return code of the compiler on different inputs.  Each stage in the compilation
+# process (e.g, lexer, parser, well-formed class hierarchy, initialized before use, and type
+# inference) each has exit code in the compiler as defined in the function "get_exit_code".  If your
+# program does not use that convention, you can change that function as needed.
+
 
 if [[ $# -ne 3 ]] ; then
     echo "Correct command \"test_type_checker.sh <BinFile> <TestCsvFile> <SamplesFolder>\""

@@ -21,7 +21,6 @@ namespace Quack {
         Quack::Utils::print_exception_info_and_exit(e, EXIT_CLASS_HIERARCHY);
       }
 
-      // ToDo manage what to do with an initialize before use failure
       try {
         perform_initialized_before_use_check(prog);
       } catch (TypeCheckerException &e) {
@@ -30,11 +29,11 @@ namespace Quack {
 
       try {
         type_inference(prog);
+
+        check_super_type_field_types();
       } catch (TypeCheckerException &e) {
         Quack::Utils::print_exception_info_and_exit(e, EXIT_TYPE_INFERENCE);
       }
-
-      check_super_type_field_types();
     }
    private:
     /**
@@ -178,10 +177,6 @@ namespace Quack {
     bool type_inference(Program* prog) {
       for (auto &class_info : *Quack::Class::Container::singleton()) {
         Quack::Class * q_class = class_info.second;
-
-        // ToDo Remove base class skip
-        if (!q_class->is_user_class())
-          continue;
 
         // Test constructor first
         function_type_inference(q_class, q_class->constructor_);

@@ -76,7 +76,7 @@ namespace Quack {
 
         report::reset_error_count();
 
-        Quack::Program *prog;
+        Quack::Program *prog = nullptr;
         try {
           prog = parse(f_in, file_path);
         } catch (ScannerException &e) {
@@ -87,7 +87,6 @@ namespace Quack {
         f_in.close();
 
         if (report::ok()) {
-          // ToDo improve free of programs fail to parse.
           progs_.emplace_back(prog);
         }
 

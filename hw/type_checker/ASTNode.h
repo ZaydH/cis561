@@ -32,11 +32,8 @@ namespace AST {
     virtual ~ASTNode() = default;
 
     virtual void print_original_src(unsigned int indent_depth = 0) = 0;
-    // ToDo remove virtual check initialized before Use. ONly here to reduce compile errors
     virtual bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
-                                             bool is_method) {
-      return true;
-    }
+                                             bool is_method) = 0;
     /**
      * Updates the initialized list in the initialized per use check.
      *
@@ -511,7 +508,8 @@ namespace AST {
     }
 
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override{
-      throw std::runtime_error("Type inference not valid for right hand side args");
+      std::string msg = "Type inference not valid for right hand side args";
+      throw TypeInferenceException("UnexpectedStateReached", msg);
     }
 
     /**
@@ -637,8 +635,8 @@ namespace AST {
 
     bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
                                      bool is_method) override {
-      if (!check_type_name_exists(type_name_))
-        return false;
+//      if (!check_type_name_exists(type_name_))
+//        return false;
 
       return expr_->check_initialize_before_use(inits, all_inits, is_method);
     }
@@ -662,7 +660,7 @@ namespace AST {
 
       return success && verify_typing();
     }
-    // ToDo ensure type checker verifies type_name_ exists
+
    private:
     /**
      * Configures the initial typing of the node predicated on the specified type name.

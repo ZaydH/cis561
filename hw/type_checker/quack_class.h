@@ -167,6 +167,25 @@ namespace Quack {
           throw CyclicInheritenceException("CyclicInheritance", str);
         }
       }
+
+      // Check that the return type of inherited methods is subtype of super method
+      for (auto & class_pair : *Container::singleton()) {
+        Quack::Class * q_class = class_pair.second;
+        if (q_class->super_ == BASE_CLASS)
+          continue;
+
+        for (auto &method_info : *q_class->methods_) {
+          Method * method = method_info.second;
+          if (!q_class->super_->has_method(method->name_))
+            continue;
+
+          Quack::Class * method_rtype = method->return_type_;
+          Quack::Class * super_rtype = q_class->super_->get_method(method->name_)->return_type_;
+
+          if (!method_rtype->is_subtype(super_rtype))
+            throw InheritedMethodReturnTypeException(q_class->name_, method->name_);
+        }
+      }
     }
     /**
      * Used to check for cyclical class inheritance.  When classes are correctly configured,
@@ -401,7 +420,7 @@ namespace Quack {
       auto params = new Param::Container();
       params->add(new Param(FIELD_OTHER_LIT_NAME, param_type));
 
-      // ToDo Decide on the binary operations AST block
+      // ToDo Decide on binop code generation strategy
       methods_->add(new Method(method_name, return_type, params, new AST::Block()));
       methods_->get(method_name)->init_list_ = new InitializedList();
     }
@@ -409,7 +428,7 @@ namespace Quack {
     void add_unary_op_method(const std::string &method_name, const std::string &return_type) {
       auto params = new Param::Container();
 
-      // ToDo Decide on the binary operations AST block
+      // ToDo Decide on binop code generation strategy
       methods_->add(new Method(method_name, return_type, params, new AST::Block()));
     }
   };

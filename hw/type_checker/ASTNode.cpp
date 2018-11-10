@@ -25,7 +25,9 @@ namespace AST {
     // Handle the initial typing
     bool success = configure_initial_typing(inferred_type);
 
-    success = success && expr_->update_inferred_type(settings, inferred_type, is_field);
+    type_ = type_->least_common_ancestor(inferred_type);
+
+    success = success && expr_->update_inferred_type(settings, type_, is_field);
 
     type_ = Quack::Class::least_common_ancestor(type_, expr_->get_node_type());
     if (type_ == BASE_CLASS) {
@@ -139,8 +141,8 @@ namespace AST {
     }
 
     Quack::Class * rtrn_type = method->return_type_;
+
     if (rtrn_type != nullptr) {
-      // ToDo think more about if this should be set to tightest type
       if (get_node_type() == BASE_CLASS) {
         set_node_type(rtrn_type);
       } else {
@@ -236,7 +238,6 @@ namespace AST {
     Symbol * sym = settings.st_->get(text_, is_field);
     assert(sym != OBJECT_NOT_FOUND);
 
-    // ToDo This is needed due to the constructor. May need to revisit
     if (((is_field && settings.is_constructor_) || !is_field) && sym->get_type() == BASE_CLASS)
       settings.st_->update(sym, inferred_type);
     else
@@ -265,7 +266,6 @@ namespace AST {
       throw TypeInferenceException("FieldError", msg);
     }
 
-    // ToDo verify the type inference is correct for an identifier
     Symbol * sym = settings.st_->get(text_, parent_type != nullptr);
     type_ = (type_ == nullptr) ? sym->get_type() : type_->least_common_ancestor(sym->get_type());
     return true;

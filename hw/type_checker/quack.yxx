@@ -228,7 +228,7 @@ if_alternatives:   %empty /* empty */          { $$ = new AST::Block(); }
                ;
 
 %%
-#include "Messages.h"
+#include "messages.h"
 
 void yy::parser::error(const location_type& loc, const std::string& msg)
 {

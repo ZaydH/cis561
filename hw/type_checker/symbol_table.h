@@ -1,6 +1,8 @@
 #ifndef PROJECT02_SYMBOL_TABLE_H
 #define PROJECT02_SYMBOL_TABLE_H
 
+#include <assert.h>
+
 #include <string>
 #include <map>
 

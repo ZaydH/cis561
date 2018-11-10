@@ -128,7 +128,7 @@ namespace AST {
       throw TypeInferenceException("FunctionCall", "Wrong arg count for method " + ident_);
 
     // Iterate through the arguments and set the
-    for (int i = 0; i < args_->count(); i++) {
+    for (unsigned i = 0; i < args_->count(); i++) {
       ASTNode* arg = args_->args_[i];
       Quack::Param * param = (*params)[i];
       if (arg->get_node_type() == BASE_CLASS)

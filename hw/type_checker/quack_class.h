@@ -244,7 +244,7 @@ namespace Quack {
       unsigned long size1 = class_paths[1].size();
       auto min_len = std::min<unsigned long>(size0, size1);
       Class * last_shared = BASE_CLASS;
-      for (int i = 1; i <= min_len; i++) {
+      for (unsigned long i = 1; i <= min_len; i++) {
         if (class_paths[0][size0 - i] != class_paths[1][size1 - i]) {
           assert(last_shared != BASE_CLASS);
           return last_shared;

@@ -7,6 +7,8 @@
 #ifndef ASTNODE_H
 #define ASTNODE_H
 
+#include <assert.h>
+
 #include <string>
 #include <sstream>
 #include <vector>
@@ -779,6 +781,7 @@ namespace AST {
                                      bool is_method) override {
       // ToDo not implemented yet
       assert(false);
+      return false;
     }
 
    private:

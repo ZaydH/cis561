@@ -37,4 +37,26 @@ namespace TypeCheck {
   };
 }
 
+namespace Quack {
+  struct Utils {
+    /**
+     * Standardizes printing the type checker error and then exits the program
+     * @param e Exception info
+     * @param exit_code Integer code with which to exit the program
+     */
+    static void print_exception_info_and_exit(const std::exception &e, const int exit_code) {
+      std::string name = typeid(e).name();
+
+      // C++ May prepend the class name with a number. Remove it.
+      unsigned i = 0;
+      while (i < name.size() && name[i] >= '0' && name[i] <= '9')
+        i++;
+      i = i == name.size() ? 0 : i;
+
+      std::cerr << name.substr(i) << " | " << e.what() << std::endl;
+      exit(exit_code);
+    }
+  };
+}
+
 #endif //PROJECT02_COMPILER_UTILS_H

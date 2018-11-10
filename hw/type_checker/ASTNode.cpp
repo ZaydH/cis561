@@ -249,6 +249,16 @@ namespace AST {
   }
 
   bool Ident::perform_type_inference(TypeCheck::Settings &settings, Quack::Class *parent_type) {
+    // If the identifier is this, then mark as the type of this
+    if (settings.this_class_ != nullptr && text_ == OBJECT_SELF) {
+      Quack::Class * tc = settings.this_class_;
+      type_ = (type_ == nullptr) ? tc : type_->least_common_ancestor(tc);
+
+      if (type_ == nullptr)
+        throw TypeInferenceException("ThisError", "Invalid type for \"" OBJECT_SELF "\" class");
+      return true;
+    }
+
     if (parent_type != nullptr && !parent_type->has_field(text_)) {
       std::string msg = "Unknown field \"" + text_ + "\" for type \"" + parent_type->name_ + "\"";
       throw TypeInferenceException("FieldError", msg);

@@ -1,6 +1,8 @@
 #ifndef PROJECT02_QUACK_TYPE_CHECKER_H
 #define PROJECT02_QUACK_TYPE_CHECKER_H
 
+#include <iostream>
+
 #include "quack_class.h"
 #include "quack_program.h"
 #include "initialized_list.h"
@@ -12,14 +14,25 @@ namespace Quack {
     TypeChecker() = default;
 
     void run(Program* prog) {
-      perform_initial_checks();
-
-      Class::check_well_formed_hierarchy();
+      try {
+        perform_initial_checks();
+        Class::check_well_formed_hierarchy();
+      } catch (TypeCheckerException &e) {
+        Quack::Utils::print_exception_info_and_exit(e, EXIT_CLASS_HIERARCHY);
+      }
 
       // ToDo manage what to do with an initialize before use failure
-      perform_initialized_before_use_check(prog);
+      try {
+        perform_initialized_before_use_check(prog);
+      } catch (TypeCheckerException &e) {
+        Quack::Utils::print_exception_info_and_exit(e, EXIT_INITIALIZE_BEFORE_USE);
+      }
 
-      type_inference(prog);
+      try {
+        type_inference(prog);
+      } catch (TypeCheckerException &e) {
+        Quack::Utils::print_exception_info_and_exit(e, EXIT_TYPE_INFERENCE);
+      }
 
       check_super_type_field_types();
     }

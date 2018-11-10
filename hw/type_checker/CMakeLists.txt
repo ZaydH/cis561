@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(BIN_NAME project02)
+set(BIN_NAME type_checker)
 set(QUACK_DIR quack)
 
 project(${BIN_NAME})
@@ -47,7 +47,7 @@ add_executable(${BIN_NAME}
                quack_program.h
                quack_class.h quack_class.cpp
                lex.yy.h lex.yy.cpp quack.tab.cxx
-               Messages.h Messages.cpp
+               messages.h messages.cpp
                ASTNode.h ASTNode.cpp
                type_checker.h
                quack_field.h

@@ -10,35 +10,17 @@
 #include <sstream>
 
 
-class UnknownBinOpException : public std::exception
-{
- public:
-  explicit UnknownBinOpException(const std::string &op) {
-    std::stringstream ss;
-    ss << "(UnknownOp): Unknown binary operator \"" << op << "\"";
-    msg_ = ss.str();
-  };
-  virtual const char *what() const throw() {
-    return msg_.c_str();
-  };
-
- protected:
-  std::string msg_;
-};
-
-class TypeCheckerException : public std::exception
-{
- public:
-  TypeCheckerException(const char *type, const char *error) {
+struct BaseCompilerException : public std::exception {
+  BaseCompilerException(const char *type, const char *error) {
     std::stringstream ss;
     ss << "(" << type << "): " << error;
     msg_ = ss.str();
   }
 
-  TypeCheckerException(const char *type, const std::string &error)
-          : TypeCheckerException(type, error.c_str()) {}
+  BaseCompilerException(const char *type, const std::string &error)
+          : BaseCompilerException(type, error.c_str()) {}
 
-  virtual const char *what() const throw() {
+  virtual const char * what() const throw () {
     return msg_.c_str();
   };
 
@@ -46,14 +28,84 @@ class TypeCheckerException : public std::exception
   std::string msg_;
 };
 
+//=====================================================================================//
+//                    Exceptions for the Different Compiler Stages                     //
+//=====================================================================================//
 
-class UnknownTypeException : public TypeCheckerException {
- public:
+struct ScannerException : public BaseCompilerException {
+  ScannerException(const char *error)
+      : BaseCompilerException("Scanner", error) {}
+
+  ScannerException(const std::string &error)
+      : ScannerException(error.c_str()) {}
+};
+
+
+struct ParserException : public BaseCompilerException {
+  ParserException(const char *error)
+      : BaseCompilerException("Parser", error) {}
+
+  ParserException(const std::string &error)
+      : ParserException(error.c_str()) {}
+};
+
+
+struct TypeCheckerException : public BaseCompilerException {
+  TypeCheckerException(const char *type, const char *error)
+        : BaseCompilerException(type, error) {}
+
+  TypeCheckerException(const char *type, const std::string &error)
+      : TypeCheckerException(type, error.c_str()) {}
+};
+
+//=====================================================================================//
+//               Three Primary Classes of Type Checker Exceptions                      //
+//=====================================================================================//
+
+struct ClassHierarchyException : public TypeCheckerException {
+  ClassHierarchyException(const char *type, const char *error)
+      : TypeCheckerException(type, error) {}
+
+  ClassHierarchyException(const char *type, const std::string &error)
+      : TypeCheckerException(type, error.c_str()) {}
+};
+
+
+struct InitializeBeforeUseException : public TypeCheckerException {
+  InitializeBeforeUseException(const char *type, const char *error)
+      : TypeCheckerException(type, error) {}
+
+  InitializeBeforeUseException(const char *type, const std::string &error)
+      : TypeCheckerException(type, error) {}
+};
+
+struct TypeInferenceException : TypeCheckerException {
+  explicit TypeInferenceException(const char* error_name, const char* msg)
+      : TypeCheckerException(error_name, msg) {}
+
+  explicit TypeInferenceException(const char* error_name, const std::string &msg)
+      : TypeCheckerException(error_name, msg.c_str()) {}
+};
+
+//=====================================================================================//
+//                         Well Formed Hierarchy Exceptions                            //
+//=====================================================================================//
+
+struct CyclicInheritenceException : public ClassHierarchyException {
+  CyclicInheritenceException(const char *type, const char *error)
+      : ClassHierarchyException(type, error) {}
+
+  CyclicInheritenceException(const char *type, const std::string &error)
+      : CyclicInheritenceException(type, error.c_str()) {}
+};
+
+struct UnknownTypeException : public ClassHierarchyException {
   explicit UnknownTypeException(const std::string &class_name)
-      : TypeCheckerException("TypeError", build_error_msg(class_name)) {}
+      : ClassHierarchyException("TypeError", build_error_msg(class_name)) {}
+
  private:
-  static const char* build_error_msg(const std::string &class_name) {
-    return ("Unknown class \"" + class_name + "\"").c_str();
+  static std::string build_error_msg(const std::string &class_name) {
+    return "Unknown class \"" + class_name + "\"";
   }
 };
 
@@ -63,88 +115,73 @@ class UnknownSymbolException : public TypeCheckerException {
   explicit UnknownSymbolException(const std::string &symbol_name)
       : TypeCheckerException("SymbolError", build_error_msg(symbol_name)) {}
  private:
-  static const char* build_error_msg(const std::string &symbol_name) {
-    return ("Unknown symbol \"" + symbol_name + "\"").c_str();
+  static std::string build_error_msg(const std::string &symbol_name) {
+    return "Unknown symbol \"" + symbol_name + "\"";
   }
 };
 
 
-class AmbiguousInferenceException : public std::exception
-{
- public:
-  AmbiguousInferenceException(const char *type, const char *error) {
-    std::stringstream ss;
-    ss << "(" << type << "): " << error;
-    msg_ = ss.str();
-  };
-  virtual const char *what() const throw() {
-    return msg_.c_str();
-  };
-
- protected:
-  std::string msg_;
+struct AmbiguousInferenceException : TypeCheckerException {
+  AmbiguousInferenceException(const char *type, const char *error)
+    : TypeCheckerException(type, error) {}
 };
 
 
-class InitializeBeforeUseException : public TypeCheckerException {
- public:
-  InitializeBeforeUseException(const char *type, const std::string &var_name,
-                               bool is_field)
-                               : TypeCheckerException(type, build_error_msg(var_name, is_field)) { }
+struct UnitializedVarException : public InitializeBeforeUseException {
+  UnitializedVarException(const char *type, const std::string &var_name, bool is_field)
+                   : InitializeBeforeUseException(type, build_error_msg(var_name, is_field)) { }
  private:
-  static const char* build_error_msg(const std::string &var_name, bool is_field) {
+  static std::string build_error_msg(const std::string &var_name, bool is_field) {
     std::stringstream ss;
     ss << (is_field ? "Field v" : "V") << "ariable " << var_name
        << " is used before initialization.";
-    return ss.str().c_str();
+    return ss.str();
   }
 };
 
 
-class MissingSuperFieldsException : public TypeCheckerException {
- public:
+struct MissingSuperFieldsException : public TypeCheckerException {
   explicit MissingSuperFieldsException(const std::string &class_name)
                             : TypeCheckerException("MissingField", build_error_msg(class_name)) { }
  private:
-  static const char* build_error_msg(const std::string &class_name) {
-    return ("Class " + class_name + " missing fields from its super class.").c_str();
+  static const std::string build_error_msg(const std::string &class_name) {
+    return "Class " + class_name + " missing fields from its super class.";
   }
 };
 
-class SubTypeFieldTypeException : public TypeCheckerException {
- public:
+struct SubTypeFieldTypeException : public TypeCheckerException {
   explicit SubTypeFieldTypeException(const std::string &class_name, const std::string &field_name)
       : TypeCheckerException("SubtypeFieldType", build_error_msg(class_name, field_name)) { }
+
  private:
-  static const char* build_error_msg(const std::string &class_name, const std::string &field_name) {
-    return ("Class " + class_name + " field \"" + field_name +
-            "\" type not subtype of super class.").c_str();
+  static std::string build_error_msg(const std::string &class_name, const std::string &field_name) {
+    return "Class " + class_name + " field \"" + field_name + "\" type not subtype of super class.";
   }
 };
 
 
-class DuplicateParamException : public TypeCheckerException {
- public:
+struct DuplicateParamException : public TypeCheckerException {
   explicit DuplicateParamException(const std::string &param_name)
                   : TypeCheckerException("DuplicateParam",
-                                         ("Duplicate parameter \"" + param_name + "\"").c_str()) {}
+                                         "Duplicate parameter \"" + param_name + "\"") {}
 };
 
-class UnknownConstructorException : TypeCheckerException {
- public:
+
+//=====================================================================================//
+//                         Well Formed Hierarchy Exceptions                            //
+//=====================================================================================//
+
+
+struct UnknownConstructorException : TypeInferenceException {
   explicit UnknownConstructorException(const std::string &type_name)
-    : TypeCheckerException("ClassError",
-                           ("Unknown class for constructor \"" + type_name + "\"").c_str()) {}
+      : TypeInferenceException("ClassError",
+                               "Unknown class for constructor \"" + type_name + "\"") {}
 };
 
-
-class TypeInferenceException : TypeCheckerException {
- public:
-  explicit TypeInferenceException(const char* error_name, const char* msg)
-      : TypeCheckerException(error_name, msg) {}
-
-  explicit TypeInferenceException(const char* error_name, const std::string &msg)
-      : TypeCheckerException(error_name, msg.c_str()) {}
+struct UnknownBinOpException : public TypeInferenceException {
+  explicit UnknownBinOpException(const std::string &op)
+      : TypeInferenceException("UnknownOp",
+                               "(UnknownOp): Unknown binary operator \"" + op + "\"") {}
 };
 
 #endif //PROJECT02_EXCEPTIONS_H

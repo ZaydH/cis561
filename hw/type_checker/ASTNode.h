@@ -218,7 +218,7 @@ namespace AST {
     bool check_ident_initialized(InitializedList &inits, InitializedList *all_inits,
                                  bool is_field=false) {
       if (!inits.exists(text_, is_field)) {
-        throw InitializeBeforeUseException(typeid(this).name(), text_, is_field);
+        throw UnitializedVarException(typeid(this).name(), text_, is_field);
 //        return false;
       }
       return true;

@@ -1,6 +1,5 @@
-//
-// Created by Zayd Hammoudeh on 10/4/18.
-//
+#ifndef PROJECT01_QUACKCOMPILER_H
+#define PROJECT01_QUACKCOMPILER_H
 
 #include <string>
 #include <fstream>
@@ -10,9 +9,10 @@
 #include "quack_program.h"
 #include "quack_class.h"
 #include "type_checker.h"
+#include "keywords.h"
+#include "compiler_utils.h"
+#include "messages.h"
 
-#ifndef PROJECT01_QUACKCOMPILER_H
-#define PROJECT01_QUACKCOMPILER_H
 
 namespace Quack {
   class Compiler {
@@ -75,7 +75,15 @@ namespace Quack {
         }
 
         report::reset_error_count();
-        Quack::Program* prog = parse(f_in, file_path);
+
+        Quack::Program *prog;
+        try {
+          prog = parse(f_in, file_path);
+        } catch (ScannerException &e) {
+          Quack::Utils::print_exception_info_and_exit(e, EXIT_SCANNER);
+        } catch (ParserException &e) {
+          Quack::Utils::print_exception_info_and_exit(e, EXIT_PARSER);
+        }
         f_in.close();
 
         if (report::ok()) {
@@ -107,7 +115,7 @@ namespace Quack {
       yy::parser *parser = new yy::parser(lexer, &prog);
 
       if (parser->parse() != 0 || !report::ok()) {
-        std::cerr << "Parse failed for file: " << file_path << std::endl;
+        report::bail();
       } else {
         std::cout << "Parse successful for file: " << file_path << std::endl;
         if (debug_)

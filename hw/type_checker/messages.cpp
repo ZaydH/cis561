@@ -2,20 +2,27 @@
 // Created by Michal Young on 9/15/18.
 //
 
-#include "Messages.h"
+#include "messages.h"
 #include "location.hh"
+#include "exceptions.h"
 
 namespace report {
 
 /* The error count is global */
-  static int error_count = 0;           // How many errors so far? */
+  static int scanner_error_count = 0;           // How many errors so far? */
+  static int parser_error_count = 0;           // How many errors so far? */
   const int error_limit = 5;           // Should be configurable
 
-  void reset_error_count() { error_count = 0; }
+  void reset_error_count() {
+    scanner_error_count = 0;
+    parser_error_count = 0;
+  }
 
   void bail() {
-    std::cerr << "Too many errors, bailing" << std::endl;;
-    exit(99);
+    std::string msg = "Too many errors, bailing";
+    if (scanner_error_count > 0)
+      throw ScannerException(msg);
+    throw ParserException(msg);
   }
 
 /* An error that we can locate in the input */
@@ -32,7 +39,9 @@ namespace report {
     else
       std::cerr << "-" << loc.end.column;
     std::cerr << std::endl;
-    if (++error_count > error_limit) {
+
+    parser_error_count++;
+    if ((++parser_error_count) + scanner_error_count > error_limit) {
       bail();
     }
   }
@@ -40,7 +49,7 @@ namespace report {
 /* An error that we can't locate in the input */
   void error(const std::string &msg) {
     std::cerr << msg << std::endl;
-    if (++error_count > error_limit) {
+    if (parser_error_count + (++scanner_error_count) > error_limit) {
       bail();
     }
   }
@@ -52,7 +61,7 @@ namespace report {
 
 /* Are we ok? */
   bool ok() {
-    return (error_count == 0);
+    return parser_error_count == 0 && scanner_error_count == 0;
   }
 
 };

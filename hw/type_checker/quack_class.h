@@ -163,9 +163,9 @@ namespace Quack {
         Class* base_parent = quack_class->has_no_cyclic_inheritance(super_list);
 
         if (base_parent != BASE_CLASS) {
-          throw std::runtime_error("Class " + quack_class->name_
-                                   + " has a cyclic dependency with class \""
-                                   + base_parent->name_ + "\"");
+          std::string str = "Class " + quack_class->name_ + " has a cyclic dependency with class \""
+                            + base_parent->name_ + "\"";
+          throw CyclicInheritenceException("CyclicInheritance", str);
         }
       }
     }
@@ -430,6 +430,7 @@ namespace Quack {
       add_binop_method(METHOD_EQUALITY, CLASS_BOOL, CLASS_OBJ);
       // Unary op ok to use since function takes no args
       add_unary_op_method(METHOD_PRINT, CLASS_NOTHING);
+      add_unary_op_method(METHOD_STR, CLASS_STR);
     }
     /**
      * Object class is a base class in Quack so this function always returns true since if it is
@@ -459,6 +460,8 @@ namespace Quack {
 
   struct IntClass : public PrimitiveClass {
     IntClass() : PrimitiveClass(strdup(CLASS_INT)) {
+      add_unary_op_method(METHOD_STR, CLASS_STR);
+
       add_binop_method(METHOD_ADD, CLASS_INT, CLASS_INT);
       add_binop_method(METHOD_SUBTRACT, CLASS_INT, CLASS_INT);
       add_binop_method(METHOD_MULTIPLY, CLASS_INT, CLASS_INT);
@@ -474,6 +477,8 @@ namespace Quack {
 
   struct StringClass : public PrimitiveClass {
     StringClass() : PrimitiveClass(strdup(CLASS_STR)) {
+      add_unary_op_method(METHOD_STR, CLASS_STR);
+
       add_binop_method(METHOD_ADD, CLASS_STR, CLASS_STR);
 
       add_binop_method(METHOD_EQUALITY, CLASS_BOOL, CLASS_STR);
@@ -486,6 +491,8 @@ namespace Quack {
 
   struct BooleanClass : public PrimitiveClass {
     BooleanClass() : PrimitiveClass(strdup(CLASS_BOOL)) {
+      add_unary_op_method(METHOD_STR, CLASS_STR);
+
       add_binop_method(METHOD_EQUALITY, CLASS_BOOL, CLASS_BOOL);
 
       add_binop_method(METHOD_OR, CLASS_BOOL, CLASS_BOOL);

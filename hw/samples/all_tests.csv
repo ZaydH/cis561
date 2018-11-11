@@ -13,6 +13,7 @@ bad_duplicate_class.qk,PARSER
 bad_escape.qk,SCANNER
 bad_init.qk,INIT_BEFORE_USE
 bad_method_field_duplicate.qk,INIT_BEFORE_USE
+bad_true_false.qk,PARSER
 bad_typecase_invalid_type.qk,TYPE_INF
 bad_typecase_recast.qk,TYPE_INF
 circular_dependency.qk,CLASS_HIERARCHY
@@ -40,6 +41,7 @@ simple_lhs.qk,PARSER
 simple_method_return_bad_wrongtype.qk,TYPE_INF
 simple_method_return_good.qk,PASS
 simple_naming_bad_classandmethodsamename.qk,PARSER
+simple_naming_bad_classandvariablesamename.qk,INIT_BEFORE_USE
 simple_overridingmethod_bad_numberargs.qk,CLASS_HIERARCHY
 simple_overridingmethod_good.qk,PASS
 simple_tree_good_anyorder.qk,PASS
@@ -47,4 +49,3 @@ subclass_method_return_mismatch.qk,CLASS_HIERARCHY
 typing_test.qk,TYPE_INF
 unknown_return_type.qk,CLASS_HIERARCHY
 while_init.qk,INIT_BEFORE_USE
-simple_naming_bad_classandvariablesamename.qk,INIT_BEFORE_USE

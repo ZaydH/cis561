@@ -1,6 +1,10 @@
 # MacOS files
 .DS_Store
 
+# Testbench files
+*.zip
+testbench/
+
 # Intelli-J Files
 .idea/
 cmake-build-debug/

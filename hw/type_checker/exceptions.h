@@ -110,6 +110,31 @@ struct InheritedMethodReturnTypeException : public ClassHierarchyException {
   }
 };
 
+struct InheritedMethodParamCountException : public ClassHierarchyException {
+  InheritedMethodParamCountException(const std::string &class_name, const std::string &method_name)
+      : ClassHierarchyException("InheritedMethodParam", build_error_msg(class_name, method_name)) {}
+
+ private:
+  static std::string build_error_msg(const std::string &class_name, const std::string &method_name){
+    return "Class \"" + class_name + "\" has method \"" + method_name + "\" whose parameter count "
+           + "does not match its super class.";
+  }
+};
+
+struct InheritedMethodParamTypeException : public ClassHierarchyException {
+  InheritedMethodParamTypeException(const std::string &class_name, const std::string &method_name,
+                                    const std::string &param_name)
+      : ClassHierarchyException("InheritedMethodParam",
+                                build_error_msg(class_name, method_name, param_name)) {}
+
+ private:
+  static std::string build_error_msg(const std::string &class_name, const std::string &method_name,
+                                     const std::string &param_name){
+    return "Class \"" + class_name + "\" has method \"" + method_name + "\" whose parameter "
+           + param_name + "does not match its super class parameter type.";
+  }
+};
+
 struct UnknownTypeException : public ClassHierarchyException {
   explicit UnknownTypeException(const std::string &class_name)
       : ClassHierarchyException("TypeError", build_error_msg(class_name)) {}

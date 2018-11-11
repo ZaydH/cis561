@@ -179,11 +179,26 @@ namespace Quack {
           if (!q_class->super_->has_method(method->name_))
             continue;
 
+          Method * super_method = q_class->super_->get_method(method->name_);
+
+          // Args count must match
+          if (method->params_->count() != super_method->params_->count())
+            throw InheritedMethodParamCountException(q_class->name_, method->name_);
+
           Quack::Class * method_rtype = method->return_type_;
-          Quack::Class * super_rtype = q_class->super_->get_method(method->name_)->return_type_;
+          Quack::Class * super_rtype = super_method->return_type_;
 
           if (!method_rtype->is_subtype(super_rtype))
             throw InheritedMethodReturnTypeException(q_class->name_, method->name_);
+
+          for (unsigned i = 0; i < method->params_->count(); i++) {
+            Quack::Class * meth_param_type = (*method->params_)[i]->type_;
+            Quack::Class * super_param_type = (*super_method->params_)[i]->type_;
+            if (!meth_param_type->is_subtype(super_param_type)) {
+              throw InheritedMethodParamTypeException(q_class->name_, method->name_,
+                                                      (*method->params_)[i]->name_);
+            }
+          }
         }
       }
     }

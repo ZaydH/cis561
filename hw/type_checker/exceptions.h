@@ -178,7 +178,6 @@ struct UnitializedVarException : public InitializeBeforeUseException {
   }
 };
 
-
 struct DuplicateMemberException : InitializeBeforeUseException {
   explicit DuplicateMemberException(const std::string &type_name, const std::string &field_name)
       : InitializeBeforeUseException("ClassError",
@@ -186,6 +185,11 @@ struct DuplicateMemberException : InitializeBeforeUseException {
                                      + field_name) {}
 };
 
+struct FieldClassMatchException : InitializeBeforeUseException {
+  explicit FieldClassMatchException(const std::string &field_name)
+      : InitializeBeforeUseException("ClassError",
+                                     "Class \"" + field_name + "\" has a field of the same name") {}
+};
 
 struct MissingSuperFieldsException : public TypeCheckerException {
   explicit MissingSuperFieldsException(const std::string &class_name)

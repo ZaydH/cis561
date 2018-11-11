@@ -73,6 +73,8 @@ namespace Quack {
           fields_list.add(field->name_, true);
           if (q_class->has_method(field->name_))
             throw DuplicateMemberException(q_class->name_, field->name_);
+          if (field->name_ == q_class->name_)
+            throw FieldClassMatchException(field->name_);
         }
 
         for (auto &method_pair : *q_class->methods_) {

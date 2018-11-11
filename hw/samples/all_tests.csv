@@ -47,3 +47,4 @@ subclass_method_return_mismatch.qk,CLASS_HIERARCHY
 typing_test.qk,TYPE_INF
 unknown_return_type.qk,CLASS_HIERARCHY
 while_init.qk,INIT_BEFORE_USE
+simple_naming_bad_classandvariablesamename.qk,INIT_BEFORE_USE

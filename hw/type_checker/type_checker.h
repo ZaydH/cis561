@@ -71,6 +71,8 @@ namespace Quack {
         for (auto &field_info : *q_class->fields_) {
           Field * field = field_info.second;
           fields_list.add(field->name_, true);
+          if (q_class->has_method(field->name_))
+            throw DuplicateMemberException(q_class->name_, field->name_);
         }
 
         for (auto &method_pair : *q_class->methods_) {

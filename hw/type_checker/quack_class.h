@@ -102,6 +102,12 @@ namespace Quack {
       constructor_ = new Method(name, this->name_, params, constructor);
       constructor_->return_type_ = this;
 
+      for (auto method_info : *methods_) {
+        Quack::Method * method = method_info.second;
+        if (name_ == method->name_)
+          throw ParserException("Method name cannot match class name for class " + name_);
+      }
+
 //      Container* classes = Container::singleton();
 //      if (classes->exists(name))
 //        throw("Duplicate class named \"" + name_ + "\"");

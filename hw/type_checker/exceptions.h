@@ -179,6 +179,14 @@ struct UnitializedVarException : public InitializeBeforeUseException {
 };
 
 
+struct DuplicateMemberException : InitializeBeforeUseException {
+  explicit DuplicateMemberException(const std::string &type_name, const std::string &field_name)
+      : InitializeBeforeUseException("ClassError",
+                                     "Class \"" + type_name + "\" has duplicate field and method "
+                                     + field_name) {}
+};
+
+
 struct MissingSuperFieldsException : public TypeCheckerException {
   explicit MissingSuperFieldsException(const std::string &class_name)
                             : TypeCheckerException("MissingField", build_error_msg(class_name)) { }
@@ -207,7 +215,7 @@ struct DuplicateParamException : public TypeCheckerException {
 
 
 //=====================================================================================//
-//                         Well Formed Hierarchy Exceptions                            //
+//                            Type Inference Exceptions                                //
 //=====================================================================================//
 
 

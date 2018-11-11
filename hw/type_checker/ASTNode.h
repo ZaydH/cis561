@@ -568,7 +568,7 @@ namespace AST {
       }
 
       bool success = object_->check_initialize_before_use(inits, all_inits, is_method);
-      if (auto next = dynamic_cast<Ident*>(next_))
+      if (dynamic_cast<Ident*>(next_) != nullptr)
         return success;
 
       return success && next_->check_initialize_before_use(inits, all_inits, is_method);

@@ -5,15 +5,14 @@ set(QUACK_DIR quack)
 
 project(${BIN_NAME})
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -lboost_filesystem -lboost_system")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 
 set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
 # Where are the reflex include and library files?
 #
-FIND_PACKAGE( Boost 1.40 COMPONENTS program_options REQUIRED )
-INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
+find_package(Boost 1.45.0 COMPONENTS filesystem )
 
 IF(APPLE)
   set(REFLEX_LIB "/usr/local/lib/libreflex.a")

@@ -40,8 +40,12 @@ namespace CodeGen {
     void run() {
       export_includes();
 
-      for (auto & class_pair : *Quack::Class::Container::singleton())
-        generate_class(class_pair.second);
+      for (auto & class_pair : *Quack::Class::Container::singleton()) {
+        Quack::Class * q_class = class_pair.second;
+        if (!q_class->is_user_class())
+          continue;
+        generate_class(q_class);
+      }
 
       export_main();
     }
@@ -60,9 +64,9 @@ namespace CodeGen {
     }
 
     void generate_class(Quack::Class * q_class) {
-      assert(!q_class->is_user_class());
+      assert(q_class->is_user_class());
       fout_ << "typedef struct {\n";
-      fout_ << "\n} " << q_class->export_name() << ";\n";
+      fout_ << "\n} * " << q_class->export_name() << ";\n";
 
       fout_ << std::endl;
     }
@@ -76,17 +80,14 @@ namespace CodeGen {
       generate_params(method->params_);
       fout_ << ") {";
 
-      fout_ << "\n}\n\n";
+      fout_ << "\n}\n";
     }
 
     void generate_params(Quack::Param::Container * params) {
       if (!params)
         return;
-      int i = 0;
       for (auto * param : *params) {
-        if (i++ > 0)
-          fout_ << ", ";
-        fout_ << param->type_->export_name() << " " << param->name_;
+        fout_ << "," << param->type_->export_name() << " " << param->name_;
       }
     }
 
@@ -94,7 +95,7 @@ namespace CodeGen {
       generate_method(nullptr, prog_->main_);
 
       fout_ << "\n\n" << "int main() {"
-            << "\n" << AST::ASTNode::indent_str(1) << METHOD_MAIN << "(NULL);\n"
+            << "\n" << AST::ASTNode::indent_str(1) << METHOD_MAIN << "();\n"
             << "}" << std::endl;
     }
 

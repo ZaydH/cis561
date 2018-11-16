@@ -22,7 +22,7 @@
 #define FIELD_OTHER_LIT_NAME "other"
 
 #define METHOD_MAIN "_main"
-#define METHOD_CONSTRUCTOR "__CONSTRUCTOR__"
+#define METHOD_CONSTRUCTOR "constructor"
 
 #define METHOD_PRINT "PRINT"
 #define METHOD_STR "STR"

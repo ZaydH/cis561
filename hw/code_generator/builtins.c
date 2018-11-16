@@ -8,7 +8,6 @@
 #include <string.h>  /* For strcpy; might replace with cords.h from gc */
 
 #include "builtins.h"
-#include "keywords.h"
 
 
 /* ==============
@@ -33,15 +32,11 @@ obj_Obj new_Obj(  ) {
 }
 
 /* Obj:STRING */
-obj_String Obj_method_STRING(obj_Obj this) {
-  long addr = (long) this;
-  char *rep;
-  asprintf(&rep, "<Object at %ld>", addr);
+obj_String Obj_method_STR(obj_Obj this) {
+  asprintf(&rep, "<Object at %08x>", this);
   obj_String str = str_literal(rep);
   return str;
 }
-
-
 
 /* Obj:PRINT */
 obj_Obj Obj_method_PRINT(obj_Obj this) {
@@ -63,7 +58,7 @@ obj_Boolean Obj_method_EQUALS(obj_Obj this, obj_Obj other) {
 /* The Obj Class (a singleton) */
 struct  class_Obj_struct  the_class_Obj_struct = {
   new_Obj,     /* Constructor */
-  Obj_method_STRING,
+  Obj_method_STR,
   Obj_method_PRINT,
   Obj_method_EQUALS
 };
@@ -90,7 +85,7 @@ obj_String new_String(  ) {
 }
 
 /* String:STRING */
-obj_String String_method_STRING(obj_String this) {
+obj_String String_method_STR(obj_String this) {
   return this;
 }
 
@@ -104,22 +99,38 @@ obj_String String_method_PRINT(obj_String this) {
 obj_Boolean String_method_EQUALS(obj_String this, obj_Obj other) {
   obj_String other_str = (obj_String) other;
   /* But is it really? */
-  if (other_str->clazz != the_class_String) {
-    return lit_false;
-  }
-  if (strcmp(this->text,other_str->text) == 0) {
+  if (other_str->clazz == the_class_String && strcmp(this->text, other_str->text) == 0)
     return lit_true;
-  } else {
-    return lit_false;
-  }
+  return lit_false;
+}
+
+obj_Boolean String_method_LESS(obj_String this, obj_String other) {
+  return (strcmp(this->text, other_str->text) < 0) ? lit_true : lit_false;
+}
+
+obj_Boolean String_method_MORE(obj_String this, obj_String other) {
+  return (strcmp(this->text, other_str->text) > 0) ? lit_true : lit_false;
+}
+
+obj_Boolean String_method_ATLEAST(obj_String this, obj_String other) {
+  return (strcmp(this->text, other_str->text) <= 0) ? lit_true : lit_false;
+}
+
+obj_Boolean String_method_ATMOST(obj_String this, obj_String other) {
+  return (strcmp(this->text, other_str->text) >= 0) ? lit_true : lit_false;
 }
 
 /* The String Class (a singleton) */
 struct  class_String_struct  the_class_String_struct = {
   new_String,     /* Constructor */
-  String_method_STRING,
+  String_method_STR,
   String_method_PRINT,
-  String_method_EQUALS
+  String_method_EQUALS,
+  String_method_PLUS,
+  String_method_LESS,
+  String_method_MORE,
+  String_method_ATLEAST,
+  String_method_ATMOST,
 };
 
 class_String the_class_String = &the_class_String_struct;
@@ -152,13 +163,14 @@ obj_Boolean new_Boolean(  ) {
 }
 
 /* Boolean:STRING */
-obj_String Boolean_method_STRING(obj_Boolean this) {
+obj_String Boolean_method_STR(obj_Boolean this) {
   if (this == lit_true) {
     return str_literal("true");
   } else if (this == lit_false) {
     return str_literal("false");
   } else {
-    return str_literal("!!!BOGUS BOOLEAN");
+    throw std::runtime_error("Unknown Boolean object")
+//    return str_literal("!!!BOGUS BOOLEAN");
   }
 }
 
@@ -171,7 +183,7 @@ obj_String Boolean_method_STRING(obj_Boolean this) {
 /* The Boolean Class (a singleton) */
 struct  class_Boolean_struct  the_class_Boolean_struct = {
   new_Boolean,     /* Constructor */
-  Boolean_method_STRING,
+  Boolean_method_STR,
   Obj_method_PRINT,
   Obj_method_EQUALS
 };
@@ -207,7 +219,7 @@ obj_Nothing new_Nothing(  ) {
 }
 
 /* Boolean:STRING */
-obj_String Nothing_method_STRING(obj_Nothing this) {
+obj_String Nothing_method_STR(obj_Nothing this) {
     return str_literal("<nothing>");
 }
 
@@ -220,7 +232,7 @@ obj_String Nothing_method_STRING(obj_Nothing this) {
 /* The Nothing Class (a singleton) */
 struct  class_Nothing_struct  the_class_Nothing_struct = {
   new_Nothing,     /* Constructor */
-  Nothing_method_STRING,
+  Nothing_method_STR,
   Obj_method_PRINT,
   Obj_method_EQUALS
 };
@@ -257,7 +269,7 @@ obj_Int new_Int(  ) {
 }
 
 /* Int:STRING */
-obj_String Int_method_STRING(obj_Int this) {
+obj_String Int_method_STR(obj_Int this) {
   char *rep;
   asprintf(&rep, "%d", this->value);
   return str_literal(rep);
@@ -270,7 +282,7 @@ obj_Boolean Int_method_EQUALS(obj_Int this, obj_Obj other) {
   if (other_int->clazz != this->clazz || this->value != other_int->value) {
     return lit_false;
   }
-  return;
+  return lit_true;
 }
 
 /* Inherit Obj:PRINT, which will call Int:STRING */
@@ -314,9 +326,9 @@ obj_Int Int_method_DIVIDE(obj_Int this, obj_Int other) {
 }
 
 /* The Int Class (a singleton) */
-struct  class_Int_struct  the_class_Int_struct = {
+struct class_Int_struct  the_class_Int_struct = {
   new_Int,     /* Constructor */
-  Int_method_STRING,
+  Int_method_STR,
   Obj_method_PRINT,
   Int_method_EQUALS,
   Int_method_LESS,

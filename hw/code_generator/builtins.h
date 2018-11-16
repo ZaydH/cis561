@@ -96,8 +96,14 @@ struct class_String_struct {
   obj_String (*STRING) (obj_String);
   obj_String (*PRINT) (obj_String);
   obj_Boolean (*EQUALS) (obj_String, obj_Obj);
+
   /* Method table: Introduced in String */
   obj_Boolean (*LESS) (obj_String, obj_String);
+  obj_Boolean (*MORE) (obj_String, obj_String);
+  obj_Boolean (*ATLEAST) (obj_String, obj_String);
+  obj_Boolean (*ATMOST) (obj_String, obj_String);
+
+  obj_String (*PLUS) (obj_String, obj_String);
 };
 
 extern class_String the_class_String;
@@ -193,10 +199,14 @@ extern obj_Nothing nothing;
  *    STRING  (override)
  *    PRINT   (inherit)
  *    EQUALS  (override)
- *    and introducing
  *    LESS
+ *    MORE
+ *    ATLEAST
+ *    ATMOST
  *    PLUS
- *    (add more later)
+ *    MINUS
+ *    DIVIDE
+ *    TIMES
  * =================
  */
 
@@ -210,21 +220,21 @@ typedef struct obj_Int_struct {
 
 struct class_Int_struct {
   /* Method table: Inherited or overridden */
-  obj_Int (*METHOD_CONSTRUCTOR) ( void );
+  obj_Int (*constructor) ( void );
 
-  obj_String (*METHOD_STR) (obj_Int);  /* Overridden */
-  obj_Obj (*METHOD_PRINT) (obj_Obj);      /* Inherited */
-  obj_Boolean (*METHOD_EQUALITY) (obj_Int, obj_Obj); /* Overridden */
+  obj_String (*STR) (obj_Int);  /* Overridden */
+  obj_Obj (*PRINT) (obj_Obj);      /* Inherited */
+  obj_Boolean (*EQUALS) (obj_Int, obj_Obj); /* Overridden */
 
-  obj_Boolean (*METHOD_LT) (obj_Int, obj_Int);   /* Introduced */
-  obj_Boolean (*METHOD_GT) (obj_Int, obj_Int);   /* Introduced */
-  obj_Boolean (*METHOD_LEQ) (obj_Int, obj_Int);   /* Introduced */
-  obj_Boolean (*METHOD_GEQ) (obj_Int, obj_Int);   /* Introduced */
+  obj_Boolean (*LESS) (obj_Int, obj_Int);   /* Introduced */
+  obj_Boolean (*MORE) (obj_Int, obj_Int);   /* Introduced */
+  obj_Boolean (*ATMOST) (obj_Int, obj_Int);   /* Introduced */
+  obj_Boolean (*ATLEAST) (obj_Int, obj_Int);   /* Introduced */
 
-  obj_Int (*METHOD_ADD) (obj_Int, obj_Int);       /* Introduced */
-  obj_Int (*METHOD_SUBTRACT) (obj_Int, obj_Int);       /* Introduced */
-  obj_Int (*METHOD_DIVIDE) (obj_Int, obj_Int);       /* Introduced */
-  obj_Int (*METHOD_MULTIPLY) (obj_Int, obj_Int);       /* Introduced */
+  obj_Int (*PLUS) (obj_Int, obj_Int);       /* Introduced */
+  obj_Int (*MINUS) (obj_Int, obj_Int);       /* Introduced */
+  obj_Int (*DIVIDE) (obj_Int, obj_Int);       /* Introduced */
+  obj_Int (*TIMES) (obj_Int, obj_Int);       /* Introduced */
 };
 
 extern class_Int the_class_Int;
@@ -243,12 +253,16 @@ extern obj_Int int_literal(int n);
  */
 obj_String Obj_method_STR(obj_Obj this);
 obj_Obj Obj_method_PRINT(obj_Obj this);
-
 obj_Boolean Obj_method_EQUALS(obj_Obj this, obj_Obj other);
+
 obj_String String_method_STR(obj_String this);
 obj_String String_method_PRINT(obj_String this);
 obj_Boolean String_method_EQUALS(obj_String this, obj_Obj other);
-
+obj_Boolean String_method_LESS(obj_String this, obj_String other);
+obj_Boolean String_method_MORE(obj_String this, obj_String other);
+obj_Boolean String_method_ATLEAST(obj_String this, obj_String other);
+obj_Boolean String_method_ATMOST(obj_String this, obj_String other);
+obj_String String_method_PLUS(obj_String this, obj_String other);
 
 obj_String Nothing_method_STR(obj_Nothing this);
 

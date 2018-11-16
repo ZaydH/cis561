@@ -33,7 +33,8 @@ obj_Obj new_Obj(  ) {
 
 /* Obj:STRING */
 obj_String Obj_method_STR(obj_Obj this) {
-  asprintf(&rep, "<Object at %08x>", this);
+  char * rep;
+  asprintf(&rep, "<Object at %08x>", (unsigned)this);
   obj_String str = str_literal(rep);
   return str;
 }
@@ -104,20 +105,26 @@ obj_Boolean String_method_EQUALS(obj_String this, obj_Obj other) {
   return lit_false;
 }
 
+obj_String String_method_PLUS(obj_String this, obj_String other) {
+  char* combo;
+  asprintf(&combo, "%s%s", this->text, other->text);
+  return str_literal(combo);
+}
+
 obj_Boolean String_method_LESS(obj_String this, obj_String other) {
-  return (strcmp(this->text, other_str->text) < 0) ? lit_true : lit_false;
+  return (strcmp(this->text, other->text) < 0) ? lit_true : lit_false;
 }
 
 obj_Boolean String_method_MORE(obj_String this, obj_String other) {
-  return (strcmp(this->text, other_str->text) > 0) ? lit_true : lit_false;
+  return (strcmp(this->text, other->text) > 0) ? lit_true : lit_false;
 }
 
 obj_Boolean String_method_ATLEAST(obj_String this, obj_String other) {
-  return (strcmp(this->text, other_str->text) <= 0) ? lit_true : lit_false;
+  return (strcmp(this->text, other->text) <= 0) ? lit_true : lit_false;
 }
 
 obj_Boolean String_method_ATMOST(obj_String this, obj_String other) {
-  return (strcmp(this->text, other_str->text) >= 0) ? lit_true : lit_false;
+  return (strcmp(this->text, other->text) >= 0) ? lit_true : lit_false;
 }
 
 /* The String Class (a singleton) */
@@ -169,7 +176,8 @@ obj_String Boolean_method_STR(obj_Boolean this) {
   } else if (this == lit_false) {
     return str_literal("false");
   } else {
-    throw std::runtime_error("Unknown Boolean object")
+    fprintf(stderr, "Unknown boolean object");
+    exit(EXIT_FAILURE);
 //    return str_literal("!!!BOGUS BOOLEAN");
   }
 }

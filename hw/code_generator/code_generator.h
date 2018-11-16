@@ -71,34 +71,44 @@ namespace CodeGen {
       fout_ << std::endl;
     }
 
-    void generate_method(Quack::Class * q_class, Quack::Method* method) {
+    void generate_method(Quack::Class * q_class, Quack::Method* method,
+                         const std::string &override_method_name = "") {
       if (q_class)
         fout_ << method->return_type_->export_name();
       else
         fout_ << "void";
-      fout_ << " " << (q_class ? q_class->export_method_name(method) : method->name_) << "(";
-      generate_params(method->params_);
+      // Method names can take many forms
+      fout_ << " ";
+      if (!override_method_name.empty())
+        fout_ << override_method_name;
+      else
+        fout_ << (q_class ? q_class->export_method_name(method) : method->name_);
+
+      // Print parameters
+      fout_<< "(";
+      if (q_class)
+        q_class->generate_params(method);
       fout_ << ") {";
 
       fout_ << "\n}\n";
     }
 
-    void generate_params(Quack::Param::Container * params) {
-      if (!params)
-        return;
-      for (auto * param : *params) {
-        fout_ << "," << param->type_->export_name() << " " << param->name_;
-      }
-    }
-
+//    void generate_params(Quack::Param::Container * params) {
+//      if (!params)
+//        return;
+//      for (auto * param : *params) {
+//        fout_ << "," << param->type_->export_name() << " " << param->name_;
+//      }
+//    }
+    /** Writes the main() function to the output file. */
     void export_main() {
-      generate_method(nullptr, prog_->main_);
+      generate_method(nullptr, prog_->main_, METHOD_MAIN);
 
       fout_ << "\n\n" << "int main() {"
             << "\n" << AST::ASTNode::indent_str(1) << METHOD_MAIN << "();\n"
             << "}" << std::endl;
     }
-
+    /** Location to which the generated code is written */
     std::string output_file_path_;
     /** Filestream where the generated code is written */
     std::ofstream fout_;

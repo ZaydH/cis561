@@ -34,6 +34,7 @@ namespace Quack {
       } catch (TypeCheckerException &e) {
         Quack::Utils::print_exception_info_and_exit(e, EXIT_TYPE_INFERENCE);
       }
+      std::cout << "Type checker completed successfully." << std::endl;
     }
    private:
     /**

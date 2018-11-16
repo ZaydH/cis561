@@ -25,7 +25,7 @@
 class_Obj the_class_Obj;
 
 /* Constructor */
-obj_Obj new_Obj(  ) {
+obj_Obj new_Obj() {
   obj_Obj new_thing = (obj_Obj) malloc(sizeof(struct obj_Obj_struct));
   new_thing->clazz = the_class_Obj;
   return new_thing;

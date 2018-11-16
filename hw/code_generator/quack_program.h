@@ -14,10 +14,11 @@
 #include "quack_method.h"
 #include "keywords.h"
 
+namespace CodeGen { class Gen; }
+
 namespace Quack {
   // Forward Declarations
   class TypeChecker;
-  namespace CodeGen { class Gen; }
 
   class Program {
     friend class TypeChecker;

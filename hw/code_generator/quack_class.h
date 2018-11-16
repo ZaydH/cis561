@@ -341,7 +341,7 @@ namespace Quack {
      * @return Method name for the class
      */
     std::string export_method_name(Method * method) const {
-      return name_ + "_" + method->name_;
+      return name_ + "_method_" + method->name_;
     }
 //    /**
 //     * Accessor for all the methods in the class.
@@ -388,7 +388,7 @@ namespace Quack {
     Method* get_constructor() { return constructor_; }
 
     std::string export_name() {
-      return "Q_" + name_;
+      return "obj_" + name_;
     }
    private:
     /**

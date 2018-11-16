@@ -8,6 +8,7 @@
 #include "lex.yy.h"
 #include "quack_program.h"
 #include "quack_class.h"
+#include "code_generator.h"
 #include "type_checker.h"
 #include "keywords.h"
 #include "compiler_utils.h"
@@ -92,6 +93,9 @@ namespace Quack {
 
         auto type_checker = Quack::TypeChecker();
         type_checker.run(prog);
+
+        CodeGen::Gen gen(prog, file_path);
+        gen.run();
       }
     }
 

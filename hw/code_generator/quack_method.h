@@ -16,6 +16,7 @@
 #include "symbol_table.h"
 #include "initialized_list.h"
 
+namespace CodeGen { class Gen; }
 
 namespace Quack {
   // Forward declarations
@@ -27,6 +28,7 @@ namespace Quack {
     friend class TypeChecker;
     friend class Quack::Class;
     friend class Quack::Program;
+    friend class CodeGen::Gen;
    public:
     class Container : public MapContainer<Method> {
      public:

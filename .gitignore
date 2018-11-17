@@ -9,6 +9,9 @@ testbench/
 .idea/
 cmake-build-debug/
 
+# vim related files
+*.swp
+
 # Make Related files
 CMakeCache.txt
 CMakeFiles/

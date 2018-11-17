@@ -11,6 +11,7 @@ Quack::Class::Container* Quack::Class::Container::singleton() {
     all_classes_.add(new BooleanClass());
     all_classes_.add(new IntClass());
     all_classes_.add(new StringClass());
+    all_classes_.add(new NothingClass());
   }
   return &all_classes_;
 }

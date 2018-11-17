@@ -65,44 +65,40 @@ namespace CodeGen {
 
     void generate_class(Quack::Class * q_class) {
       assert(q_class->is_user_class());
-      fout_ << "typedef struct {\n";
-      fout_ << "\n} * " << q_class->export_name() << ";\n";
+      fout_ << "/*===================== " << q_class->name_ << " =====================*/\n"
+            << "/* Typedefs Required for Separation of class and object structs */\n"
+            << "struct " << q_class->generated_struct_clazz_name() << ";\n"
+            << "typedef struct " << q_class->generated_struct_clazz_name()
+            << "* " << q_class->generated_clazz_name() << ";\n"
+            << std::endl;
+
+      q_class->generate_object_struct(fout_);
+      fout_ << "\n";
+      q_class->generate_class_struct(fout_);
 
       fout_ << std::endl;
     }
 
-    void generate_method(Quack::Class * q_class, Quack::Method* method,
-                         const std::string &override_method_name = "") {
-      if (q_class)
-        fout_ << method->return_type_->export_name();
-      else
-        fout_ << "void";
-      // Method names can take many forms
-      fout_ << " ";
-      if (!override_method_name.empty())
-        fout_ << override_method_name;
-      else
-        fout_ << (q_class ? q_class->export_method_name(method) : method->name_);
-
-      // Print parameters
-      fout_<< "(";
-      if (q_class)
-        q_class->generate_params(method);
-      fout_ << ") {";
-
-      fout_ << "\n}\n";
+    void generate_main(const std::string &main_subfunc_name) {
+      Quack::Class * nothing_class = Quack::Class::Container::singleton()->get(CLASS_NOTHING);
+      fout_ << nothing_class->generated_object_name() << " " << main_subfunc_name << "() {\n" ;
+      // ToDo export main code
+      Settings settings(fout_);
+      prog_->main_->block_->generate_code(settings);
+      fout_ << AST::ASTNode::indent_str(1) << "return none;\n"
+            << "}" << std::endl;
     }
 
 //    void generate_params(Quack::Param::Container * params) {
 //      if (!params)
 //        return;
 //      for (auto * param : *params) {
-//        fout_ << "," << param->type_->export_name() << " " << param->name_;
+//        fout_ << "," << param->type_->generated_object_name() << " " << param->name_;
 //      }
 //    }
     /** Writes the main() function to the output file. */
     void export_main() {
-      generate_method(nullptr, prog_->main_, METHOD_MAIN);
+      generate_main(METHOD_MAIN);
 
       fout_ << "\n\n" << "int main() {"
             << "\n" << AST::ASTNode::indent_str(1) << METHOD_MAIN << "();\n"

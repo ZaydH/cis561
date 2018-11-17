@@ -19,9 +19,13 @@
 #include "exceptions.h"
 #include "symbol_table.h"
 #include "compiler_utils.h"
+#include "code_gen_utils.h"
 
 
 namespace Quack { class Class; }
+
+
+#define PRINT_INDENT(a) (AST::ASTNode::indent_str(a))
 
 
 namespace AST {
@@ -82,6 +86,11 @@ namespace AST {
      */
     inline Quack::Class* get_node_type() { return type_; }
 
+    virtual void generate_code(CodeGen::Settings &settings, unsigned indent_lvl) {
+      // ToDo Switch generate code to pure virtual
+      assert(false);
+    }
+
     static std::string indent_str(unsigned indent_level) {
       return std::string(indent_level, '\t');
     }
@@ -135,6 +144,21 @@ namespace AST {
       for (auto * stmt : stmts_)
         stmt->perform_type_inference(settings, nullptr);
       return true;
+    }
+    /**
+     * Generates the code for a
+     *
+     * This function also increases the indent level for all statements in the block.
+     *
+     * @param settings
+     * @param indent_lvl Incoming number of indents
+     */
+    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl = 0) {
+      for (auto * stmt : stmts_) {
+        settings.fout_ << "\n";
+        stmt->generate_code(settings, indent_lvl + 1);
+        settings.fout_ << ";";
+      }
     }
 
     bool empty() { return stmts_.empty(); }
@@ -287,9 +311,21 @@ namespace AST {
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override{
       throw AmbiguousInferenceException(typeid(this).name(), "Not able to infer type for literal");
     }
-
     /** Value of the literal */
     const _T value_;
+   protected:
+    /**
+     * Helper function that standardizes code generation for all literals.
+     *
+     * @param settings Code generator settings object
+     * @param indent_lvl Indention level
+     * @param gen_func_name_ Function used to generate objects of a given type
+     */
+    void generate_lit_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                           const std::string &gen_func_name_) {
+      PRINT_INDENT(indent_lvl);
+      settings.fout_ << gen_func_name_ << "(" << value_ << ")";
+    }
   };
 
   struct IntLit : public Literal<int>{
@@ -297,6 +333,10 @@ namespace AST {
 
     void print_original_src(unsigned int indent_depth = 0) override {
       std::cout << std::to_string(value_);
+    }
+
+    inline void generate_code(CodeGen::Settings &settings, unsigned indent_lvl) override {
+      return generate_lit_code(settings, indent_lvl, GENERATE_LIT_INT_FUNC);
     }
 
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
@@ -309,6 +349,10 @@ namespace AST {
       std::cout << (value_ ? "true" : "false");
     }
 
+    inline void generate_code(CodeGen::Settings &settings, unsigned indent_lvl) override {
+      return generate_lit_code(settings, indent_lvl, GENERATE_LIT_BOOL_FUNC);
+    }
+
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
   };
 
@@ -317,6 +361,10 @@ namespace AST {
 
     void print_original_src(unsigned int indent_depth = 0) override {
       std::cout  << "\"" << value_ << "\"";
+    }
+
+    inline void generate_code(CodeGen::Settings &settings, unsigned indent_lvl) override {
+      return generate_lit_code(settings, indent_lvl, GENERATE_LIT_STRING_FUNC);
     }
 
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
@@ -639,6 +687,8 @@ namespace AST {
       if (!type_name_.empty())
         std::cout << " : " << type_name_;
     }
+
+    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl) override;
     /**
      * Helper function used to check if the specified type name actually exists.
      *

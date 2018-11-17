@@ -52,4 +52,11 @@
 #define EXIT_INITIALIZE_BEFORE_USE 32
 #define EXIT_TYPE_INFERENCE 64
 
+//#define STRUCT_TYPE_SUFFIX "_struct"
+#define GENERATED_CLASS_FIELD "clazz"
+
+#define GENERATE_LIT_INT_FUNC "int_literal"
+#define GENERATE_LIT_STRING_FUNC "str_literal"
+#define GENERATE_LIT_BOOL_FUNC "bool_literal"
+
 #endif //PROJECT02_KEYWORDS_H

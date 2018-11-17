@@ -223,7 +223,7 @@ obj_Boolean lit_true = &lit_true_struct;
  */
 /*  Constructor */
 obj_Nothing new_Nothing(  ) {
-  return nothing;
+  return none;
 }
 
 /* Boolean:STRING */
@@ -253,7 +253,7 @@ class_Nothing the_class_Nothing = &the_class_Nothing_struct;
  */
 struct obj_Nothing_struct nothing_struct =
   { &the_class_Nothing_struct };
-obj_Nothing nothing = &nothing_struct;
+obj_Nothing none = &nothing_struct;
 
 /* ================
  * Int

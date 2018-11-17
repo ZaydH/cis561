@@ -56,6 +56,7 @@ add_executable(${BIN_NAME}
                initialized_list.h
                exceptions.h
                compiler_utils.h
-               code_generator.h)
+               code_generator.h
+               code_gen_utils.h)
 
 target_link_libraries(${BIN_NAME} ${REFLEX_LIB} ${Boost_LIBRARIES})

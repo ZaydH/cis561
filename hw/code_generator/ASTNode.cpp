@@ -363,4 +363,21 @@ namespace AST {
 
     return success;
   }
+
+
+  //====================================================================//
+  //                   Code Generation Related Method                   //
+  //====================================================================//
+
+  void Typing::generate_code(CodeGen::Settings &settings, unsigned indent_lvl) {
+    settings.fout_ << PRINT_INDENT(indent_lvl);
+
+    if (!type_name_.empty()) {
+      Quack::Class * q_class = Quack::Class::Container::singleton()->get(type_name_);
+      settings.fout_ << "(" << q_class->generated_object_name() << ")";
+    }
+    settings.fout_ << "(";
+    expr_->generate_code(settings, 0);
+    settings.fout_ << ")";
+  }
 }

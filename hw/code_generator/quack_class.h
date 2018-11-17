@@ -11,6 +11,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <algorithm>
+#include <fstream>
 
 #include "container_templates.h"
 #include "quack_method.h"
@@ -112,8 +113,8 @@ namespace Quack {
 //      if (classes->exists(name))
 //        throw("Duplicate class named \"" + name_ + "\"");
 
-      if (name_ == CLASS_NOTHING)
-        throw ParserException("Invalid class name \"" + name_ + "\"");
+//      if (name_ == CLASS_NOTHING)
+//        throw ParserException("Invalid class name \"" + name_ + "\"");
     }
     /**
      * Clear all dynamic memory in the object.
@@ -386,10 +387,51 @@ namespace Quack {
      * @return Constructor method
      */
     Method* get_constructor() { return constructor_; }
-
-    std::string export_name() {
+    /**
+     * Type name for generated objects of this type
+     * @return
+     */
+    std::string generated_object_name() {
       return "obj_" + name_;
     }
+    /**
+     * Type used to for the clazz field of objects of this type.
+     *
+     * @return Class name for object
+     */
+    std::string generated_clazz_name() {
+      return "class_" + name_;
+    }
+    /**
+     * Used to define the struct that stores the class information.
+     *
+     * @return Class struct information
+     */
+    std::string generated_struct_clazz_name() {
+      return generated_clazz_name() + "_struct";
+    }
+
+    std::string generated_constructor_name() {
+      return "new_" + name_;
+    }
+
+    void generate_class_struct(std::ofstream & f_out) {
+      f_out << "struct " << generated_struct_clazz_name() << " {";
+      f_out << "\n" << AST::ASTNode::indent_str(1)
+            << generated_object_name() << " (*" << METHOD_CONSTRUCTOR << ") ();";
+      f_out << "\n};\n";
+
+    }
+    void generate_object_struct(std::ofstream & f_out) {
+      f_out << "typedef struct {";
+      // ToDo Add super
+      // Method object field
+      f_out << "\n" << AST::ASTNode::indent_str(1)
+            << generated_clazz_name() << " " << GENERATED_CLASS_FIELD << ";";
+
+      f_out << "\n} * " << generated_object_name() << ";\n";
+    }
+
    private:
     /**
      * Configures the super class pointer for the object.
@@ -486,8 +528,21 @@ namespace Quack {
      * Object class is a base class in Quack so this function always returns true since if it is
      * a base class, it cannot be a user class.
      *
-     * @return True always.
+     * @return False always.
      */
+    bool is_user_class() const override { return false; }
+  };
+
+  struct NothingClass : public Class {
+    explicit NothingClass()
+        : Class(strdup(CLASS_NOTHING), strdup(CLASS_OBJ), new Param::Container(),
+                new AST::Block(), new Method::Container()) { }
+    /**
+    * Primitives are all base (i.e., not user) classes in Quack so this function always returns
+    * true.
+    *
+    * @return False always.
+    */
     bool is_user_class() const override { return false; }
   };
 
@@ -503,7 +558,7 @@ namespace Quack {
     * Primitives are all base (i.e., not user) classes in Quack so this function always returns
     * true.
     *
-    * @return True always.
+    * @return False always.
     */
     bool is_user_class() const override { return false; }
   };

@@ -78,7 +78,11 @@ namespace CodeGen {
 
       fout_ << std::endl;
     }
-
+    /**
+     * Helper function to generate the C code associated with the main function call.
+     *
+     * @param main_subfunc_name Name of the function to be called inside main.
+     */
     void generate_main(const std::string &main_subfunc_name) {
       Quack::Class * nothing_class = Quack::Class::Container::singleton()->get(CLASS_NOTHING);
       fout_ << nothing_class->generated_object_name() << " " << main_subfunc_name << "() {\n" ;
@@ -88,14 +92,6 @@ namespace CodeGen {
       fout_ << AST::ASTNode::indent_str(1) << "return none;\n"
             << "}" << std::endl;
     }
-
-//    void generate_params(Quack::Param::Container * params) {
-//      if (!params)
-//        return;
-//      for (auto * param : *params) {
-//        fout_ << "," << param->type_->generated_object_name() << " " << param->name_;
-//      }
-//    }
     /** Writes the main() function to the output file. */
     void export_main() {
       generate_main(METHOD_MAIN);

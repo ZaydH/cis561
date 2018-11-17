@@ -370,7 +370,7 @@ namespace AST {
   //====================================================================//
 
   void Typing::generate_code(CodeGen::Settings &settings, unsigned indent_lvl) {
-    settings.fout_ << PRINT_INDENT(indent_lvl);
+    PRINT_INDENT(indent_lvl);
 
     if (!type_name_.empty()) {
       Quack::Class * q_class = Quack::Class::Container::singleton()->get(type_name_);

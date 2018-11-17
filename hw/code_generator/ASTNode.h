@@ -13,6 +13,8 @@
 #include <sstream>
 #include <vector>
 #include <iostream>
+#include <fstream>
+#include <iomanip>
 
 #include "keywords.h"
 #include "initialized_list.h"
@@ -25,7 +27,7 @@
 namespace Quack { class Class; }
 
 
-#define PRINT_INDENT(a) (AST::ASTNode::indent_str(a))
+#define PRINT_INDENT(a) (settings.fout_ << AST::ASTNode::indent_str(a))
 
 
 namespace AST {
@@ -94,6 +96,47 @@ namespace AST {
     static std::string indent_str(unsigned indent_level) {
       return std::string(indent_level, '\t');
     }
+    /**
+     * Helper function used to create a label using the label header and a unique integer
+     * to ensure that there are no duplicate labels.
+     *
+     * @param label_header Header used for the label
+     * @return Unique label
+     */
+    static const std::string define_new_label(const std::string &label_header) {
+      std::ostringstream ss;
+      ss << label_header << std::setw(5) << label_counter_++;
+      return ss.str();
+    }
+    /**
+     * Standardized helper function to generte a label in the output.
+     *
+     * @param settings Code generation settings
+     * @param indent_lvl Level of indentation
+     * @param label Label to generate
+     */
+    static void generate_label(CodeGen::Settings &settings, unsigned indent_lvl,
+                               const std::string &label, bool add_new_line=false) {
+      PRINT_INDENT(indent_lvl);
+      settings.fout_ << label << ":";
+      if (add_new_line)
+        settings.fout_ << "\n";
+    }
+    /**
+     * Standard helper function to jump to the passed label.
+     *
+     * @param settings
+     * @param indent_lvl
+     * @param label Label to go to.
+     */
+    static void generate_goto(CodeGen::Settings &settings, unsigned indent_lvl,
+                              const std::string &label, bool add_new_line=false) {
+      PRINT_INDENT(indent_lvl);
+      settings.fout_ << "goto " << label << ";";
+      if (add_new_line)
+        settings.fout_ << "\n";
+    }
+
    protected:
     /** Type for the node */
     Quack::Class * type_ = nullptr;
@@ -290,6 +333,16 @@ namespace AST {
                               bool is_field) override;
 
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
+    /**
+     * Simply prints the identifier name.
+     *
+     * @param settings Code generator settings.
+     * @param indent_lvl Level of indentation.
+     */
+    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl) override {
+      PRINT_INDENT(indent_lvl);
+      settings.fout_ << text_;
+    }
     /** Identifier name */
     const std::string text_;
   };
@@ -362,75 +415,15 @@ namespace AST {
     void print_original_src(unsigned int indent_depth = 0) override {
       std::cout  << "\"" << value_ << "\"";
     }
-
+    /**
+     * Generates the code to create a string literal.  It relies on the standardized literal
+     * generation method.
+     *
+     * @param settings Code generator setting
+     * @param indent_lvl Level of indention
+     */
     inline void generate_code(CodeGen::Settings &settings, unsigned indent_lvl) override {
       return generate_lit_code(settings, indent_lvl, GENERATE_LIT_STRING_FUNC);
-    }
-
-    bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
-  };
-
-  struct BinOp : public ASTNode {
-    std::string opsym;
-    ASTNode *left_;
-    ASTNode *right_;
-
-    BinOp(const std::string &sym, ASTNode *l, ASTNode *r) : opsym{sym}, left_{l}, right_{r} {};
-
-    ~BinOp() {
-      delete left_;
-      delete right_;
-    }
-
-    void print_original_src(unsigned int indent_depth = 0) override {
-      std::cout << "(";
-      left_->print_original_src();
-      std::cout << " " << opsym << " ";
-      right_->print_original_src();
-      std::cout << ")";
-    }
-    /**
-     * Checks if the initialize before use test on the two subexpressions passes.
-     *
-     * @param inits Set of initialized variables.
-     * @return True if the initialized before use test passes for both subexpressions.
-     */
-    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
-                                     bool is_method) override {
-      return left_->check_initialize_before_use(inits, all_inits, is_method)
-             && right_->check_initialize_before_use(inits, all_inits, is_method);
-    }
-    /**
-     * Helper function to get the method name that desugars the binary operator.
-     *
-     * @param op Binary operator value
-     *
-     * @return Desugared method name.
-     */
-    static const std::string op_lookup(const std::string &op) {
-      if (op == "+")
-        return METHOD_ADD;
-      else if (op == "-")
-        return METHOD_SUBTRACT;
-      else if (op == "*")
-        return METHOD_MULTIPLY;
-      else if (op == "/")
-        return METHOD_DIVIDE;
-      else if (op == ">=")
-        return METHOD_GEQ;
-      else if (op == ">")
-        return METHOD_GT;
-      else if (op == "<=")
-        return METHOD_LEQ;
-      else if (op == "<")
-        return METHOD_LT;
-      else if (op == "==")
-        return METHOD_EQUALITY;
-      else if (op == "and")
-        return METHOD_AND;
-      else if (op == "or")
-        return METHOD_OR;
-      throw UnknownBinOpException(op);
     }
 
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
@@ -486,6 +479,18 @@ namespace AST {
                                      bool is_method) override {
       return right_->check_initialize_before_use(inits, all_inits, is_method);
     }
+    /**
+     * Generates the C code associated with a return statement.  The implementation is quite simple
+     *
+     * @param settings Code generator settings
+     * @param indent_lvl Level of indentation
+     */
+    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl) override {
+      PRINT_INDENT(indent_lvl);
+      settings.fout_ << "return (";
+      right_->generate_code(settings, 0);
+      settings.fout_ << ")";
+    }
 
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
   };
@@ -535,6 +540,34 @@ namespace AST {
     }
 
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
+
+    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl) override {
+
+      std::string test_cond_label = define_new_label("test_cond");
+      std::string loop_again_label = define_new_label("loop_again");
+
+      PRINT_INDENT(indent_lvl);
+      settings.fout_ << "/* WHILE LOOP */\n";
+      generate_goto(settings, indent_lvl, test_cond_label, true);
+      settings.fout_ << "\n";
+      generate_label(settings, indent_lvl, loop_again_label, true);
+
+      // Body of the loop is a simple block
+      body_->generate_code(settings, indent_lvl + 1);
+
+      generate_label(settings, indent_lvl, test_cond_label, true);
+
+      // Checks while conditition
+      PRINT_INDENT(indent_lvl + 1);
+      settings.fout_ << "if(" GENERATED_CHECK_BOOL_TRUE_FUNC "(";
+      cond_->generate_code(settings, 0);
+      settings.fout_ << ")) ";
+      generate_goto(settings, 0, loop_again_label);
+
+      // Comment for clarity. Delete if cluttering
+      PRINT_INDENT(indent_lvl);
+      settings.fout_ << "/* END WHILE LOOP */";
+    }
   };
 
   struct RhsArgs : public ASTNode {
@@ -566,6 +599,24 @@ namespace AST {
           std::cout << ", ";
         is_first = false;
         arg->print_original_src(indent_depth);
+      }
+    }
+    /**
+     * Prints the arguments of a function in a comma separated list.
+     *
+     * @param settings Code generator settings
+     * @param indent_lvl Level of indentation
+     */
+    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl) override {
+      // No foreseeable case where the indentation should be anything else
+      assert(indent_lvl == 0);
+
+      bool is_first = true;
+      for (auto * arg : args_) {
+        if (!is_first)
+          settings.fout_ << " ,";
+        is_first = false;
+        arg->generate_code(settings, 0);
       }
     }
 
@@ -647,7 +698,7 @@ namespace AST {
     const std::string ident_;
     RhsArgs* args_;
 
-    FunctionCall(char* ident, RhsArgs* args) : ident_(ident), args_(args) {}
+    FunctionCall(const char* ident, RhsArgs* args) : ident_(ident), args_(args) {}
 
     ~FunctionCall() {
       delete args_;
@@ -667,6 +718,106 @@ namespace AST {
       std::cout << ident_ << "(";
       args_->print_original_src(indent_depth);
       std::cout << ")";
+    }
+    /**
+     * Simple code generation implementation.  Prints the function name then delegates the printing
+     * of the arguments to the RhsArgs() object.
+     *
+     * @param settings Code generation settings
+     * @param indent_lvl Level of indentation
+     */
+    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl) override {
+      PRINT_INDENT(indent_lvl);
+      settings.fout_ << ident_ << "(";
+      args_->generate_code(settings, 0);
+      settings.fout_ << ")";
+    }
+
+    bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
+  };
+
+
+
+  struct BinOp : public ASTNode {
+    std::string opsym;
+    ASTNode *left_;
+    ASTNode *right_;
+
+    BinOp(const std::string &sym, ASTNode *l, ASTNode *r) : opsym{sym}, left_{l}, right_{r} {};
+
+    ~BinOp() {
+      delete left_;
+      delete right_;
+    }
+
+    void print_original_src(unsigned int indent_depth = 0) override {
+      std::cout << "(";
+      left_->print_original_src();
+      std::cout << " " << opsym << " ";
+      right_->print_original_src();
+      std::cout << ")";
+    }
+    /**
+     * Checks if the initialize before use test on the two subexpressions passes.
+     *
+     * @param inits Set of initialized variables.
+     * @return True if the initialized before use test passes for both subexpressions.
+     */
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
+                                     bool is_method) override {
+      return left_->check_initialize_before_use(inits, all_inits, is_method)
+             && right_->check_initialize_before_use(inits, all_inits, is_method);
+    }
+    /**
+     * Helper function to get the method name that desugars the binary operator.
+     *
+     * @param op Binary operator value
+     *
+     * @return Desugared method name.
+     */
+    static const std::string op_lookup(const std::string &op) {
+      if (op == "+")
+        return METHOD_ADD;
+      else if (op == "-")
+        return METHOD_SUBTRACT;
+      else if (op == "*")
+        return METHOD_MULTIPLY;
+      else if (op == "/")
+        return METHOD_DIVIDE;
+      else if (op == ">=")
+        return METHOD_GEQ;
+      else if (op == ">")
+        return METHOD_GT;
+      else if (op == "<=")
+        return METHOD_LEQ;
+      else if (op == "<")
+        return METHOD_LT;
+      else if (op == "==")
+        return METHOD_EQUALITY;
+      // ToDo Make And and Or custom nodes in the tree (maybe)
+      else if (op == "and")
+        return METHOD_AND;
+      else if (op == "or")
+        return METHOD_OR;
+      throw UnknownBinOpException(op);
+    }
+    /**
+     * Binary operators are syntactic sugar for function cals.  Therefore, turn a binary operator
+     * node in the tree into an object call.
+     *
+     * @param settings Code generator settings
+     * @param indent_lvl Level of indentation
+     */
+    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl) override {
+      // Create the ObjectCall stand-in AST node
+      RhsArgs * args = new RhsArgs();
+      args->add(right_);
+      FunctionCall * func_call = new FunctionCall(op_lookup(opsym).c_str(), args);
+
+      ObjectCall obj_call(left_, func_call);
+      obj_call.generate_code(settings, indent_lvl);
+
+      // No deletion needed.  Relies on the destructor of ObjectCall which is on the stack
     }
 
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;

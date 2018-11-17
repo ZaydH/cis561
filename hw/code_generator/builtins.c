@@ -361,3 +361,6 @@ obj_Int int_literal(int n) {
   return boxed;
 }
 
+bool is_bool_true(obj_Boolean cond_val) {
+    return cond_val->clazz->EQUALS(lit_true);
+}

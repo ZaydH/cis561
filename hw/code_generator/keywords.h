@@ -55,6 +55,8 @@
 //#define STRUCT_TYPE_SUFFIX "_struct"
 #define GENERATED_CLASS_FIELD "clazz"
 
+#define GENERATED_CHECK_BOOL_TRUE_FUNC "is_bool_true"
+
 #define GENERATE_LIT_INT_FUNC "int_literal"
 #define GENERATE_LIT_STRING_FUNC "str_literal"
 #define GENERATE_LIT_BOOL_FUNC "bool_literal"

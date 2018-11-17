@@ -282,4 +282,6 @@ obj_Int Int_method_MINUS(obj_Int this, obj_Int other);
 obj_Int Int_method_DIVIDE(obj_Int this, obj_Int other);
 obj_Int Int_method_TIMES(obj_Int this, obj_Int other);
 
+bool is_bool_true(obj_Boolean cond_val);
+
 #endif

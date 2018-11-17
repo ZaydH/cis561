@@ -88,7 +88,8 @@ namespace AST {
      */
     inline Quack::Class* get_node_type() { return type_; }
 
-    virtual void generate_code(CodeGen::Settings &settings, unsigned indent_lvl) {
+    virtual void generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                               const std::string implicit_arg) {
       // ToDo Switch generate code to pure virtual
       assert(false);
     }
@@ -199,7 +200,8 @@ namespace AST {
     void generate_code(CodeGen::Settings &settings, unsigned indent_lvl = 0) {
       for (auto * stmt : stmts_) {
         settings.fout_ << "\n";
-        stmt->generate_code(settings, indent_lvl + 1);
+        PRINT_INDENT(indent_lvl + 1);
+        stmt->generate_code(settings, indent_lvl + 1, "");
         settings.fout_ << ";";
       }
     }
@@ -339,8 +341,8 @@ namespace AST {
      * @param settings Code generator settings.
      * @param indent_lvl Level of indentation.
      */
-    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl) override {
-      PRINT_INDENT(indent_lvl);
+    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                       const std::string implicit_arg) override {
       settings.fout_ << text_;
     }
     /** Identifier name */
@@ -376,7 +378,6 @@ namespace AST {
      */
     void generate_lit_code(CodeGen::Settings &settings, unsigned indent_lvl,
                            const std::string &gen_func_name_) {
-      PRINT_INDENT(indent_lvl);
       settings.fout_ << gen_func_name_ << "(" << value_ << ")";
     }
   };
@@ -388,7 +389,8 @@ namespace AST {
       std::cout << std::to_string(value_);
     }
 
-    inline void generate_code(CodeGen::Settings &settings, unsigned indent_lvl) override {
+    inline void generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                              const std::string implicit_arg) override {
       return generate_lit_code(settings, indent_lvl, GENERATE_LIT_INT_FUNC);
     }
 
@@ -402,7 +404,8 @@ namespace AST {
       std::cout << (value_ ? "true" : "false");
     }
 
-    inline void generate_code(CodeGen::Settings &settings, unsigned indent_lvl) override {
+    inline void generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                              const std::string implicit_arg) override {
       return generate_lit_code(settings, indent_lvl, GENERATE_LIT_BOOL_FUNC);
     }
 
@@ -422,7 +425,8 @@ namespace AST {
      * @param settings Code generator setting
      * @param indent_lvl Level of indention
      */
-    inline void generate_code(CodeGen::Settings &settings, unsigned indent_lvl) override {
+    inline void generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                              const std::string implicit_arg) override {
       return generate_lit_code(settings, indent_lvl, GENERATE_LIT_STRING_FUNC);
     }
 
@@ -485,10 +489,10 @@ namespace AST {
      * @param settings Code generator settings
      * @param indent_lvl Level of indentation
      */
-    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl) override {
-      PRINT_INDENT(indent_lvl);
+    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                       const std::string implicit_arg) override {
       settings.fout_ << "return (";
-      right_->generate_code(settings, 0);
+      right_->generate_code(settings, 0, "");
       settings.fout_ << ")";
     }
 
@@ -541,7 +545,8 @@ namespace AST {
 
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
 
-    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl) override {
+    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                       const std::string implicit_arg) override {
 
       std::string test_cond_label = define_new_label("test_cond");
       std::string loop_again_label = define_new_label("loop_again");
@@ -560,7 +565,7 @@ namespace AST {
       // Checks while conditition
       PRINT_INDENT(indent_lvl + 1);
       settings.fout_ << "if(" GENERATED_CHECK_BOOL_TRUE_FUNC "(";
-      cond_->generate_code(settings, 0);
+      cond_->generate_code(settings, 0, "");
       settings.fout_ << ")) ";
       generate_goto(settings, 0, loop_again_label);
 
@@ -607,16 +612,15 @@ namespace AST {
      * @param settings Code generator settings
      * @param indent_lvl Level of indentation
      */
-    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl) override {
+    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                       const std::string implicit_arg) override {
       // No foreseeable case where the indentation should be anything else
       assert(indent_lvl == 0);
-
-      bool is_first = true;
       for (auto * arg : args_) {
-        if (!is_first)
-          settings.fout_ << " ,";
-        is_first = false;
-        arg->generate_code(settings, 0);
+        // Need to add comma before even first argument since the implicit object is always
+        // passed to each method
+        settings.fout_ << ", ";
+        arg->generate_code(settings, 0, "");
       }
     }
 
@@ -726,12 +730,8 @@ namespace AST {
      * @param settings Code generation settings
      * @param indent_lvl Level of indentation
      */
-    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl) override {
-      PRINT_INDENT(indent_lvl);
-      settings.fout_ << ident_ << "(";
-      args_->generate_code(settings, 0);
-      settings.fout_ << ")";
-    }
+    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                       const std::string implicit_arg) override;
 
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
   };
@@ -808,14 +808,15 @@ namespace AST {
      * @param settings Code generator settings
      * @param indent_lvl Level of indentation
      */
-    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl) override {
+    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                       const std::string implicit_arg) override {
       // Create the ObjectCall stand-in AST node
       RhsArgs * args = new RhsArgs();
       args->add(right_);
       FunctionCall * func_call = new FunctionCall(op_lookup(opsym).c_str(), args);
 
       ObjectCall obj_call(left_, func_call);
-      obj_call.generate_code(settings, indent_lvl);
+      obj_call.generate_code(settings, indent_lvl, "");
 
       // No deletion needed.  Relies on the destructor of ObjectCall which is on the stack
     }
@@ -839,7 +840,8 @@ namespace AST {
         std::cout << " : " << type_name_;
     }
 
-    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl) override;
+    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                       const std::string implicit_arg) override;
     /**
      * Helper function used to check if the specified type name actually exists.
      *
@@ -956,6 +958,13 @@ namespace AST {
       success = success && lhs_->perform_type_inference(settings, nullptr);
       return success;
     }
+
+    virtual void generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                               const std::string implicit_arg) override {
+      lhs_->generate_code(settings, indent_lvl, "");
+      settings.fout_ << " = ";
+      rhs_->generate_code(settings, indent_lvl, "");
+    }
   };
 
   struct Typecase : public ASTNode {
@@ -1014,6 +1023,12 @@ namespace AST {
       }
 
       return success;
+    }
+
+    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                       const std::string implicit_arg) override {
+      // ToDo Add typecase code generation
+      assert(false);
     }
 
    private:

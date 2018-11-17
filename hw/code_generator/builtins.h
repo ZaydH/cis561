@@ -64,9 +64,9 @@ typedef struct obj_Obj_struct {
 struct class_Obj_struct {
   /* Method table */
   obj_Obj (*constructor) ( void );
-  obj_String (*STRING) (obj_Obj);
-  obj_Obj (*PRINT) (obj_Obj);
   obj_Boolean (*EQUALS) (obj_Obj, obj_Obj);
+  obj_Obj (*PRINT) (obj_Obj);
+  obj_String (*STRING) (obj_Obj);
 };
 
 extern class_Obj the_class_Obj; /* Initialized in Builtins.c */
@@ -93,17 +93,17 @@ typedef struct obj_String_struct {
 struct class_String_struct {
   /* Method table: Inherited or overridden */
   obj_String (*constructor) ( void );
-  obj_String (*STRING) (obj_String);
-  obj_String (*PRINT) (obj_String);
   obj_Boolean (*EQUALS) (obj_String, obj_Obj);
+  obj_String (*PRINT) (obj_String);
+  obj_String (*STRING) (obj_String);
 
   /* Method table: Introduced in String */
-  obj_String (*PLUS) (obj_String, obj_String);
-
-  obj_Boolean (*LESS) (obj_String, obj_String);
-  obj_Boolean (*MORE) (obj_String, obj_String);
   obj_Boolean (*ATLEAST) (obj_String, obj_String);
   obj_Boolean (*ATMOST) (obj_String, obj_String);
+  obj_Boolean (*LESS) (obj_String, obj_String);
+  obj_Boolean (*MORE) (obj_String, obj_String);
+  
+  obj_String (*PLUS) (obj_String, obj_String);
 };
 
 extern class_String the_class_String;
@@ -135,9 +135,9 @@ typedef struct obj_Boolean_struct {
 struct class_Boolean_struct {
   /* Method table: Inherited or overridden */
   obj_Boolean (*constructor) ( void );
-  obj_String (*STRING) (obj_Boolean);
-  obj_Obj (*PRINT) (obj_Obj);               /* Inherit */
   obj_Boolean (*EQUALS) (obj_Obj, obj_Obj); /* Inherit */
+  obj_Obj (*PRINT) (obj_Obj);               /* Inherit */
+  obj_String (*STRING) (obj_Boolean);
 };
 
 extern class_Boolean the_class_Boolean;
@@ -179,9 +179,9 @@ typedef struct obj_Nothing_struct {
 struct class_Nothing_struct {
   /* Method table */
   obj_Nothing (*constructor) ( void );
-  obj_String (*STR) (obj_Nothing);
-  obj_Obj (*PRINT) (obj_Obj);               /* Inherited */
   obj_Boolean (*EQUALS) (obj_Obj, obj_Obj); /* Inherited */
+  obj_Obj (*PRINT) (obj_Obj);               /* Inherited */
+  obj_String (*STR) (obj_Nothing);
 };
 
 extern class_Nothing the_class_Nothing;
@@ -222,18 +222,17 @@ struct class_Int_struct {
   /* Method table: Inherited or overridden */
   obj_Int (*constructor) ( void );
 
-  obj_String (*STR) (obj_Int);  /* Overridden */
-  obj_Obj (*PRINT) (obj_Obj);      /* Inherited */
   obj_Boolean (*EQUALS) (obj_Int, obj_Obj); /* Overridden */
+  obj_Obj (*PRINT) (obj_Obj);      /* Inherited */
+  obj_String (*STR) (obj_Int);  /* Overridden */
 
-  obj_Boolean (*LESS) (obj_Int, obj_Int);   /* Introduced */
-  obj_Boolean (*MORE) (obj_Int, obj_Int);   /* Introduced */
-  obj_Boolean (*ATMOST) (obj_Int, obj_Int);   /* Introduced */
   obj_Boolean (*ATLEAST) (obj_Int, obj_Int);   /* Introduced */
-
-  obj_Int (*PLUS) (obj_Int, obj_Int);       /* Introduced */
-  obj_Int (*MINUS) (obj_Int, obj_Int);       /* Introduced */
+  obj_Boolean (*ATMOST) (obj_Int, obj_Int);   /* Introduced */
   obj_Int (*DIVIDE) (obj_Int, obj_Int);       /* Introduced */
+  obj_Boolean (*LESS) (obj_Int, obj_Int);   /* Introduced */
+  obj_Int (*MINUS) (obj_Int, obj_Int);       /* Introduced */
+  obj_Boolean (*MORE) (obj_Int, obj_Int);   /* Introduced */
+  obj_Int (*PLUS) (obj_Int, obj_Int);       /* Introduced */
   obj_Int (*TIMES) (obj_Int, obj_Int);       /* Introduced */
 };
 

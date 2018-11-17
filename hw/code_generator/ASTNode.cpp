@@ -369,7 +369,7 @@ namespace AST {
   //                   Code Generation Related Method                   //
   //====================================================================//
 
-  void Typing::generate_code(CodeGen::Settings &settings, unsigned indent_lvl) {
+  void Typing::generate_code(CodeGen::Settings &settings, unsigned indent_lvl, const std::string implicit_arg) {
     PRINT_INDENT(indent_lvl);
 
     if (!type_name_.empty()) {
@@ -377,7 +377,27 @@ namespace AST {
       settings.fout_ << "(" << q_class->generated_object_name() << ")";
     }
     settings.fout_ << "(";
-    expr_->generate_code(settings, 0);
+    expr_->generate_code(settings, 0, "");
+    settings.fout_ << ")";
+  }
+
+
+  void FunctionCall::generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                                   const std::string implicit_arg) {
+    // Function call may be a constructor
+    if (implicit_arg.empty()) {
+      Quack::Class * q_class = Quack::Class::Container::singleton()->get(ident_);
+      settings.fout_ << q_class->get_constructor();
+    } else {
+      settings.fout_ << ident_;
+    }
+    settings.fout_ << "(";
+    if (!implicit_arg.empty()) {
+      settings.fout_ << implicit_arg;
+      args_->generate_code(settings, 0, "");
+    }
+    // Cannot have arguments to teh function only possible if there are implicit arguments
+    assert(!implicit_arg.empty() || args_->count() == 0);
     settings.fout_ << ")";
   }
 }

@@ -391,7 +391,7 @@ namespace Quack {
      * Type name for generated objects of this type
      * @return
      */
-    std::string generated_object_name() {
+    const std::string generated_object_name() const {
       return "obj_" + name_;
     }
     /**
@@ -399,7 +399,7 @@ namespace Quack {
      *
      * @return Class name for object
      */
-    std::string generated_clazz_name() {
+    const std::string generated_clazz_name() const {
       return "class_" + name_;
     }
     /**
@@ -407,18 +407,36 @@ namespace Quack {
      *
      * @return Class struct information
      */
-    std::string generated_struct_clazz_name() {
+    const std::string generated_struct_clazz_name() const {
       return generated_clazz_name() + "_struct";
     }
-
-    std::string generated_constructor_name() {
+    /**
+     * Gets the name used for constructors of this class.
+     *
+     * @return Constructor function name
+     */
+    const std::string generated_constructor_name() const {
       return "new_" + name_;
     }
 
+
     void generate_class_struct(std::ofstream & f_out) {
       f_out << "struct " << generated_struct_clazz_name() << " {";
-      f_out << "\n" << AST::ASTNode::indent_str(1)
-            << generated_object_name() << " (*" << METHOD_CONSTRUCTOR << ") ();";
+
+      std::string indent = AST::ASTNode::indent_str(1);
+      f_out << "\n" << indent << generated_object_name() << " (*" << METHOD_CONSTRUCTOR << ") ();";
+      for (auto * method : *build_generated_methods()) {
+        f_out << "\n" << indent;
+        f_out << method->return_type_->generated_object_name() << " (*"
+              << method->name_ << ") (";
+
+        // Parameters - Use the implicit object then the parameter list
+        f_out << this->generated_object_name() << " " << OBJECT_SELF;
+        for (auto * param : *method->params_)
+          f_out << ", " << param->type_->generated_object_name() << " " << param->name_;
+
+        f_out << ");";
+      }
       f_out << "\n};\n";
 
     }
@@ -477,6 +495,70 @@ namespace Quack {
     Class *super_;
     /** Statements in the constructor */
     Method* constructor_;
+    /**
+     * Build the generated methods list that will be used in the code generation step.  The order
+     * of methods must match the order of ALL inherited classes to allow for pointer casting.
+     *
+     * @return Vector of generated methods in order matching super classes.
+     */
+    std::vector<Method*>* build_generated_methods() {
+      std::vector<Method*>* gen_methods;
+      if (!super_)
+        gen_methods = new std::vector<Method*>();
+      else
+        gen_methods = super_->build_generated_methods();
+
+      return build_generated_list<Method>(gen_methods, methods_);
+    }
+    /**
+     * Build the generated field list that will be used in code generation.  Order of the fields
+     * matches the order of all inherited classes.
+     *
+     * @return Vector of the generated fields
+     */
+    std::vector<Field*>* build_generated_fields() {
+      std::vector<Field*>* gen_fields;
+      if (!super_)
+        gen_fields = new std::vector<Field*>();
+      else
+        gen_fields = super_->build_generated_fields();
+
+      return build_generated_list<Field>(gen_fields, fields_);
+    }
+    /**
+     * Helper function used to build the generated objects (i.e., fields or methods) for code
+     * generation.
+     *
+     * @tparam _T Type of the class object
+     * @param gen_vec
+     * @param container
+     * @return Updated list of fields and methods
+     */
+    template <typename _T>
+    static std::vector<_T*> * build_generated_list(std::vector<_T*>* gen_vec,
+                                                   MapContainer<_T>* container) {
+      auto gen_start = gen_vec->begin();
+      for (auto obj_pair : *container) {
+        _T * obj = obj_pair.second;
+        bool found = false;
+        // "Override" the existing object in the vector
+        for (int i = 0; i < gen_vec->size(); i++) {
+          if ((*gen_vec)[i]->name_ == obj->name_) {
+            (*gen_vec)[i] = obj;
+            found = true;
+            break;
+          }
+        }
+        // If not found, then add this item to the list
+        if (found)
+          continue;
+        gen_vec->emplace_back(obj);
+      }
+      // Sort only the stuff that is added
+      std::sort(gen_start, gen_vec->end());
+      return gen_vec;
+    }
+
    protected:
     /** All methods supported by the class */
     Method::Container* methods_;

@@ -48,6 +48,7 @@ namespace CodeGen {
       }
 
       export_main();
+      std::cout << "Code generated completed successfully." << std::endl;
     }
 
    private:

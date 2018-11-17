@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>  /* Malloc lives here; might replace with gc.h    */
 #include <string.h>  /* For strcpy; might replace with cords.h from gc */
+#include <stdbool.h>
 
 #include "builtins.h"
 
@@ -362,5 +363,6 @@ obj_Int int_literal(int n) {
 }
 
 bool is_bool_true(obj_Boolean cond_val) {
-    return cond_val->clazz->EQUALS(lit_true);
+    return cond_val == lit_true;
 }
+

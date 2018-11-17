@@ -8,6 +8,7 @@
 #ifndef Builtins_h
 #define Builtins_h
 
+#include <stdbool.h>
 
 /* Naming conventions:
  * class_X means a reference to the class structure for class X,

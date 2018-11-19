@@ -190,7 +190,7 @@ namespace AST {
       return true;
     }
     /**
-     * Generates the code for a
+     * Generates the code for a block of statements
      *
      * This function also increases the indent level for all statements in the block.
      *
@@ -198,6 +198,9 @@ namespace AST {
      * @param indent_lvl Incoming number of indents
      */
     void generate_code(CodeGen::Settings &settings, unsigned indent_lvl = 0) {
+      // ToDo Reenable code generation for the block
+      return;
+
       for (auto * stmt : stmts_) {
         settings.fout_ << "\n";
         PRINT_INDENT(indent_lvl + 1);

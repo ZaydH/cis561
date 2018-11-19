@@ -392,7 +392,7 @@ namespace Quack {
      * Type name for generated objects of this type
      * @return
      */
-    const std::string generated_object_name() const {
+    const std::string generated_object_type_name() const {
       return "obj_" + name_;
     }
     /**
@@ -419,14 +419,17 @@ namespace Quack {
     const std::string generated_constructor_name() const {
       return "new_" + name_;
     }
-
-
+    /**
+     * Generates the struct that contains all methods for the class including the constructor.
+     *
+     * @param settings Code generator settings
+     */
     void generate_class_struct(CodeGen::Settings settings) {
       settings.fout_ << "struct " << generated_struct_clazz_name() << " {";
 
       // Put constructor function pointer
       std::string indent = AST::ASTNode::indent_str(1);
-      settings.fout_ << "\n" << indent << generated_object_name()
+      settings.fout_ << "\n" << indent << generated_object_type_name()
                      << " (*" << METHOD_CONSTRUCTOR << ")(";
       constructor_->params_->generate_code(settings, false, false);
       settings.fout_ << ");";
@@ -435,11 +438,11 @@ namespace Quack {
       build_generated_methods(this);
       for (auto method_info : *gen_methods_) {
         settings.fout_ << "\n" << indent
-                       << method_info.second->return_type_->generated_object_name()
+                       << method_info.second->return_type_->generated_object_type_name()
                        << " (*" << method_info.second->name_ << ")(";
 
         // Parameters - Use the implicit object then the parameter list
-        settings.fout_ << this->generated_object_name();
+        settings.fout_ << method_info.first->generated_object_type_name();
         method_info.second->params_->generate_code(settings, false);
 
         settings.fout_ << ");";
@@ -462,35 +465,19 @@ namespace Quack {
       build_generated_fields(this);
       for (auto field_info : *gen_fields_) {
         settings.fout_ << "\n" << AST::ASTNode::indent_str(1)
-                       << field_info.second->type_->generated_object_name() << " "
+                       << field_info.second->type_->generated_object_type_name() << " "
                        << field_info.second->name_ << ";";
       }
-      settings.fout_ << "\n} * " << generated_object_name() << ";\n";
+      settings.fout_ << "\n} * " << generated_object_type_name() << ";\n";
     }
     const std::string generated_clazz_obj_name() const {
-      return "the_" + generated_struct_clazz_name();
+      return "the_class_" + name_;
     }
     /**
-     * The "Clazz" object contains a lookup of all the methods in the class itself. This is
-     * attached as a field in the constructor.
+     * Generates all code associated with a specific class
      *
      * @param settings Code generator settings
      */
-    void generate_clazz_object(CodeGen::Settings settings) {
-      settings.fout_ << "\n\nstruct " << generated_clazz_obj_name() << " = {\n";
-
-      std::string indent_str = AST::ASTNode::indent_str(1);
-      settings.fout_ << indent_str << generated_constructor_name();
-
-      build_generated_methods(this);
-      for (auto method_info : *gen_methods_)
-        settings.fout_ << ",\n" << generated_method_name(method_info.first, method_info.second);
-
-      settings.fout_ << "\n};\n";
-    }
-    void generate_class_methods(CodeGen::Settings settings) {
-      assert(false);
-    }
     void generate_code(CodeGen::Settings settings) {
       assert(this->is_user_class());
 
@@ -505,10 +492,79 @@ namespace Quack {
       settings.fout_ << "\n";
       generate_class_struct(settings);
 
+      generate_all_prototypes(settings);
+
+      generate_clazz_object(settings);
+
       generate_constructor(settings);
-//      q_class->generate_class_methods(settings);
+      generate_methods(settings);
 
       settings.fout_ << std::endl;
+    }
+   private:
+    /**
+     * Helper function used to generate the code for a method prototype.  It should not be used
+     * for a constructor. Likewise, it includes no preceding indents nor does not include
+     * any curly brackets.
+     *
+     * @param settings Code generator constructor
+     * @param method Method whose prototype will be generated.
+     */
+    void generate_method_prototype(CodeGen::Settings settings, Method* method,
+                                   bool is_constructor=false) {
+      settings.fout_ << method->return_type_->generated_object_type_name() << " ";
+
+      if (is_constructor)
+        settings.fout_ << generated_constructor_name();
+      else
+        settings.fout_ << generated_method_name(this, method);
+
+      settings.fout_ << "(";
+
+      if (!is_constructor) {
+        settings.fout_ << generated_object_type_name() << " " << OBJECT_SELF;
+      }
+
+      method->params_->generate_code(settings, true, !is_constructor);
+      settings.fout_ << ")";
+    }
+    /**
+     * Generates all prototypes for all methods and the constructor.
+     *
+     * @param settings Code generator settings
+     */
+    void generate_all_prototypes(CodeGen::Settings settings) {
+      generate_method_prototype(settings, constructor_, true);
+      settings.fout_ << ";\n";
+
+      for (auto method : *methods_) {
+        generate_method_prototype(settings, method.second);
+        settings.fout_ << ";\n";
+      }
+    }
+    /**
+     * The "Clazz" object contains a lookup of all the methods in the class itself. This is
+     * attached as a field in the constructor.
+     *
+     * @param settings Code generator settings
+     */
+    void generate_clazz_object(CodeGen::Settings settings) {
+      std::string class_obj_struct = generated_clazz_obj_name() + "_struct";
+      settings.fout_ << "\nstruct " << generated_struct_clazz_name() << " "
+                     << class_obj_struct << " = {\n";
+
+      std::string indent_str = AST::ASTNode::indent_str(1);
+      settings.fout_ << indent_str << generated_constructor_name();
+
+      build_generated_methods(this);
+      for (auto method_info : *gen_methods_) {
+        settings.fout_ << ",\n" << indent_str
+                       << generated_method_name(method_info.first, method_info.second);
+      }
+
+      settings.fout_ << "\n};\n\n"
+                     << generated_clazz_name() << " " << generated_clazz_obj_name()
+                     << " = &" << class_obj_struct << ";";
     }
     /**
      * Generates code for the class constructor.
@@ -516,30 +572,44 @@ namespace Quack {
      * @param settings Code generator settings
      */
     void generate_constructor(CodeGen::Settings settings) {
-
-      settings.fout_ << "\n"
-                     << generated_object_name() << " " << generated_constructor_name() << "(";
-
-      constructor_->params_->generate_code(settings, true, false);
-      settings.fout_ << ") {\n";
+      settings.fout_ << "\n";
+      generate_method_prototype(settings, constructor_, true);
+      settings.fout_ << " {\n";
 
       // Allocate the memory for the object itself
       std::string indent_str = AST::ASTNode::indent_str(1);
-      settings.fout_ << indent_str << generated_object_name() << " " << OBJECT_SELF
-                     << " = (" << generated_object_name() << ")malloc(sizeof("
-                     << generated_object_name() << "));\n";
+      settings.fout_ << indent_str << generated_object_type_name() << " " << OBJECT_SELF
+                     << " = (" << generated_object_type_name() << ")malloc(sizeof("
+                     << generated_object_type_name() << "));\n";
 
       // Define the object that will store the class methods
       settings.fout_ << indent_str << OBJECT_SELF << "->" << GENERATED_CLASS_FIELD
                      << " = " << generated_clazz_obj_name() << ";";
 
-      // ToDo restore constructor code generation
-//      constructor_->block_->generate_code(settings, 1);
+      constructor_->block_->generate_code(settings, 1);
 
       settings.fout_ << "\n" << indent_str << "return " << OBJECT_SELF << ";";
-      settings.fout_ << "\n};";
+      settings.fout_ << "\n};\n";
     }
-   private:
+    /**
+     * Generates the C code associated with all methods in the class.
+     *
+     * @param settings Code generator settings
+     */
+    void generate_methods(CodeGen::Settings settings) {
+      for (auto method_info : *methods_) {
+        Method * method = method_info.second;
+
+        // Define function header
+        settings.fout_ << "\n";
+        generate_method_prototype(settings, method);
+        settings.fout_ << " {\n";
+
+        method->block_->generate_code(settings, 1);
+
+        settings.fout_ << "\n}";
+      }
+    }
     /** Container used to store generated objects in the class */
     template <typename _S>
     class GenObjContainer : public std::vector<std::pair<Class *, _S*>> {};
@@ -695,7 +765,6 @@ namespace Quack {
       auto params = new Param::Container();
       params->add(new Param(FIELD_OTHER_LIT_NAME, param_type));
 
-      // ToDo Decide on binop code generation strategy
       methods_->add(new Method(method_name, return_type, params, new AST::Block()));
       methods_->get(method_name)->init_list_ = new InitializedList();
     }
@@ -703,7 +772,6 @@ namespace Quack {
     void add_unary_op_method(const std::string &method_name, const std::string &return_type) {
       auto params = new Param::Container();
 
-      // ToDo Decide on binop code generation strategy
       methods_->add(new Method(method_name, return_type, params, new AST::Block()));
     }
   };

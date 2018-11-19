@@ -57,7 +57,7 @@ namespace CodeGen {
     /** Write any includes to the beginning of the generated file. */
     void export_includes() {
       std::pair<std::string, bool> libs[] = {{"stdlib", false},
-                                             {"stdlib", false},
+                                             {"stdio", false},
                                              {"builtins", true}};
       for (auto &lib_pair : libs) {
         fout_ << "#include " << (lib_pair.second ? "\"" : "<")
@@ -74,7 +74,7 @@ namespace CodeGen {
       Quack::Class * nothing_class = Quack::Class::Container::singleton()->get(CLASS_NOTHING);
 
       fout_ << "\n"
-            << nothing_class->generated_object_name() << " " << main_subfunc_name << "() {\n";
+            << nothing_class->generated_object_type_name() << " " << main_subfunc_name << "() {\n";
 
       prog_->main_->block_->generate_code(settings);
 
@@ -85,7 +85,7 @@ namespace CodeGen {
     void export_main(CodeGen::Settings settings) {
       generate_main(settings, METHOD_MAIN);
 
-      fout_ << "\n\n" << "int main() {"
+      fout_ << "\n" << "int main() {"
             << "\n" << AST::ASTNode::indent_str(1) << METHOD_MAIN << "();\n"
             << "}" << std::endl;
     }

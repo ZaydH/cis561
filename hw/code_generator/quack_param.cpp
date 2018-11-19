@@ -13,7 +13,7 @@ void Quack::Param::Container::generate_code(CodeGen::Settings settings, bool inc
       settings.fout_ << ", ";
 
     is_first = false;
-    settings.fout_ << param->type_->generated_object_name();
+    settings.fout_ << param->type_->generated_object_type_name();
 
     if (include_param_names)
       settings.fout_ << " " << param->name_;

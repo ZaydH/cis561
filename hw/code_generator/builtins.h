@@ -94,7 +94,8 @@ struct class_String_struct {
   /* Method table: Inherited or overridden */
   obj_String (*constructor) ( void );
   obj_Boolean (*EQUALS) (obj_String, obj_Obj);
-  obj_String (*PRINT) (obj_String);
+//  obj_String (*PRINT) (obj_String);
+  obj_Obj (*PRINT) (obj_Obj);
   obj_String (*STRING) (obj_String);
 
   /* Method table: Introduced in String */
@@ -102,7 +103,7 @@ struct class_String_struct {
   obj_Boolean (*ATMOST) (obj_String, obj_String);
   obj_Boolean (*LESS) (obj_String, obj_String);
   obj_Boolean (*MORE) (obj_String, obj_String);
-  
+
   obj_String (*PLUS) (obj_String, obj_String);
 };
 
@@ -257,7 +258,7 @@ obj_Boolean Obj_method_EQUALS(obj_Obj this, obj_Obj other);
 
 obj_String new_String();
 obj_String String_method_STR(obj_String this);
-obj_String String_method_PRINT(obj_String this);
+//obj_String String_method_PRINT(obj_String this);
 obj_Boolean String_method_EQUALS(obj_String this, obj_Obj other);
 obj_String String_method_PLUS(obj_String this, obj_String other);
 obj_Boolean String_method_LESS(obj_String this, obj_String other);

@@ -18,12 +18,17 @@
 #include "quack_field.h"
 #include "keywords.h"
 
+// Forward declaration
+namespace CodeGen{ class Gen; }
+
 namespace Quack {
 
+  // Forward declaration
   class TypeChecker;
 
   class Class {
     friend class TypeChecker;
+    friend class CodeGen::Gen;
    public:
 
     class Container : public MapContainer<Class> {
@@ -124,6 +129,9 @@ namespace Quack {
       delete constructor_;
       delete methods_;
       delete fields_;
+
+      delete gen_methods_;
+      delete gen_fields_;
     }
     /**
      * Checks whether this class (or any of its super classes) has a field with the specified name.
@@ -420,6 +428,35 @@ namespace Quack {
       return "new_" + name_;
     }
     /**
+     * Generates all code associated with a specific class
+     *
+     * @param settings Code generator settings
+     */
+    void generate_code(CodeGen::Settings settings) {
+      assert(this->is_user_class());
+
+      settings.fout_ << "/*======================= " << name_ << " =======================*/\n"
+                     << "/* Typedefs Required for Separation of class and object structs */\n"
+                     << "struct " << generated_struct_clazz_name() << ";\n"
+                     << "typedef struct " << generated_struct_clazz_name()
+                     << "* " << generated_clazz_name() << ";\n"
+                     << std::endl;
+
+      generate_object_struct(settings);
+      settings.fout_ << "\n";
+      generate_class_struct(settings);
+
+      generate_all_prototypes(settings);
+
+      generate_clazz_object(settings);
+
+      generate_constructor(settings);
+      generate_methods(settings);
+
+      settings.fout_ << std::endl;
+    }
+   private:
+    /**
      * Generates the struct that contains all methods for the class including the constructor.
      *
      * @param settings Code generator settings
@@ -474,35 +511,6 @@ namespace Quack {
       return "the_class_" + name_;
     }
     /**
-     * Generates all code associated with a specific class
-     *
-     * @param settings Code generator settings
-     */
-    void generate_code(CodeGen::Settings settings) {
-      assert(this->is_user_class());
-
-      settings.fout_ << "/*======================= " << name_ << " =======================*/\n"
-                     << "/* Typedefs Required for Separation of class and object structs */\n"
-                     << "struct " << generated_struct_clazz_name() << ";\n"
-                     << "typedef struct " << generated_struct_clazz_name()
-                     << "* " << generated_clazz_name() << ";\n"
-                     << std::endl;
-
-      generate_object_struct(settings);
-      settings.fout_ << "\n";
-      generate_class_struct(settings);
-
-      generate_all_prototypes(settings);
-
-      generate_clazz_object(settings);
-
-      generate_constructor(settings);
-      generate_methods(settings);
-
-      settings.fout_ << std::endl;
-    }
-   private:
-    /**
      * Helper function used to generate the code for a method prototype.  It should not be used
      * for a constructor. Likewise, it includes no preceding indents nor does not include
      * any curly brackets.
@@ -534,6 +542,8 @@ namespace Quack {
      * @param settings Code generator settings
      */
     void generate_all_prototypes(CodeGen::Settings settings) {
+      settings.fout_ << "\n";
+
       generate_method_prototype(settings, constructor_, true);
       settings.fout_ << ";\n";
 
@@ -589,7 +599,7 @@ namespace Quack {
       constructor_->block_->generate_code(settings, 1);
 
       settings.fout_ << "\n" << indent_str << "return " << OBJECT_SELF << ";";
-      settings.fout_ << "\n};\n";
+      settings.fout_ << "\n}\n";
     }
     /**
      * Generates the C code associated with all methods in the class.
@@ -607,7 +617,7 @@ namespace Quack {
 
         method->block_->generate_code(settings, 1);
 
-        settings.fout_ << "\n}";
+        settings.fout_ << "\n}\n";
       }
     }
     /** Container used to store generated objects in the class */
@@ -788,7 +798,7 @@ namespace Quack {
     void add_base_methods() {
       add_binop_method(METHOD_EQUALITY, CLASS_BOOL, CLASS_OBJ);
       // Unary op ok to use since function takes no args
-      add_unary_op_method(METHOD_PRINT, CLASS_NOTHING);
+      add_unary_op_method(METHOD_PRINT, CLASS_OBJ);
       add_unary_op_method(METHOD_STR, CLASS_STR);
     }
     /**

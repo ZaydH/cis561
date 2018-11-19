@@ -58,11 +58,11 @@ obj_Boolean Obj_method_EQUALS(obj_Obj this, obj_Obj other) {
 
 
 /* The Obj Class (a singleton) */
-struct  class_Obj_struct  the_class_Obj_struct = {
+struct class_Obj_struct  the_class_Obj_struct = {
   new_Obj,     /* Constructor */
-  Obj_method_STR,
+  Obj_method_EQUALS,
   Obj_method_PRINT,
-  Obj_method_EQUALS
+  Obj_method_STR
 };
 
 class_Obj the_class_Obj = &the_class_Obj_struct;
@@ -91,11 +91,11 @@ obj_String String_method_STR(obj_String this) {
   return this;
 }
 
-/* String:PRINT */
-obj_String String_method_PRINT(obj_String this) {
-  fprintf(stdout, "%s", this->text);
-  return this;
-}
+///* String:PRINT */
+//obj_String String_method_PRINT(obj_String this) {
+//  fprintf(stdout, "%s", this->text);
+//  return this;
+//}
 
 /* String:EQUALS (Note we may want to replace this */
 obj_Boolean String_method_EQUALS(obj_String this, obj_Obj other) {
@@ -131,14 +131,14 @@ obj_Boolean String_method_ATMOST(obj_String this, obj_String other) {
 /* The String Class (a singleton) */
 struct  class_String_struct  the_class_String_struct = {
   new_String,     /* Constructor */
-  String_method_STR,
-  String_method_PRINT,
   String_method_EQUALS,
-  String_method_PLUS,
-  String_method_LESS,
-  String_method_MORE,
+  Obj_method_PRINT,
+  String_method_STR,
   String_method_ATLEAST,
   String_method_ATMOST,
+  String_method_LESS,
+  String_method_MORE,
+  String_method_PLUS
 };
 
 class_String the_class_String = &the_class_String_struct;
@@ -192,9 +192,9 @@ obj_String Boolean_method_STR(obj_Boolean this) {
 /* The Boolean Class (a singleton) */
 struct  class_Boolean_struct  the_class_Boolean_struct = {
   new_Boolean,     /* Constructor */
-  Boolean_method_STR,
+  Obj_method_EQUALS,
   Obj_method_PRINT,
-  Obj_method_EQUALS
+  Boolean_method_STR
 };
 
 class_Boolean the_class_Boolean = &the_class_Boolean_struct;
@@ -204,11 +204,9 @@ class_Boolean the_class_Boolean = &the_class_Boolean_struct;
  * should ever exist. The constructor just picks one of
  * them.
  */
-struct obj_Boolean_struct lit_false_struct =
-  { &the_class_Boolean_struct, 0 };
+struct obj_Boolean_struct lit_false_struct = { &the_class_Boolean_struct, 0 };
 obj_Boolean lit_false = &lit_false_struct;
-struct obj_Boolean_struct lit_true_struct =
-  { &the_class_Boolean_struct, 1 };
+struct obj_Boolean_struct lit_true_struct = { &the_class_Boolean_struct, 1 };
 obj_Boolean lit_true = &lit_true_struct;
 
 /* ==============
@@ -241,9 +239,9 @@ obj_String Nothing_method_STR(obj_Nothing this) {
 /* The Nothing Class (a singleton) */
 struct  class_Nothing_struct  the_class_Nothing_struct = {
   new_Nothing,     /* Constructor */
-  Nothing_method_STR,
+  Obj_method_EQUALS,
   Obj_method_PRINT,
-  Obj_method_EQUALS
+  Nothing_method_STR
 };
 
 class_Nothing the_class_Nothing = &the_class_Nothing_struct;
@@ -252,8 +250,7 @@ class_Nothing the_class_Nothing = &the_class_Nothing_struct;
  * This is the only instance of class Nothing that
  * should ever exist
  */
-struct obj_Nothing_struct nothing_struct =
-  { &the_class_Nothing_struct };
+struct obj_Nothing_struct nothing_struct = { &the_class_Nothing_struct };
 obj_Nothing none = &nothing_struct;
 
 /* ================
@@ -270,8 +267,7 @@ obj_Nothing none = &nothing_struct;
 
 /* Constructor */
 obj_Int new_Int(  ) {
-  obj_Int new_thing = (obj_Int)
-    malloc(sizeof(struct obj_Int_struct));
+  obj_Int new_thing = (obj_Int)malloc(sizeof(struct obj_Int_struct));
   new_thing->clazz = the_class_Int;
   new_thing->value = 0;
   return new_thing;
@@ -337,17 +333,17 @@ obj_Int Int_method_DIVIDE(obj_Int this, obj_Int other) {
 /* The Int Class (a singleton) */
 struct class_Int_struct  the_class_Int_struct = {
   new_Int,     /* Constructor */
-  Int_method_STR,
-  Obj_method_PRINT,
   Int_method_EQUALS,
-  Int_method_LESS,
-  Int_method_MORE,
+  Obj_method_PRINT,
+  Int_method_STR,
   Int_method_ATLEAST,
   Int_method_ATMOST,
-  Int_method_PLUS,
+  Int_method_DIVIDE,
+  Int_method_LESS,
   Int_method_MINUS,
-  Int_method_TIMES,
-  Int_method_DIVIDE
+  Int_method_MORE,
+  Int_method_PLUS,
+  Int_method_TIMES
 };
 
 class_Int the_class_Int = &the_class_Int_struct;

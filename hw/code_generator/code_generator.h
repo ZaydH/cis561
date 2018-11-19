@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <sstream>
 #include <fstream>
+#include <stack>
 #include <boost/filesystem.hpp>
 
 #include "quack_program.h"
@@ -40,20 +41,55 @@ namespace CodeGen {
     void run() {
       export_includes();
 
-      CodeGen::Settings settings(fout_);
+      std::vector<Quack::Class*> user_classes = topologically_sort_classes();
 
-      for (auto & class_pair : *Quack::Class::Container::singleton()) {
-        Quack::Class * q_class = class_pair.second;
-        if (!q_class->is_user_class())
-          continue;
+      CodeGen::Settings settings(fout_);
+      for (auto q_class : user_classes)
         q_class->generate_code(settings);
-      }
 
       export_main(settings);
-      std::cout << "Code generated completed successfully." << std::endl;
+      std::cout << "Code generation completed successfully." << std::endl;
     }
 
    private:
+    /**
+     * Classes are topologically sorted.  This is needed to ensure that inherited classes
+     * have the functions of their super classes already defined in the generated code.
+     * This approach relies on a stack to ensure super classes are found before sub classes
+     *
+     * @return Tpologically sorted classes
+     */
+    static std::vector<Quack::Class*> topologically_sort_classes() {
+      std::vector<Quack::Class*> user_classes;
+      for (auto & class_pair : *Quack::Class::Container::singleton()) {
+        std::stack<Quack::Class*> stack;
+        Quack::Class* q_class = class_pair.second;
+        if (!q_class->is_user_class())
+          continue;
+        do {
+          bool found = false;
+          for (auto * temp_class : user_classes) {
+            if (temp_class->name_ == q_class->name_) {
+              found = true;
+              break;
+            }
+          }
+
+          if (found)
+            break;
+
+          stack.push(q_class);
+          q_class = q_class->super_;
+        } while(q_class && q_class->is_user_class());
+
+        // Add all new classes with super classes first
+        while(!stack.empty()) {
+          user_classes.emplace_back(stack.top());
+          stack.pop();
+        }
+      }
+      return user_classes;
+    }
     /** Write any includes to the beginning of the generated file. */
     void export_includes() {
       std::pair<std::string, bool> libs[] = {{"stdlib", false},

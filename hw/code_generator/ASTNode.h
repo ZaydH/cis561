@@ -262,6 +262,35 @@ namespace AST {
       return success;
     }
 
+    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                       const std::string implicit_arg) override {
+      std::string if_label = define_new_label("if");
+      std::string else_label = define_new_label("else");
+      std::string end_if_label = define_new_label("end_if");
+
+      // ToDo check condition in the If statement
+
+      PRINT_INDENT(indent_lvl);
+      settings.fout_ << "/* True Part If */\n";
+      generate_label(settings, indent_lvl, if_label, true);
+
+      truepart_->generate_code(settings, indent_lvl + 1);
+
+      generate_goto(settings, indent_lvl, end_if_label, true);
+
+      PRINT_INDENT(indent_lvl);
+      settings.fout_ << "/* False Parse If */\n";
+      generate_label(settings, indent_lvl, else_label, true);
+
+      if (falsepart_)
+        falsepart_->generate_code(settings, indent_lvl + 1);
+
+      PRINT_INDENT(indent_lvl);
+      settings.fout_ << "/* End If */\n";
+      generate_label(settings, indent_lvl, end_if_label, true);
+    }
+
+
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
    private:
     ASTNode *cond_; // The boolean expression to be evaluated

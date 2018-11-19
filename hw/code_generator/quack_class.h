@@ -321,16 +321,16 @@ namespace Quack {
         configure_method_params(*method->params_);
 
         // Check and configure the method return type.
-        if (method->return_type_name_ == CLASS_NOTHING) {
-          method->return_type_ = BASE_CLASS;
-        } else {
+//        if (method->return_type_name_ == CLASS_NOTHING) {
+//          method->return_type_ = BASE_CLASS;
+//        } else {
           method->return_type_ = Container::singleton()->get(method->return_type_name_);
           if (method->return_type_ == OBJECT_NOT_FOUND) {
             throw UnknownTypeException("Class: " + this->name_ + ", method " + method->name_
                                      + ", unknown return type \"" + method->return_type_name_ +
                                      "\"");
           }
-        }
+//        }
       }
     }
     /** Name of the class */
@@ -423,12 +423,23 @@ namespace Quack {
     void generate_class_struct(std::ofstream & f_out) {
       f_out << "struct " << generated_struct_clazz_name() << " {";
 
+      // Put constructor function pointer
       std::string indent = AST::ASTNode::indent_str(1);
-      f_out << "\n" << indent << generated_object_name() << " (*" << METHOD_CONSTRUCTOR << ") ();";
+      f_out << "\n" << indent << generated_object_name() << " (*" << METHOD_CONSTRUCTOR << ")(";
+      bool is_first = true;
+      for (auto * param : *constructor_->params_) {
+        if (!is_first)
+          f_out << ", ";
+        is_first = false;
+        f_out << param->type_->generated_object_name() << " " << param->name_;
+      }
+      f_out << ");";
+
+      // Function pointers for all other methods
       for (auto * method : *build_generated_methods()) {
-        f_out << "\n" << indent;
-        f_out << method->return_type_->generated_object_name() << " (*"
-              << method->name_ << ") (";
+        f_out << "\n" << indent
+              << method->return_type_->generated_object_name()
+              << " (*" << method->name_ << ")(";
 
         // Parameters - Use the implicit object then the parameter list
         f_out << this->generated_object_name() << " " << OBJECT_SELF;
@@ -446,7 +457,10 @@ namespace Quack {
       // Method object field
       f_out << "\n" << AST::ASTNode::indent_str(1)
             << generated_clazz_name() << " " << GENERATED_CLASS_FIELD << ";";
-
+      for (auto * field : *build_generated_fields()) {
+        f_out << "\n" << AST::ASTNode::indent_str(1) << field->type_->generated_object_name()
+              << " " << field->name_ << ";";
+      }
       f_out << "\n} * " << generated_object_name() << ";\n";
     }
 
@@ -537,7 +551,7 @@ namespace Quack {
     template <typename _T>
     static std::vector<_T*> * build_generated_list(std::vector<_T*>* gen_vec,
                                                    MapContainer<_T>* container) {
-      auto gen_start = gen_vec->begin();
+      unsigned long start_size = gen_vec->size();
       for (auto obj_pair : *container) {
         _T * obj = obj_pair.second;
         bool found = false;
@@ -555,7 +569,7 @@ namespace Quack {
         gen_vec->emplace_back(obj);
       }
       // Sort only the stuff that is added
-      std::sort(gen_start, gen_vec->end());
+      std::sort(gen_vec->begin() + start_size, gen_vec->end(), [](_T* a, _T* b){ return *a < *b; });
       return gen_vec;
     }
 

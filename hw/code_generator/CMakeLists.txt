@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-set(BIN_NAME type_checker)
-set(QUACK_DIR quack)
+set(BIN_NAME code_generator)
 
 project(${BIN_NAME})
 set(CMAKE_CXX_STANDARD 14)
@@ -10,8 +9,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
-# Where are the reflex include and library files?
-#
+# ToDo verify Boost on ix-dev
 find_package(Boost 1.45.0 COMPONENTS filesystem )
 
 IF(APPLE)
@@ -47,11 +45,12 @@ add_executable(${BIN_NAME}
                main.cpp
                quack_program.h
                quack_class.h quack_class.cpp
+               quack_param.h quack_param.cpp
+               quack_field.h
                lex.yy.h lex.yy.cpp quack.tab.cxx
                messages.h messages.cpp
                ASTNode.h ASTNode.cpp
                type_checker.h
-               quack_field.h
                symbol_table.h
                initialized_list.h
                exceptions.h

@@ -26,6 +26,9 @@ namespace Quack {
       const void print_original_src(unsigned int indent_depth) {
         VectorContainer<Param>::print_original_src_(indent_depth, ", ");
       }
+
+      void generate_code(CodeGen::Settings settings, bool include_param_names,
+                         bool generate_first_comma=true);
     };
 
     Param(const std::string &name, const std::string &type_name = "")

@@ -65,15 +65,6 @@ namespace Quack {
       block_->print_original_src(indent_depth + 1);
       std::cout << (!block_->empty() ? "\n" : "") << indent_str << "}";
     }
-    /**
-     * Sorts methods by their name.
-     *
-     * @param other Other object to sort
-     * @return True if the implicit object should appear before \p other
-     */
-    bool operator<(const Method &other) const {
-      return name_ < other.name_;
-    }
     /** Name of the method */
     const std::string name_;
     /** Type of the return object */

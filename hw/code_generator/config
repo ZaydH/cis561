@@ -1,0 +1,7 @@
+[DEFAULT]
+name =  Zayd Hammoudeh
+host =  ix-dev.cs.uoregon.edu
+path =  /home/users/zayd/repos/cis561/hw/code_generator/bin
+program = code_generator
+repo = https://github.com/ZaydH/cis561
+repo_folder = hw/code_generator/

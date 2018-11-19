@@ -40,14 +40,16 @@ namespace CodeGen {
     void run() {
       export_includes();
 
+      CodeGen::Settings settings(fout_);
+
       for (auto & class_pair : *Quack::Class::Container::singleton()) {
         Quack::Class * q_class = class_pair.second;
         if (!q_class->is_user_class())
           continue;
-        generate_class(q_class);
+        q_class->generate_code(settings);
       }
 
-      export_main();
+      export_main(settings);
       std::cout << "Code generated completed successfully." << std::endl;
     }
 
@@ -63,39 +65,25 @@ namespace CodeGen {
       }
       fout_ << std::endl;
     }
-
-    void generate_class(Quack::Class * q_class) {
-      assert(q_class->is_user_class());
-      fout_ << "/*===================== " << q_class->name_ << " =====================*/\n"
-            << "/* Typedefs Required for Separation of class and object structs */\n"
-            << "struct " << q_class->generated_struct_clazz_name() << ";\n"
-            << "typedef struct " << q_class->generated_struct_clazz_name()
-            << "* " << q_class->generated_clazz_name() << ";\n"
-            << std::endl;
-
-      q_class->generate_object_struct(fout_);
-      fout_ << "\n";
-      q_class->generate_class_struct(fout_);
-
-      fout_ << std::endl;
-    }
     /**
      * Helper function to generate the C code associated with the main function call.
      *
      * @param main_subfunc_name Name of the function to be called inside main.
      */
-    void generate_main(const std::string &main_subfunc_name) {
+    void generate_main(CodeGen::Settings settings, const std::string &main_subfunc_name) {
       Quack::Class * nothing_class = Quack::Class::Container::singleton()->get(CLASS_NOTHING);
-      fout_ << nothing_class->generated_object_name() << " " << main_subfunc_name << "() {\n" ;
-      // ToDo export main code
-      Settings settings(fout_);
+
+      fout_ << "\n"
+            << nothing_class->generated_object_name() << " " << main_subfunc_name << "() {\n";
+
       prog_->main_->block_->generate_code(settings);
+
       fout_ << AST::ASTNode::indent_str(1) << "return none;\n"
             << "}" << std::endl;
     }
     /** Writes the main() function to the output file. */
-    void export_main() {
-      generate_main(METHOD_MAIN);
+    void export_main(CodeGen::Settings settings) {
+      generate_main(settings, METHOD_MAIN);
 
       fout_ << "\n\n" << "int main() {"
             << "\n" << AST::ASTNode::indent_str(1) << METHOD_MAIN << "();\n"

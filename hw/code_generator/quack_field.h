@@ -52,15 +52,6 @@ namespace Quack {
     };
 
     explicit Field(std::string name) : name_(std::move(name)), type_(nullptr) { }
-    /**
-     * Sorts fields by their name.
-     *
-     * @param other Other object to sort
-     * @return True if the implicit object should appear before \p other
-     */
-    bool operator<(const Field &other) const {
-      return name_ < other.name_;
-    }
 
     std::string name_;
     Class* type_ = nullptr;

@@ -25,6 +25,7 @@ namespace Quack {
   class Class {
     friend class TypeChecker;
    public:
+
     class Container : public MapContainer<Class> {
      public:
       /**
@@ -95,7 +96,7 @@ namespace Quack {
     Class(char* name, char * super_type, Param::Container* params,
           AST::Block* constructor, Method::Container* methods)
       : name_(name), super_type_name_(strcmp(super_type, "") == 0 ? CLASS_OBJ : super_type),
-        super_(OBJECT_NOT_FOUND), methods_(methods) {
+        super_(OBJECT_NOT_FOUND), methods_(methods), gen_methods_(nullptr), gen_fields_(nullptr) {
 
       fields_ = new Field::Container();
 
@@ -341,8 +342,8 @@ namespace Quack {
      * @param method Method object
      * @return Method name for the class
      */
-    std::string export_method_name(Method * method) const {
-      return name_ + "_method_" + method->name_;
+    static std::string generated_method_name(Class* q_class, Method * method) {
+      return q_class->name_ + "_method_" + method->name_;
     }
 //    /**
 //     * Accessor for all the methods in the class.
@@ -420,51 +421,128 @@ namespace Quack {
     }
 
 
-    void generate_class_struct(std::ofstream & f_out) {
-      f_out << "struct " << generated_struct_clazz_name() << " {";
+    void generate_class_struct(CodeGen::Settings settings) {
+      settings.fout_ << "struct " << generated_struct_clazz_name() << " {";
 
       // Put constructor function pointer
       std::string indent = AST::ASTNode::indent_str(1);
-      f_out << "\n" << indent << generated_object_name() << " (*" << METHOD_CONSTRUCTOR << ")(";
-      bool is_first = true;
-      for (auto * param : *constructor_->params_) {
-        if (!is_first)
-          f_out << ", ";
-        is_first = false;
-        f_out << param->type_->generated_object_name() << " " << param->name_;
-      }
-      f_out << ");";
+      settings.fout_ << "\n" << indent << generated_object_name()
+                     << " (*" << METHOD_CONSTRUCTOR << ")(";
+      constructor_->params_->generate_code(settings, false, false);
+      settings.fout_ << ");";
 
       // Function pointers for all other methods
-      for (auto * method : *build_generated_methods()) {
-        f_out << "\n" << indent
-              << method->return_type_->generated_object_name()
-              << " (*" << method->name_ << ")(";
+      build_generated_methods(this);
+      for (auto method_info : *gen_methods_) {
+        settings.fout_ << "\n" << indent
+                       << method_info.second->return_type_->generated_object_name()
+                       << " (*" << method_info.second->name_ << ")(";
 
         // Parameters - Use the implicit object then the parameter list
-        f_out << this->generated_object_name() << " " << OBJECT_SELF;
-        for (auto * param : *method->params_)
-          f_out << ", " << param->type_->generated_object_name() << " " << param->name_;
+        settings.fout_ << this->generated_object_name();
+        method_info.second->params_->generate_code(settings, false);
 
-        f_out << ");";
+        settings.fout_ << ");";
       }
-      f_out << "\n};\n";
+      settings.fout_ << "\n};\n";
 
     }
-    void generate_object_struct(std::ofstream & f_out) {
-      f_out << "typedef struct {";
+    /**
+     * Generates the object struct for the class.
+     *
+     * @param settings Code generator settings
+     */
+    void generate_object_struct(CodeGen::Settings settings) {
+      settings.fout_ << "typedef struct {";
       // ToDo Add super
       // Method object field
-      f_out << "\n" << AST::ASTNode::indent_str(1)
-            << generated_clazz_name() << " " << GENERATED_CLASS_FIELD << ";";
-      for (auto * field : *build_generated_fields()) {
-        f_out << "\n" << AST::ASTNode::indent_str(1) << field->type_->generated_object_name()
-              << " " << field->name_ << ";";
-      }
-      f_out << "\n} * " << generated_object_name() << ";\n";
-    }
+      settings.fout_ << "\n" << AST::ASTNode::indent_str(1)
+                     << generated_clazz_name() << " " << GENERATED_CLASS_FIELD << ";";
 
+      build_generated_fields(this);
+      for (auto field_info : *gen_fields_) {
+        settings.fout_ << "\n" << AST::ASTNode::indent_str(1)
+                       << field_info.second->type_->generated_object_name() << " "
+                       << field_info.second->name_ << ";";
+      }
+      settings.fout_ << "\n} * " << generated_object_name() << ";\n";
+    }
+    const std::string generated_clazz_obj_name() const {
+      return "the_" + generated_struct_clazz_name();
+    }
+    /**
+     * The "Clazz" object contains a lookup of all the methods in the class itself. This is
+     * attached as a field in the constructor.
+     *
+     * @param settings Code generator settings
+     */
+    void generate_clazz_object(CodeGen::Settings settings) {
+      settings.fout_ << "\n\nstruct " << generated_clazz_obj_name() << " = {\n";
+
+      std::string indent_str = AST::ASTNode::indent_str(1);
+      settings.fout_ << indent_str << generated_constructor_name();
+
+      build_generated_methods(this);
+      for (auto method_info : *gen_methods_)
+        settings.fout_ << ",\n" << generated_method_name(method_info.first, method_info.second);
+
+      settings.fout_ << "\n};\n";
+    }
+    void generate_class_methods(CodeGen::Settings settings) {
+      assert(false);
+    }
+    void generate_code(CodeGen::Settings settings) {
+      assert(this->is_user_class());
+
+      settings.fout_ << "/*======================= " << name_ << " =======================*/\n"
+                     << "/* Typedefs Required for Separation of class and object structs */\n"
+                     << "struct " << generated_struct_clazz_name() << ";\n"
+                     << "typedef struct " << generated_struct_clazz_name()
+                     << "* " << generated_clazz_name() << ";\n"
+                     << std::endl;
+
+      generate_object_struct(settings);
+      settings.fout_ << "\n";
+      generate_class_struct(settings);
+
+      generate_constructor(settings);
+//      q_class->generate_class_methods(settings);
+
+      settings.fout_ << std::endl;
+    }
+    /**
+     * Generates code for the class constructor.
+     *
+     * @param settings Code generator settings
+     */
+    void generate_constructor(CodeGen::Settings settings) {
+
+      settings.fout_ << "\n"
+                     << generated_object_name() << " " << generated_constructor_name() << "(";
+
+      constructor_->params_->generate_code(settings, true, false);
+      settings.fout_ << ") {\n";
+
+      // Allocate the memory for the object itself
+      std::string indent_str = AST::ASTNode::indent_str(1);
+      settings.fout_ << indent_str << generated_object_name() << " " << OBJECT_SELF
+                     << " = (" << generated_object_name() << ")malloc(sizeof("
+                     << generated_object_name() << "));\n";
+
+      // Define the object that will store the class methods
+      settings.fout_ << indent_str << OBJECT_SELF << "->" << GENERATED_CLASS_FIELD
+                     << " = " << generated_clazz_obj_name() << ";";
+
+      // ToDo restore constructor code generation
+//      constructor_->block_->generate_code(settings, 1);
+
+      settings.fout_ << "\n" << indent_str << "return " << OBJECT_SELF << ";";
+      settings.fout_ << "\n};";
+    }
    private:
+    /** Container used to store generated objects in the class */
+    template <typename _S>
+    class GenObjContainer : public std::vector<std::pair<Class *, _S*>> {};
     /**
      * Configures the super class pointer for the object.
      */
@@ -515,29 +593,24 @@ namespace Quack {
      *
      * @return Vector of generated methods in order matching super classes.
      */
-    std::vector<Method*>* build_generated_methods() {
-      std::vector<Method*>* gen_methods;
-      if (!super_)
-        gen_methods = new std::vector<Method*>();
-      else
-        gen_methods = super_->build_generated_methods();
-
-      return build_generated_list<Method>(gen_methods, methods_);
+    static GenObjContainer<Method>* build_generated_methods(Class * q_class) {
+      q_class->gen_methods_ =  build_generated_list<Method>(q_class, q_class->gen_methods_,
+                                                            q_class->methods_,
+                                                            Class::build_generated_methods);
+      return q_class->gen_methods_;
     }
     /**
      * Build the generated field list that will be used in code generation.  Order of the fields
      * matches the order of all inherited classes.
      *
-     * @return Vector of the generated fields
+     * @param q_class Class of interest generating the fields
+     * @return Vector of the generated fields along with the associated class that generates it
      */
-    std::vector<Field*>* build_generated_fields() {
-      std::vector<Field*>* gen_fields;
-      if (!super_)
-        gen_fields = new std::vector<Field*>();
-      else
-        gen_fields = super_->build_generated_fields();
-
-      return build_generated_list<Field>(gen_fields, fields_);
+    static GenObjContainer<Field>* build_generated_fields(Class * q_class) {
+      q_class->gen_fields_ = build_generated_list<Field>(q_class, q_class->gen_fields_,
+                                                         q_class->fields_,
+                                                         Class::build_generated_fields);
+      return q_class->gen_fields_;
     }
     /**
      * Helper function used to build the generated objects (i.e., fields or methods) for code
@@ -549,16 +622,30 @@ namespace Quack {
      * @return Updated list of fields and methods
      */
     template <typename _T>
-    static std::vector<_T*> * build_generated_list(std::vector<_T*>* gen_vec,
-                                                   MapContainer<_T>* container) {
+    static GenObjContainer<_T>* build_generated_list(Class * q_class, GenObjContainer<_T>* gen_vec,
+                                                     MapContainer<_T>* container,
+                                                     GenObjContainer<_T>* (*gen_func)(Class*)) {
+      // Repeat building the object container multiple times for the same object
+      if (gen_vec)
+        return gen_vec;
+
+      // Get all objects from the super class
+      if (q_class->super_) {
+        auto * temp_gen_fields = gen_func(q_class->super_);
+        gen_vec = new GenObjContainer<_T>(*temp_gen_fields);
+      } else {
+        gen_vec = new GenObjContainer<_T>();
+      }
+
+      // Add remaining objects in this class
       unsigned long start_size = gen_vec->size();
       for (auto obj_pair : *container) {
         _T * obj = obj_pair.second;
         bool found = false;
         // "Override" the existing object in the vector
         for (int i = 0; i < gen_vec->size(); i++) {
-          if ((*gen_vec)[i]->name_ == obj->name_) {
-            (*gen_vec)[i] = obj;
+          if ((*gen_vec)[i].second->name_ == obj->name_) {
+            (*gen_vec)[i] = std::pair<Class*, _T*>(q_class, obj);
             found = true;
             break;
           }
@@ -566,18 +653,34 @@ namespace Quack {
         // If not found, then add this item to the list
         if (found)
           continue;
-        gen_vec->emplace_back(obj);
+        gen_vec->emplace_back(std::pair<Class *, _T*>(q_class, obj));
       }
+
       // Sort only the stuff that is added
-      std::sort(gen_vec->begin() + start_size, gen_vec->end(), [](_T* a, _T* b){ return *a < *b; });
+      std::sort(gen_vec->begin() + start_size, gen_vec->end(), template_pair_less_than<_T>);
       return gen_vec;
     }
-
+    /**
+     * Sort function used to compare two pair obbjects
+     *
+     * @tparam _T Template type stored in the pair
+     * @param a First object
+     * @param b Second object
+     * @return True if the name_ field of the \p a is less than the name_ field of \p b.
+     */
+    template <typename _T>
+    static bool template_pair_less_than(std::pair<Class*, _T*> a, std::pair<Class*, _T*> b) {
+      return a.second->name_ < b.second->name_;
+    }
    protected:
     /** All methods supported by the class */
     Method::Container* methods_;
     /** Name of all fields in the class */
     Field::Container* fields_;
+    /** Generated methods for the class in order*/
+    GenObjContainer<Method>* gen_methods_;
+    /** Generated fields for the class in order */
+    GenObjContainer<Field>* gen_fields_;
     /**
      * Used to add binary operation methods to the a class.  Only used for base classes
      * like Obj, Boolean, Integer, etc.

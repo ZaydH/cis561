@@ -823,11 +823,6 @@ namespace AST {
         return METHOD_LT;
       else if (op == "==")
         return METHOD_EQUALITY;
-      // ToDo Make And and Or custom nodes in the tree (maybe)
-      else if (op == "and")
-        return METHOD_AND;
-      else if (op == "or")
-        return METHOD_OR;
       throw UnknownBinOpException(op);
     }
     /**
@@ -837,8 +832,8 @@ namespace AST {
      * @param settings Code generator settings
      * @param indent_lvl Level of indentation
      */
-    void generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
-                       const std::string implicit_arg) override {
+    virtual void generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                               const std::string implicit_arg) override {
       // Create the ObjectCall stand-in AST node
       RhsArgs * args = new RhsArgs();
       args->add(right_);
@@ -852,6 +847,17 @@ namespace AST {
 
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
   };
+
+  struct BoolOp : public BinOp {
+    /** Boolean operator constructor */
+    BoolOp(const std::string &sym, ASTNode *l, ASTNode *r) : BinOp(sym, l, r) {};
+
+    virtual void generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                               const std::string implicit_arg) override {
+      assert(false);
+    }
+  };
+
 
   struct Typing : public ASTNode {
     Typing(ASTNode* expr, const std::string &type_name) : expr_(expr), type_name_(type_name) {}

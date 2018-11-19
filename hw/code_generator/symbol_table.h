@@ -14,8 +14,11 @@ typedef std::pair<std::string, bool> SymbolKey;
 
 // Forward declarations
 namespace Quack{ class Class; }
+namespace CodeGen { class Gen; }
 
 class Symbol {
+  friend class CodeGen::Gen;
+  friend class Quack::Class;
   friend class Table;
  public:
   class Table {
@@ -98,6 +101,18 @@ class Symbol {
         throw UnknownSymbolException(symbol_name);
       return itr->second;
     }
+    /**
+     * Returns an iterator to the beginning of the objects in the symbol table
+     *
+     * @return Beginning of the symbol table
+     */
+    typename std::map<SymbolKey, Symbol*>::iterator begin() { return objs_.begin(); }
+    /**
+     * Returns an iterator the end of the object in the symbol table
+     *
+     * @return End of the symbol table
+     */
+    typename std::map<SymbolKey, Symbol*>::iterator end() { return objs_.end(); }
    private:
     /**
      * Checks whether the specified key exists in the symbol table.

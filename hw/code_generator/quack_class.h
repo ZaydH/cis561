@@ -577,6 +577,25 @@ namespace Quack {
                      << " = &" << class_obj_struct << ";";
     }
     /**
+     * Generates code defining all non-fields and non-implicit parameters in a method.
+     *
+     * @param settings Code generator settings
+     * @param indent_lvl Indentation level.
+     * @param st Symbol table containing the symbols in a method
+     */
+    void generate_symbol_table(CodeGen::Settings settings, unsigned indent_lvl, Method * method) {
+      std::string indent_str = AST::ASTNode::indent_str(indent_lvl);
+
+      for (const auto &symbol_info : *method->symbol_table_) {
+        Symbol * sym = symbol_info.second;
+        if (sym->is_field_ || method->params_->get(sym->name_) || sym->name_ == OBJECT_SELF)
+          continue;
+
+        settings.fout_ << "\n" << indent_str;
+        settings.fout_ << sym->get_type()->generated_object_type_name() << " " << sym->name_ << ";";
+      }
+    }
+    /**
      * Generates code for the class constructor.
      *
      * @param settings Code generator settings
@@ -584,11 +603,11 @@ namespace Quack {
     void generate_constructor(CodeGen::Settings settings) {
       settings.fout_ << "\n";
       generate_method_prototype(settings, constructor_, true);
-      settings.fout_ << " {\n";
+      settings.fout_ << " {";
 
       // Allocate the memory for the object itself
       std::string indent_str = AST::ASTNode::indent_str(1);
-      settings.fout_ << indent_str << generated_object_type_name() << " " << OBJECT_SELF
+      settings.fout_ << "\n" << indent_str << generated_object_type_name() << " " << OBJECT_SELF
                      << " = (" << generated_object_type_name() << ")malloc(sizeof("
                      << generated_object_type_name() << "));\n";
 
@@ -596,6 +615,7 @@ namespace Quack {
       settings.fout_ << indent_str << OBJECT_SELF << "->" << GENERATED_CLASS_FIELD
                      << " = " << generated_clazz_obj_name() << ";";
 
+      generate_symbol_table(settings, 1, constructor_);
       constructor_->block_->generate_code(settings, 1);
 
       settings.fout_ << "\n" << indent_str << "return " << OBJECT_SELF << ";";
@@ -613,7 +633,9 @@ namespace Quack {
         // Define function header
         settings.fout_ << "\n";
         generate_method_prototype(settings, method);
-        settings.fout_ << " {\n";
+        settings.fout_ << " {";
+
+        generate_symbol_table(settings, 1, method);
 
         method->block_->generate_code(settings, 1);
 

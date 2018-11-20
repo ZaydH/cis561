@@ -58,10 +58,8 @@ namespace AST {
      *
      * @return True if type inference was successful.
      */
-    virtual bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) {
-      // ToDo Switch perform type inference to pure virtual
-      throw ("Should not be here");
-    };
+    virtual bool perform_type_inference(TypeCheck::Settings &settings,
+                                        Quack::Class * parent_type) = 0;
     /**
      * Updates the symbol table and the nodes using an inferred type
      *
@@ -89,10 +87,7 @@ namespace AST {
     inline Quack::Class* get_node_type() { return type_; }
 
     virtual std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
-                                      bool is_lhs) const {
-      // ToDo Switch generate code to pure virtual
-      throw std::runtime_error("Unexpected generic code generation call.");
-    }
+                                      bool is_lhs) const = 0;
 
     void generate_eval_branch(CodeGen::Settings settings, const unsigned indent_lvl,
                               const std::string &true_label, const std::string &false_label);
@@ -505,38 +500,6 @@ namespace AST {
       std::ostringstream ss;
       ss << GENERATE_LIT_STRING_FUNC << "(\"" << value_ << "\")";
       return generate_temp_var(ss.str(), settings, indent_lvl, false);
-    }
-
-    bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
-  };
-
-  struct UniOp : public ASTNode {
-    std::string opsym;
-    ASTNode *right_;
-
-    UniOp(const std::string &sym, ASTNode *r) : opsym{std::move(sym)}, right_{r} {};
-
-    ~UniOp() { delete right_; }
-
-    void print_original_src(unsigned int indent_depth = 0) override {
-      std::cout << "(" << opsym << " ";
-      right_->print_original_src();
-      std::cout << ")";
-    }
-    /**
-     * Checks if the initialize before use test passes on the right subexpression.
-     *
-     * @param inits Set of initialized variables.
-     * @return True if the initialized before use test passes for the right subexpression.
-     */
-    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
-                                     bool is_method) override {
-      return right_->check_initialize_before_use(inits, all_inits, is_method);
-    }
-
-    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
-                              bool is_lhs) const override {
-      assert(false);
     }
 
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
@@ -1052,6 +1015,36 @@ namespace AST {
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class *parent_type) override;
   };
 
+  struct UniOp : public ASTNode {
+    std::string opsym;
+    ASTNode *right_;
+
+    UniOp(const std::string &sym, ASTNode *r) : opsym{std::move(sym)}, right_{r} {};
+
+    ~UniOp() { delete right_; }
+
+    void print_original_src(unsigned int indent_depth = 0) override {
+      std::cout << "(" << opsym << " ";
+      right_->print_original_src();
+      std::cout << ")";
+    }
+    /**
+     * Checks if the initialize before use test passes on the right subexpression.
+     *
+     * @param inits Set of initialized variables.
+     * @return True if the initialized before use test passes for the right subexpression.
+     */
+    bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
+                                     bool is_method) override {
+      return right_->check_initialize_before_use(inits, all_inits, is_method);
+    }
+
+    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                              bool is_lhs) const override;
+
+    bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
+  };
+
   struct Typing : public ASTNode {
     Typing(ASTNode* expr, const std::string &type_name) : expr_(expr), type_name_(type_name) {}
 
@@ -1070,13 +1063,13 @@ namespace AST {
 
     std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
                               bool is_lhs) const override;
-    /**
-     * Helper function used to check if the specified type name actually exists.
-     *
-     * @param type_name Name of the type used
-     * @return True if the type_name_ is a valid class.
-     */
-    bool check_type_name_exists(const std::string &type_name) const;
+//    /**
+//     * Helper function used to check if the specified type name actually exists.
+//     *
+//     * @param type_name Name of the type used
+//     * @return True if the type_name_ is a valid class.
+//     */
+//    bool check_type_name_exists(const std::string &type_name) const;
 
     bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
                                      bool is_method) override {
@@ -1197,7 +1190,6 @@ namespace AST {
   };
 
   struct Typecase : public ASTNode {
-    // ToDo No typechecking in typecase
     Typecase(ASTNode* expr, std::vector<TypeAlternative*>* alts) : expr_(expr), alts_(alts) {}
 
     ~Typecase() {

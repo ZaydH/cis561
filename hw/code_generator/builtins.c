@@ -16,7 +16,7 @@
  * Fields: None
  * Methods:
  *    Constructor  (called after allocation)
- *    STRING
+ *    STR
  *    PRINT
  *    EQUALS
  *
@@ -32,7 +32,7 @@ obj_Obj new_Obj() {
   return new_thing;
 }
 
-/* Obj:STRING */
+/* Obj:STR */
 obj_String Obj_method_STR(obj_Obj this) {
   char * rep;
   asprintf(&rep, "<Object at %08x>", (unsigned)this);
@@ -42,7 +42,7 @@ obj_String Obj_method_STR(obj_Obj this) {
 
 /* Obj:PRINT */
 obj_Obj Obj_method_PRINT(obj_Obj this) {
-  obj_String str = this->clazz->STRING(this);
+  obj_String str = this->clazz->STR(this);
   fprintf(stdout, "%s", str->text);
   return this;
 }
@@ -86,7 +86,7 @@ obj_String new_String(  ) {
   return new_thing;
 }
 
-/* String:STRING */
+/* String:STR */
 obj_String String_method_STR(obj_String this) {
   return this;
 }
@@ -170,7 +170,7 @@ obj_Boolean new_Boolean(  ) {
   return new_thing;
 }
 
-/* Boolean:STRING */
+/* Boolean:STR */
 obj_String Boolean_method_STR(obj_Boolean this) {
   if (this == lit_true) {
     return str_literal("true");
@@ -187,7 +187,7 @@ obj_String Boolean_method_STR(obj_Boolean this) {
  * objects of class Boolean.
  */
 
-/* Inherit Obj:PRINT, which will call Boolean:STRING */
+/* Inherit Obj:PRINT, which will call Boolean:STR */
 
 /* The Boolean Class (a singleton) */
 struct  class_Boolean_struct  the_class_Boolean_struct = {
@@ -214,7 +214,7 @@ obj_Boolean lit_true = &lit_true_struct;
  * Fields: None
  * Methods:
  *    Constructor  (called after allocation)
- *    STRING
+ *    STR
  *    PRINT
  *    EQUALS
  *
@@ -225,7 +225,7 @@ obj_Nothing new_Nothing(  ) {
   return none;
 }
 
-/* Boolean:STRING */
+/* Boolean:STR */
 obj_String Nothing_method_STR(obj_Nothing this) {
     return str_literal("<nothing>");
 }
@@ -234,7 +234,7 @@ obj_String Nothing_method_STR(obj_Nothing this) {
  * object of class None
  */
 
-/* Inherit Obj:PRINT, which will call Nothing:STRING */
+/* Inherit Obj:PRINT, which will call Nothing:STR */
 
 /* The Nothing Class (a singleton) */
 struct  class_Nothing_struct  the_class_Nothing_struct = {
@@ -273,7 +273,7 @@ obj_Int new_Int(  ) {
   return new_thing;
 }
 
-/* Int:STRING */
+/* Int:STR */
 obj_String Int_method_STR(obj_Int this) {
   char *rep;
   asprintf(&rep, "%d", this->value);
@@ -290,7 +290,7 @@ obj_Boolean Int_method_EQUALS(obj_Int this, obj_Obj other) {
   return lit_true;
 }
 
-/* Inherit Obj:PRINT, which will call Int:STRING */
+/* Inherit Obj:PRINT, which will call Int:STR */
 // FixMe Inherit Obj::Print
 
 /* LESS (new method) */

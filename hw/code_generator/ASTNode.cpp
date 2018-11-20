@@ -43,12 +43,12 @@ namespace AST {
       generate_goto(settings, indent_lvl, false_label, true);
   }
 
-  bool Typing::check_type_name_exists(const std::string &type_name) const {
-    if (!type_name.empty() && !Quack::Class::Container::singleton()->exists(type_name)) {
-      throw UnknownTypeException(type_name);
-    }
-    return true;
-  }
+//  bool Typing::check_type_name_exists(const std::string &type_name) const {
+//    if (!type_name.empty() && !Quack::Class::Container::singleton()->exists(type_name)) {
+//      throw UnknownTypeException(type_name);
+//    }
+//    return true;
+//  }
 
   bool Typing::update_inferred_type(TypeCheck::Settings &settings, Quack::Class *inferred_type,
                                     bool is_field) {
@@ -214,12 +214,29 @@ namespace AST {
     if (type_ == BASE_CLASS)
       throw TypeInferenceException("UniOp", "Unary operator called on statement of no type");
 
-    if ((opsym == UNARY_OP_NEG && type_ != Quack::Class::Container::Int())
-        || (opsym == UNARY_OP_NOT && type_ != Quack::Class::Container::Bool())) {
+    if (opsym == UNARY_OP_NEG && type_ != Quack::Class::Container::Int()) {
       std::string msg = "Operator \"" + opsym + "\" does not match type " + type_->name_;
       throw TypeInferenceException("UniOp", msg);
     }
     return true;
+  }
+
+  std::string UniOp::generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                                   bool is_lhs) const {
+    if (opsym != UNARY_OP_NEG)
+      throw std::runtime_error("Only unary operation supported is \"" UNARY_OP_NEG "\"");
+
+    Quack::Class * int_class = Quack::Class::Container::singleton()->get(CLASS_INT);
+    ASTNode * left = new IntLit(0);
+    left->set_node_type(int_class);
+
+    BinOp bin_op(opsym, left, right_);
+    bin_op.set_node_type(int_class);
+    std::string var_out = bin_op.generate_code(settings, indent_lvl, false);
+
+    // Release memory to prevent getting deleted
+    bin_op.right_ = nullptr;
+    return var_out;
   }
 
   bool BinOp::perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) {
@@ -359,10 +376,10 @@ namespace AST {
   const std::string ObjectCall::process_object_call(const std::string &left_obj,
                                                     CodeGen::Settings &settings,
                                                     unsigned indent_lvl, bool is_lhs) const {
-    if (auto next = dynamic_cast<FunctionCall*>(next_))
-      return next->generate_object_call(left_obj, settings, indent_lvl, is_lhs);
-    else if (auto next = dynamic_cast<Ident*>(next_))
-      return generate_temp_var(left_obj + "->" + next->text_, settings, indent_lvl, is_lhs);
+    if (auto func_call = dynamic_cast<FunctionCall*>(next_))
+      return func_call->generate_object_call(left_obj, settings, indent_lvl, is_lhs);
+    else if (auto ident = dynamic_cast<Ident*>(next_))
+      return generate_temp_var(left_obj + "->" + ident->text_, settings, indent_lvl, is_lhs);
 
     throw std::runtime_error("Unexpected bottoming out of ObjectCall code generation");
   }

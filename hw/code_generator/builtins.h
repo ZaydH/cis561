@@ -47,7 +47,7 @@ typedef struct obj_Boolean_struct* obj_Boolean;
  * Fields: None
  * Methods:
  *    Constructor  (called after allocation)
- *    STRING
+ *    STR
  *    PRINT
  *    EQUALS
  *
@@ -66,7 +66,7 @@ struct class_Obj_struct {
   obj_Obj (*constructor) ( void );
   obj_Boolean (*EQUALS) (obj_Obj, obj_Obj);
   obj_Obj (*PRINT) (obj_Obj);
-  obj_String (*STRING) (obj_Obj);
+  obj_String (*STR) (obj_Obj);
 };
 
 extern class_Obj the_class_Obj; /* Initialized in Builtins.c */
@@ -96,7 +96,7 @@ struct class_String_struct {
   obj_Boolean (*EQUALS) (obj_String, obj_Obj);
 //  obj_String (*PRINT) (obj_String);
   obj_Obj (*PRINT) (obj_Obj);
-  obj_String (*STRING) (obj_String);
+  obj_String (*STR) (obj_String);
 
   /* Method table: Introduced in String */
   obj_Boolean (*ATLEAST) (obj_String, obj_String);
@@ -138,7 +138,7 @@ struct class_Boolean_struct {
   obj_Boolean (*constructor) ( void );
   obj_Boolean (*EQUALS) (obj_Obj, obj_Obj); /* Inherit */
   obj_Obj (*PRINT) (obj_Obj);               /* Inherit */
-  obj_String (*STRING) (obj_Boolean);
+  obj_String (*STR) (obj_Boolean);
 };
 
 extern class_Boolean the_class_Boolean;
@@ -158,7 +158,7 @@ extern obj_Boolean lit_true;
  * Fields: None
  * Methods:
  *    Constructor  (called after allocation)
- *    STRING
+ *    STR
  *    PRINT
  *    EQUALS
  *
@@ -174,7 +174,7 @@ typedef struct obj_Nothing_struct {
 
 /* Although there is little reason to call methods on the none
  * object, the only instance of Nothing, we could call PRINT on
- * it or compare it to something.  It's STRING method should return
+ * it or compare it to something.  It's STR method should return
  * "None".
  */
 struct class_Nothing_struct {
@@ -197,7 +197,7 @@ extern obj_Nothing none;
  * Fields:
  *    One hidden field, an int
  * Methods:
- *    STRING  (override)
+ *    STR  (override)
  *    PRINT   (inherit)
  *    EQUALS  (override)
  *    LESS

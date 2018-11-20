@@ -600,9 +600,8 @@ namespace Quack {
         if (sym->is_field_ || method->params_->get(sym->name_) || sym->name_ == OBJECT_SELF)
           continue;
 
-        settings.fout_ << "\n" << indent_str;
-        settings.fout_ << sym->get_type()->generated_object_type_name()
-                       << " " << sym->name_ << ";";
+        settings.fout_ << indent_str << sym->get_type()->generated_object_type_name()
+                       << " " << sym->name_ << ";\n";
       }
     }
     /**

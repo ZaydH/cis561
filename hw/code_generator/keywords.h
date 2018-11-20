@@ -54,6 +54,7 @@
 
 //#define STRUCT_TYPE_SUFFIX "_struct"
 #define GENERATED_CLASS_FIELD "clazz"
+#define TEMP_VAR_HEADER "__temp_var_"
 
 #define GENERATED_CHECK_BOOL_TRUE_FUNC "is_bool_true"
 

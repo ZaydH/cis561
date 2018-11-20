@@ -616,7 +616,8 @@ namespace Quack {
                      << " = " << generated_clazz_obj_name() << ";";
 
       generate_symbol_table(settings, 1, constructor_);
-      constructor_->block_->generate_code(settings, 1);
+      settings.fout_ << "\n" << AST::ASTNode::indent_str(1) << "/* Method statements */\n";
+      constructor_->block_->generate_code(settings, 0);
 
       settings.fout_ << "\n" << indent_str << "return " << OBJECT_SELF << ";";
       settings.fout_ << "\n}\n";
@@ -633,13 +634,13 @@ namespace Quack {
         // Define function header
         settings.fout_ << "\n";
         generate_method_prototype(settings, method);
-        settings.fout_ << " {";
+        settings.fout_ << " {\n";
 
         generate_symbol_table(settings, 1, method);
 
-        method->block_->generate_code(settings, 1);
+        method->block_->generate_code(settings, 0);
 
-        settings.fout_ << "\n}\n";
+        settings.fout_ << "}\n";
       }
     }
     /** Container used to store generated objects in the class */

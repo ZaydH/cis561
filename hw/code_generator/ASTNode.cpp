@@ -13,7 +13,8 @@
 
 namespace AST {
 
-  unsigned long ASTNode::label_counter_ = 0;
+  unsigned long ASTNode::label_cnt_ = 0;
+  unsigned long ASTNode::var_cnt_ = 0;
 
   bool Typing::check_type_name_exists(const std::string &type_name) const {
     if (!type_name.empty() && !Quack::Class::Container::singleton()->exists(type_name)) {
@@ -329,6 +330,21 @@ namespace AST {
     return success;
   }
 
+  const std::string
+  ObjectCall::process_object_call(const std::string &left_obj, CodeGen::Settings &settings,
+                                  unsigned indent_lvl) const {
+    if (auto next = dynamic_cast<FunctionCall*>(next_)) {
+      return next->generate_object_call(left_obj, settings, indent_lvl);
+    } else if (auto next = dynamic_cast<Ident*>(next_)) {
+      std::string new_var = define_new_temp_var();
+      PRINT_INDENT(indent_lvl);
+      settings.fout_ << type_->generated_object_type_name() << " "
+                     << new_var << " = " << left_obj << "->" << next->text_ << ";\n";
+      return new_var;
+    }
+    throw std::runtime_error("Unexpected bottoming out of ObjectCall code generation");
+  }
+
   bool Typecase::perform_type_inference(TypeCheck::Settings &settings, Quack::Class *parent_type) {
     // type case does not have a type
     type_ = Quack::Class::Container::singleton()->get(CLASS_NOTHING);
@@ -369,35 +385,83 @@ namespace AST {
   //                   Code Generation Related Method                   //
   //====================================================================//
 
-  void Typing::generate_code(CodeGen::Settings &settings, unsigned indent_lvl, const std::string implicit_arg) {
-    PRINT_INDENT(indent_lvl);
+  template<typename _T>
+  std::string Literal<_T>::generate_lit_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                                             const std::string &gen_func_name_) const {
+    std::string temp_var_name = define_new_temp_var();
 
-    if (!type_name_.empty()) {
-      Quack::Class * q_class = Quack::Class::Container::singleton()->get(type_name_);
-      settings.fout_ << "(" << q_class->generated_object_type_name() << ")";
-    }
-    settings.fout_ << "(";
-    expr_->generate_code(settings, 0, "");
-    settings.fout_ << ")";
+    PRINT_INDENT(indent_lvl);
+    settings.fout_ << type_->generated_object_type_name() << " " << temp_var_name << " = "
+                   << gen_func_name_ << "(" << value_ << ");\n";
+
+    return temp_var_name;
+  }
+
+  std::string Typing::generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const {
+
+    std::string gen_var = expr_->generate_code(settings, indent_lvl);
+    if (type_name_.empty())
+      return gen_var;
+
+    PRINT_INDENT(indent_lvl);
+    std::string new_var = define_new_temp_var();
+    settings.fout_ << type_->generated_object_type_name() << " " << new_var << " = "
+                   << "(" << type_->generated_object_type_name() << ")" << gen_var << ";\n";
+
+    return gen_var;
   }
 
 
-  void FunctionCall::generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
-                                   const std::string implicit_arg) {
-    // Function call may be a constructor
-    if (implicit_arg.empty()) {
-      Quack::Class * q_class = Quack::Class::Container::singleton()->get(ident_);
-      settings.fout_ << q_class->get_constructor();
-    } else {
-      settings.fout_ << ident_;
+  std::string FunctionCall::generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const {
+    Quack::Class * q_class = Quack::Class::Container::singleton()->get(ident_);
+    assert(q_class);
+
+    std::vector<std::string> * arg_vars = args_->generate_args(settings, indent_lvl);
+
+    std::string new_var = define_new_temp_var();
+
+    PRINT_INDENT(indent_lvl);
+    settings.fout_ << q_class->generated_object_type_name() << " " << new_var << " = "
+                   << q_class->generated_constructor_name() << "(";
+
+    bool first_arg = true;
+    for (const auto &arg : *arg_vars) {
+      if (!first_arg)
+        settings.fout_ << ", ";
+      first_arg = false;
+      settings.fout_ << arg;
     }
-    settings.fout_ << "(";
-    if (!implicit_arg.empty()) {
-      settings.fout_ << implicit_arg;
-      args_->generate_code(settings, 0, "");
-    }
-    // Cannot have arguments to teh function only possible if there are implicit arguments
-    assert(!implicit_arg.empty() || args_->count() == 0);
-    settings.fout_ << ")";
+    delete arg_vars;
+
+    settings.fout_ << ");\n";
+    return new_var;
+  }
+
+  std::string FunctionCall::generate_object_call(std::string object_name,
+                                                 CodeGen::Settings &settings,
+                                                 unsigned indent_lvl) const {
+    std::vector<std::string>* func_tmp_args = args_->generate_args(settings, indent_lvl);
+    std::string new_var_name = define_new_temp_var();
+
+    PRINT_INDENT(indent_lvl);
+    settings.fout_ << type_->generated_object_type_name() << " " << new_var_name << " = "
+                   << object_name << "->" << ident_ << "(" << object_name;
+    for (const auto &arg : *func_tmp_args)
+      settings.fout_ << ", " << arg;
+    delete func_tmp_args;
+
+    settings.fout_ << ");\n";
+    return new_var_name;
+  }
+
+  std::string Assn::generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const {
+    std::string rhs_var = rhs_->generate_code(settings, indent_lvl);
+    std::string lhs_var = lhs_->generate_code(settings, indent_lvl);
+
+    PRINT_INDENT(indent_lvl);
+    settings.fout_ << rhs_->get_node_type()->generated_object_type_name() << " " << lhs_var
+                   << " = " << rhs_var << ";\n";
+
+    return NO_RETURN_VAR;
   }
 }

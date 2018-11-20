@@ -122,7 +122,7 @@ namespace AST {
     static void generate_label(CodeGen::Settings &settings, unsigned indent_lvl,
                                const std::string &label, bool add_new_line=false) {
       PRINT_INDENT(indent_lvl);
-      settings.fout_ << label << ":";
+      settings.fout_ << label << ": ; /* Null statement */";
       if (add_new_line)
         settings.fout_ << "\n";
     }
@@ -486,7 +486,7 @@ namespace AST {
   };
 
   struct StrLit : public Literal<std::string> {
-    explicit StrLit(const char* v) : Literal<std::string>(std::string("")) {}
+    explicit StrLit(const char* v) : Literal<std::string>(std::string(v)) {}
 
     void print_original_src(unsigned int indent_depth = 0) override {
       std::cout  << "\"" << value_ << "\"";

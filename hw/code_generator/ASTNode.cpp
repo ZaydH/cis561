@@ -2,6 +2,8 @@
 // Created by Michal Young on 9/12/18.
 //
 
+#include <string>
+
 #include "ASTNode.h"
 #include "quack_class.h"
 #include "quack_param.h"
@@ -44,7 +46,6 @@ namespace AST {
   bool Typing::check_type_name_exists(const std::string &type_name) const {
     if (!type_name.empty() && !Quack::Class::Container::singleton()->exists(type_name)) {
       throw UnknownTypeException(type_name);
-//      return false;
     }
     return true;
   }
@@ -250,7 +251,7 @@ namespace AST {
     }
 
     if (type_ == nullptr)
-      type_ =  method->return_type_;
+      type_ = method->return_type_;
     else
       type_ = type_->least_common_ancestor(method->return_type_);
 
@@ -475,5 +476,48 @@ namespace AST {
     settings.fout_ << lhs_var << " = " << rhs_var << ";\n";
 
     return NO_RETURN_VAR;
+  }
+
+  bool BoolOp::perform_type_inference(TypeCheck::Settings &settings, Quack::Class *parent_type) {
+
+    bool success = left_->perform_type_inference(settings, nullptr);
+
+    Quack::Class * bool_class = Quack::Class::Container::singleton()->get(CLASS_BOOL);
+
+    std::string msg;
+    if (left_->get_node_type() != bool_class) {
+      msg = "Invalid left type \"" + left_->get_node_type()->name_ + "\" for op " + opsym + "";
+      throw TypeInferenceException("BinOp", msg);
+    }
+
+    // Check the method information
+    if (opsym == METHOD_AND || opsym == METHOD_OR) {
+      if (right_ == nullptr) {
+        msg = "Right child missing for for op " + opsym + "";
+        throw TypeInferenceException("BinOp", msg);
+      }
+
+      success = success && right_->perform_type_inference(settings, nullptr);
+      if (right_->get_node_type() != bool_class) {
+        msg = "Invalid left type \"" + right_->get_node_type()->name_ + "\" for op " + opsym + "";
+        throw TypeInferenceException("BinOp", msg);
+      }
+    } else if (opsym == METHOD_NOT) {
+      // Nothing to do since single OP
+    } else {
+      throw TypeInferenceException("BoolOp", "Boolean operator \"" + opsym + "\" does not exist");
+    }
+
+    if (type_ == nullptr)
+      type_ = bool_class;
+    else
+      type_ = type_->least_common_ancestor(bool_class);
+
+    // Reconcile binary operator return type
+    if (type_ != bool_class) {
+      msg = "Invalid return type for Boolean operator \"" + opsym + "\"";
+      throw TypeInferenceException("BoolOp", msg);
+    }
+    return success;
   }
 }

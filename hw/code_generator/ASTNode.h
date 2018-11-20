@@ -167,8 +167,8 @@ namespace AST {
      * @param indent_lvl Indentation level
      * @param msg Comment message
      */
-    void generate_one_line_comment(CodeGen::Settings settings, const unsigned indent_lvl,
-                                   const std::string &msg) const {
+    static void generate_one_line_comment(CodeGen::Settings settings, const unsigned indent_lvl,
+                                          const std::string &msg) {
       PRINT_INDENT(indent_lvl);
       settings.fout_ << "/* " << msg << " */\n";
     }
@@ -479,7 +479,9 @@ namespace AST {
 
     std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
                               bool is_lhs) const override {
-      return generate_lit_code(settings, indent_lvl, GENERATE_LIT_BOOL_FUNC);
+      if (value_)
+        return GENERATED_LIT_TRUE;
+      return GENERATED_LIT_FALSE;
     }
 
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
@@ -962,7 +964,8 @@ namespace AST {
       return obj_out;
     }
 
-    bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
+    virtual bool perform_type_inference(TypeCheck::Settings &settings,
+                                        Quack::Class * parent_type) override;
   };
 
   struct BoolOp : public BinOp {
@@ -991,9 +994,9 @@ namespace AST {
       // Left Side of Boolean
       generate_one_line_comment(settings, indent_lvl, opsym + " Left Condition");
       if (opsym == METHOD_AND) {
-        left_->generate_eval_branch(settings, indent_lvl+1, bool_halfway, bool_end);
+        left_->generate_eval_branch(settings, indent_lvl + 1, bool_halfway, bool_end);
       } else if (opsym == METHOD_OR) {
-        left_->generate_eval_branch(settings, indent_lvl+1, bool_true, bool_halfway);
+        left_->generate_eval_branch(settings, indent_lvl + 1, bool_true, bool_halfway);
       } else {
         throw std::runtime_error("Unknown Boolean operator \"" + opsym + "\"");
       }
@@ -1001,7 +1004,7 @@ namespace AST {
       generate_label(settings, indent_lvl, bool_halfway);
 
       generate_one_line_comment(settings, indent_lvl, opsym + " Right Condition");
-      right_->generate_eval_branch(settings, indent_lvl+1, bool_true, bool_end);
+      right_->generate_eval_branch(settings, indent_lvl + 1, bool_true, bool_end);
 
       // Short Circuit True
       generate_one_line_comment(settings, indent_lvl, "Boolean Get True");
@@ -1015,6 +1018,7 @@ namespace AST {
       generate_one_line_comment(settings, indent_lvl, opsym + " End");
       return eval_bool;
     }
+
     /**
      * Special handling of the short circuit Boolean operators
      *
@@ -1032,19 +1036,20 @@ namespace AST {
       std::string halfway_label = define_new_label("halfway");
       if (opsym == METHOD_AND) {
         generate_one_line_comment(settings, indent_lvl, "Generate AND");
-        left_->generate_eval_branch(settings, indent_lvl+1, halfway_label, false_label);
+        left_->generate_eval_branch(settings, indent_lvl + 1, halfway_label, false_label);
         generate_label(settings, indent_lvl, halfway_label, true);
       } else if (opsym == METHOD_OR) {
         generate_one_line_comment(settings, indent_lvl, "Generate OR");
-        left_->generate_eval_branch(settings, indent_lvl+1, true_label, halfway_label);
+        left_->generate_eval_branch(settings, indent_lvl + 1, true_label, halfway_label);
         generate_label(settings, indent_lvl, halfway_label, true);
       } else {
         throw std::runtime_error("Unknown Boolean operator " + opsym);
       }
-      right_->generate_eval_branch(settings, indent_lvl+1, true_label, false_label);
+      right_->generate_eval_branch(settings, indent_lvl + 1, true_label, false_label);
     }
-  };
 
+    bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class *parent_type) override;
+  };
 
   struct Typing : public ASTNode {
     Typing(ASTNode* expr, const std::string &type_name) : expr_(expr), type_name_(type_name) {}

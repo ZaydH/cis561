@@ -41,6 +41,7 @@
 
 #define METHOD_AND "and"
 #define METHOD_OR "or"
+#define METHOD_NOT "not"
 
 #define OBJECT_SELF "this"
 #define OBJECT_NOT_FOUND nullptr

@@ -591,7 +591,8 @@ namespace Quack {
      * @param indent_lvl Indentation level.
      * @param st Symbol table containing the symbols in a method
      */
-    void generate_symbol_table(CodeGen::Settings settings, unsigned indent_lvl, Method * method) {
+    static void generate_symbol_table(CodeGen::Settings settings, unsigned indent_lvl,
+                                      Method * method) {
       std::string indent_str = AST::ASTNode::indent_str(indent_lvl);
 
       for (const auto &symbol_info : *method->symbol_table_) {

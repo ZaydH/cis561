@@ -112,7 +112,9 @@ namespace CodeGen {
       fout_ << "\n"
             << nothing_class->generated_object_type_name() << " " << main_subfunc_name << "() {\n";
 
-      prog_->main_->block_->generate_code(settings);
+      Quack::Class::generate_symbol_table(settings, 1, prog_->main_);
+      AST::ASTNode::generate_one_line_comment(settings, 1, "main Method Body");
+      prog_->main_->block_->generate_code(settings, 0);
 
       fout_ << AST::ASTNode::indent_str(1) << "return none;\n"
             << "}" << std::endl;

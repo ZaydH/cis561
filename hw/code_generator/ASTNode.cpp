@@ -16,6 +16,15 @@ namespace AST {
   unsigned long ASTNode::label_cnt_ = 0;
   unsigned long ASTNode::var_cnt_ = 0;
 
+  std::string ASTNode::generate_temp_var(const std::string &var_to_store, CodeGen::Settings settings,
+                                         unsigned indent_lvl) const {
+    std::string var_name = define_new_temp_var();
+    PRINT_INDENT(indent_lvl);
+    settings.fout_ << type_->generated_object_type_name() << " " << var_name
+                   << " = " <<  var_to_store << ";\n";
+    return var_name;
+  }
+
   bool Typing::check_type_name_exists(const std::string &type_name) const {
     if (!type_name.empty() && !Quack::Class::Container::singleton()->exists(type_name)) {
       throw UnknownTypeException(type_name);
@@ -330,18 +339,14 @@ namespace AST {
     return success;
   }
 
-  const std::string
-  ObjectCall::process_object_call(const std::string &left_obj, CodeGen::Settings &settings,
-                                  unsigned indent_lvl) const {
-    if (auto next = dynamic_cast<FunctionCall*>(next_)) {
+  const std::string ObjectCall::process_object_call(const std::string &left_obj,
+                                                    CodeGen::Settings &settings,
+                                                    unsigned indent_lvl) const {
+    if (auto next = dynamic_cast<FunctionCall*>(next_))
       return next->generate_object_call(left_obj, settings, indent_lvl);
-    } else if (auto next = dynamic_cast<Ident*>(next_)) {
-      std::string new_var = define_new_temp_var();
-      PRINT_INDENT(indent_lvl);
-      settings.fout_ << type_->generated_object_type_name() << " "
-                     << new_var << " = " << left_obj << "->" << next->text_ << ";\n";
-      return new_var;
-    }
+    else if (auto next = dynamic_cast<Ident*>(next_))
+      return generate_temp_var(left_obj + "->" + next->text_, settings, indent_lvl);
+
     throw std::runtime_error("Unexpected bottoming out of ObjectCall code generation");
   }
 
@@ -388,13 +393,9 @@ namespace AST {
   template<typename _T>
   std::string Literal<_T>::generate_lit_code(CodeGen::Settings &settings, unsigned indent_lvl,
                                              const std::string &gen_func_name_) const {
-    std::string temp_var_name = define_new_temp_var();
-
-    PRINT_INDENT(indent_lvl);
-    settings.fout_ << type_->generated_object_type_name() << " " << temp_var_name << " = "
-                   << gen_func_name_ << "(" << value_ << ");\n";
-
-    return temp_var_name;
+    std::ostringstream ss;
+    ss << gen_func_name_ << "(" << value_ << ")";
+    return generate_temp_var(ss.str(), settings, indent_lvl);
   }
 
   std::string Typing::generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const {
@@ -403,12 +404,8 @@ namespace AST {
     if (type_name_.empty())
       return gen_var;
 
-    PRINT_INDENT(indent_lvl);
-    std::string new_var = define_new_temp_var();
-    settings.fout_ << type_->generated_object_type_name() << " " << new_var << " = "
-                   << "(" << type_->generated_object_type_name() << ")" << gen_var << ";\n";
-
-    return gen_var;
+    std::string cast_var = "(" + type_->generated_object_type_name() + ")" + gen_var;
+    return generate_temp_var(cast_var, settings, indent_lvl);
   }
 
 
@@ -418,40 +415,33 @@ namespace AST {
 
     std::vector<std::string> * arg_vars = args_->generate_args(settings, indent_lvl);
 
-    std::string new_var = define_new_temp_var();
-
-    PRINT_INDENT(indent_lvl);
-    settings.fout_ << q_class->generated_object_type_name() << " " << new_var << " = "
-                   << q_class->generated_constructor_name() << "(";
-
+    std::ostringstream ss;
+    ss << q_class->generated_constructor_name() << "(";
     bool first_arg = true;
     for (const auto &arg : *arg_vars) {
       if (!first_arg)
-        settings.fout_ << ", ";
+        ss << ", ";
       first_arg = false;
-      settings.fout_ << arg;
+      ss << arg;
     }
+    ss << ")";
     delete arg_vars;
 
-    settings.fout_ << ");\n";
-    return new_var;
+    return generate_temp_var(ss.str(), settings, indent_lvl);
   }
 
   std::string FunctionCall::generate_object_call(std::string object_name,
                                                  CodeGen::Settings &settings,
                                                  unsigned indent_lvl) const {
     std::vector<std::string>* func_tmp_args = args_->generate_args(settings, indent_lvl);
-    std::string new_var_name = define_new_temp_var();
-
-    PRINT_INDENT(indent_lvl);
-    settings.fout_ << type_->generated_object_type_name() << " " << new_var_name << " = "
-                   << object_name << "->" << ident_ << "(" << object_name;
+    std::ostringstream ss;
+    ss  << object_name << "->" << GENERATED_CLASS_FIELD << "->" << ident_ << "(" << object_name;
     for (const auto &arg : *func_tmp_args)
-      settings.fout_ << ", " << arg;
+      ss << ", " << arg;
+    ss << ")";
     delete func_tmp_args;
 
-    settings.fout_ << ");\n";
-    return new_var_name;
+    return generate_temp_var(ss.str(), settings, indent_lvl);
   }
 
   std::string Assn::generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const {
@@ -459,8 +449,7 @@ namespace AST {
     std::string lhs_var = lhs_->generate_code(settings, indent_lvl);
 
     PRINT_INDENT(indent_lvl);
-    settings.fout_ << rhs_->get_node_type()->generated_object_type_name() << " " << lhs_var
-                   << " = " << rhs_var << ";\n";
+    settings.fout_ << lhs_var << " = " << rhs_var << ";\n";
 
     return NO_RETURN_VAR;
   }

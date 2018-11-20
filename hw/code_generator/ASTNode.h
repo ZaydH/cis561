@@ -146,6 +146,17 @@ namespace AST {
       ss << TEMP_VAR_HEADER << std::setfill('0') << std::setw(PADDING_WIDTH) << var_cnt_++;
       return ss.str();
     }
+    /**
+     * Helper function that standardizes the generation of new temporary variables.
+     *
+     * @param var_to_store Variable to store in a temporary
+     * @param settings Code generation settings
+     * @param indent_lvl Level of indentation
+     * @return Pointer to the memory location
+     */
+    std::string generate_temp_var(const std::string &var_to_store, CodeGen::Settings settings,
+                                  unsigned indent_lvl) const;
+
    protected:
     /** Type for the node */
     Quack::Class * type_ = nullptr;
@@ -390,7 +401,6 @@ namespace AST {
      * @param indent_lvl Level of indentation.
      */
     std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const override {
-      settings.fout_ << text_;
       return text_;
     }
     /** Identifier name */
@@ -537,7 +547,7 @@ namespace AST {
      * @param indent_lvl Level of indentation
      */
     std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const override {
-      std::string temp_var_name = right_->generate_code(settings, 0);
+      std::string temp_var_name = right_->generate_code(settings, indent_lvl);
 
       PRINT_INDENT(indent_lvl);
       settings.fout_ << "return " << temp_var_name << ";\n";
@@ -676,8 +686,14 @@ namespace AST {
                                             unsigned indent_lvl) const {
       std::vector<std::string> * gen_args = new std::vector<std::string>();
 
-      for (auto * arg: args_)
-        gen_args->emplace_back(arg->generate_code(settings, indent_lvl));
+      for (auto * arg: args_) {
+        if (auto arg_cast = dynamic_cast<Ident *>(arg)) {
+          gen_args->emplace_back(arg_cast->text_);
+        } else {
+          std::string temp_var = arg->generate_code(settings, indent_lvl);
+          gen_args->emplace_back(temp_var);
+        }
+      }
 
       return gen_args;
     }

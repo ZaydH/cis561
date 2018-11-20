@@ -592,7 +592,8 @@ namespace Quack {
           continue;
 
         settings.fout_ << "\n" << indent_str;
-        settings.fout_ << sym->get_type()->generated_object_type_name() << " " << sym->name_ << ";";
+        settings.fout_ << sym->get_type()->generated_object_type_name()
+                       << " " << sym->name_ << ";";
       }
     }
     /**

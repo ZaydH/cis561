@@ -56,10 +56,12 @@
 #define GENERATED_CLASS_FIELD "clazz"
 #define TEMP_VAR_HEADER "__temp_var_"
 
-#define GENERATED_CHECK_BOOL_TRUE_FUNC "is_bool_true"
-
 #define GENERATE_LIT_INT_FUNC "int_literal"
 #define GENERATE_LIT_STRING_FUNC "str_literal"
 #define GENERATE_LIT_BOOL_FUNC "bool_literal"
+
+#define GENERATED_LIT_TRUE "lit_true"
+#define GENERATED_LIT_FALSE "lit_false"
+#define GENERATED_NO_JUMP ""
 
 #endif //PROJECT02_KEYWORDS_H

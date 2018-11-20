@@ -27,6 +27,20 @@ namespace AST {
     return "(*" + var_name + ")";
   }
 
+  void ASTNode::generate_eval_branch(CodeGen::Settings settings, const unsigned indent_lvl,
+                                     const std::string &true_label, const std::string &false_label){
+    if (auto bool_op = dynamic_cast<BoolOp*>(this))
+      return bool_op->generate_eval_bool_op(settings, indent_lvl, true_label, false_label);
+
+    std::string gen_var = this->generate_code(settings, indent_lvl, false);
+    PRINT_INDENT(indent_lvl);
+    settings.fout_ << "if(" GENERATED_LIT_TRUE " == " << gen_var << ") { goto "
+                   << true_label << "; }\n";
+
+    if (false_label != GENERATED_NO_JUMP)
+      generate_goto(settings, indent_lvl, false_label, true);
+  }
+
   bool Typing::check_type_name_exists(const std::string &type_name) const {
     if (!type_name.empty() && !Quack::Class::Container::singleton()->exists(type_name)) {
       throw UnknownTypeException(type_name);

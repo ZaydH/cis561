@@ -91,8 +91,11 @@ namespace AST {
     virtual std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
                                       bool is_lhs) const {
       // ToDo Switch generate code to pure virtual
-      assert(false);
+      throw std::runtime_error("Unexpected generic code generation call.");
     }
+
+    void generate_eval_branch(CodeGen::Settings settings, const unsigned indent_lvl,
+                              const std::string &true_label, const std::string &false_label);
 
     static std::string indent_str(unsigned indent_level) {
       return std::string(indent_level, '\t');
@@ -157,6 +160,18 @@ namespace AST {
      */
     std::string generate_temp_var(const std::string &var_to_store, CodeGen::Settings settings,
                                   unsigned indent_lvl, bool is_lhs) const;
+    /**
+     * Standardizes creating a one line comment.
+     *
+     * @param settings Code generator settings
+     * @param indent_lvl Indentation level
+     * @param msg Comment message
+     */
+    void generate_one_line_comment(CodeGen::Settings settings, const unsigned indent_lvl,
+                                   const std::string &msg) const {
+      PRINT_INDENT(indent_lvl);
+      settings.fout_ << "/* " << msg << " */\n";
+    }
 
    protected:
     /** Type for the node */
@@ -300,26 +315,22 @@ namespace AST {
       std::string else_label = define_new_label("else");
       std::string end_if_label = define_new_label("end_if");
 
-      // ToDo check condition in the If statement
-      assert(false);
+      cond_->generate_eval_branch(settings, indent_lvl, if_label, else_label);
 
-      PRINT_INDENT(indent_lvl);
-      settings.fout_ << "/* True Part If */\n";
+      generate_one_line_comment(settings, indent_lvl, "True Part If");
       generate_label(settings, indent_lvl, if_label, true);
 
       truepart_->generate_code(settings, indent_lvl + 1);
 
       generate_goto(settings, indent_lvl, end_if_label, true);
 
-      PRINT_INDENT(indent_lvl);
-      settings.fout_ << "/* False Parse If */\n";
+      generate_one_line_comment(settings, indent_lvl, "False Part If");
       generate_label(settings, indent_lvl, else_label, true);
 
       if (falsepart_)
         falsepart_->generate_code(settings, indent_lvl + 1);
 
-      PRINT_INDENT(indent_lvl);
-      settings.fout_ << "/* End If */\n";
+      generate_one_line_comment(settings, indent_lvl, "End If");
       generate_label(settings, indent_lvl, end_if_label, true);
 
       return NO_RETURN_VAR;
@@ -623,14 +634,12 @@ namespace AST {
       if (is_lhs)
         throw std::runtime_error("While loop cannot be on LHS");
 
-      assert(false);
       std::string test_cond_label = define_new_label("test_cond");
       std::string loop_again_label = define_new_label("loop_again");
 
-      PRINT_INDENT(indent_lvl);
-      settings.fout_ << "/* WHILE LOOP */\n";
+
+      generate_one_line_comment(settings, indent_lvl, "WHILE Loop Start");
       generate_goto(settings, indent_lvl, test_cond_label, true);
-      settings.fout_ << "\n";
       generate_label(settings, indent_lvl, loop_again_label, true);
 
       // Body of the loop is a simple block
@@ -638,18 +647,13 @@ namespace AST {
 
       generate_label(settings, indent_lvl, test_cond_label, true);
 
-      // Checks while conditition
-      PRINT_INDENT(indent_lvl + 1);
-      settings.fout_ << "if(" GENERATED_CHECK_BOOL_TRUE_FUNC "(";
-      cond_->generate_code(settings, 0, false);
-      settings.fout_ << ")) ";
-      generate_goto(settings, 0, loop_again_label);
+      // Checks while condition
+      cond_->generate_eval_branch(settings, indent_lvl, loop_again_label, GENERATED_NO_JUMP);
 
       // Comment for clarity. Delete if cluttering
-      PRINT_INDENT(indent_lvl);
-      settings.fout_ << "/* END WHILE LOOP */\n";
+      generate_one_line_comment(settings, indent_lvl, "END WHILE Loop");
 
-      return "";
+      return NO_RETURN_VAR;
     }
   };
 
@@ -965,7 +969,77 @@ namespace AST {
 
     std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
                               bool is_lhs) const override {
-      assert(false);
+      if (is_lhs)
+        throw std::runtime_error("BoolOp cannot be a left hand side");
+
+      if (opsym == UNARY_OP_NOT) {
+        generate_one_line_comment(settings, indent_lvl, "NOT Start");
+        std::string op_var = left_->generate_code(settings, indent_lvl, is_lhs);
+        std::string gen_var = "(" + op_var + " == " + GENERATED_LIT_FALSE + ")";
+        return generate_temp_var(gen_var, settings, indent_lvl, false);
+      }
+      // Variable that will store the evaluated result
+      std::string eval_bool = generate_temp_var(GENERATED_LIT_FALSE, settings, indent_lvl, false);
+
+      // Labels for jumping
+      std::string bool_halfway = define_new_label(opsym + "_HALFWAY");
+      std::string bool_true = define_new_label(opsym + "_TRUE");
+      std::string bool_end = define_new_label(opsym + "_END");
+
+      // Left Side of Boolean
+      generate_one_line_comment(settings, indent_lvl, opsym + " Left Condition");
+      if (opsym == METHOD_AND) {
+        left_->generate_eval_branch(settings, indent_lvl+1, bool_halfway, bool_end);
+      } else if (opsym == METHOD_OR) {
+        left_->generate_eval_branch(settings, indent_lvl+1, bool_true, bool_halfway);
+      } else {
+        throw std::runtime_error("Unknown Boolean operator \"" + opsym + "\"");
+      }
+
+      generate_label(settings, indent_lvl, bool_halfway);
+
+      generate_one_line_comment(settings, indent_lvl, opsym + " Right Condition");
+      right_->generate_eval_branch(settings, indent_lvl+1, bool_true, bool_end);
+
+      // Short Circuit True
+      generate_one_line_comment(settings, indent_lvl, "Boolean Get True");
+      generate_label(settings, indent_lvl, bool_true, true);
+      PRINT_INDENT(indent_lvl);
+      settings.fout_ << eval_bool << " = " << GENERATED_LIT_TRUE << ";\n";
+
+
+      // End Boolean
+      generate_label(settings, indent_lvl, bool_end, true);
+      generate_one_line_comment(settings, indent_lvl, opsym + " End");
+      return eval_bool;
+    }
+    /**
+     * Special handling of the short circuit Boolean operators
+     *
+     * @param settings Code generator settings
+     * @param indent_lvl Level of indentaiton
+     * @param true_label Label to jump to if the Boolean operator evaluates to true
+     * @param false_label Label to jump to if the Boolean operator evaluates to false
+     */
+    void generate_eval_bool_op(CodeGen::Settings settings, const unsigned indent_lvl,
+                               const std::string &true_label, const std::string &false_label) {
+      if (opsym == UNARY_OP_NOT) {
+        return left_->generate_eval_branch(settings, indent_lvl, false_label, true_label);
+      }
+
+      std::string halfway_label = define_new_label("halfway");
+      if (opsym == METHOD_AND) {
+        generate_one_line_comment(settings, indent_lvl, "Generate AND");
+        left_->generate_eval_branch(settings, indent_lvl+1, halfway_label, false_label);
+        generate_label(settings, indent_lvl, halfway_label, true);
+      } else if (opsym == METHOD_OR) {
+        generate_one_line_comment(settings, indent_lvl, "Generate OR");
+        left_->generate_eval_branch(settings, indent_lvl+1, true_label, halfway_label);
+        generate_label(settings, indent_lvl, halfway_label, true);
+      } else {
+        throw std::runtime_error("Unknown Boolean operator " + opsym);
+      }
+      right_->generate_eval_branch(settings, indent_lvl+1, true_label, false_label);
     }
   };
 

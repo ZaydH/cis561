@@ -500,7 +500,9 @@ namespace AST {
      */
     std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
                               bool is_lhs) const override {
-      return generate_lit_code(settings, indent_lvl, GENERATE_LIT_STRING_FUNC);
+      std::ostringstream ss;
+      ss << GENERATE_LIT_STRING_FUNC << "(\"" << value_ << "\")";
+      return generate_temp_var(ss.str(), settings, indent_lvl, false);
     }
 
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;

@@ -493,7 +493,7 @@ namespace Quack {
      * @param settings Code generator settings
      */
     void generate_object_struct(CodeGen::Settings settings) {
-      settings.fout_ << "typedef struct {";
+      settings.fout_ << "typedef struct " << generated_malloc_obj_name() << " {";
       // ToDo Add super
       // Method object field
       settings.fout_ << "\n" << AST::ASTNode::indent_str(1)
@@ -509,6 +509,14 @@ namespace Quack {
     }
     const std::string generated_clazz_obj_name() const {
       return "the_class_" + name_;
+    }
+    /**
+     * Struct that stores the allocated memory size of an object of this type.
+     *
+     * @return Struct name used in malloc of object memory
+     */
+    const std::string generated_malloc_obj_name() const {
+      return "obj_" + name_ + "_struct";
     }
     /**
      * Helper function used to generate the code for a method prototype.  It should not be used
@@ -609,8 +617,8 @@ namespace Quack {
       // Allocate the memory for the object itself
       std::string indent_str = AST::ASTNode::indent_str(1);
       settings.fout_ << "\n" << indent_str << generated_object_type_name() << " " << OBJECT_SELF
-                     << " = (" << generated_object_type_name() << ")malloc(sizeof("
-                     << generated_object_type_name() << "));\n";
+                     << " = (" << generated_object_type_name() << ")malloc(sizeof(struct "
+                     << generated_malloc_obj_name() << "));\n";
 
       // Define the object that will store the class methods
       settings.fout_ << indent_str << OBJECT_SELF << "->" << GENERATED_CLASS_FIELD

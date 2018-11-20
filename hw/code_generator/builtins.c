@@ -303,11 +303,11 @@ obj_Boolean Int_method_MORE(obj_Int this, obj_Int other) {
 }
 /* ATLEAST (new method) */
 obj_Boolean Int_method_ATMOST(obj_Int this, obj_Int other) {
-  return this->value >= other->value ? lit_true: lit_false;
+  return this->value <= other->value ? lit_true: lit_false;
 }
 /* ATMOST (new method) */
 obj_Boolean Int_method_ATLEAST(obj_Int this, obj_Int other) {
-  return this->value <= other->value ? lit_true: lit_false;
+  return this->value >= other->value ? lit_true: lit_false;
 }
 
 /* PLUS (new method) */

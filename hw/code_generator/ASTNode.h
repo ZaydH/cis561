@@ -640,7 +640,7 @@ namespace AST {
 
       std::string test_cond_label = define_new_label("test_cond");
       std::string loop_again_label = define_new_label("loop_again");
-
+      std::string end_while_label = define_new_label("end_while");
 
       generate_one_line_comment(settings, indent_lvl, "WHILE Loop Start");
       generate_goto(settings, indent_lvl, test_cond_label, true);
@@ -652,7 +652,8 @@ namespace AST {
       generate_label(settings, indent_lvl, test_cond_label, true);
 
       // Checks while condition
-      cond_->generate_eval_branch(settings, indent_lvl, loop_again_label, GENERATED_NO_JUMP);
+      cond_->generate_eval_branch(settings, indent_lvl, loop_again_label, end_while_label);
+      generate_label(settings, indent_lvl, end_while_label, true);
 
       // Comment for clarity. Delete if cluttering
       generate_one_line_comment(settings, indent_lvl, "END WHILE Loop");
@@ -900,7 +901,7 @@ namespace AST {
     bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
                                      bool is_method) override {
       return left_->check_initialize_before_use(inits, all_inits, is_method)
-             && right_->check_initialize_before_use(inits, all_inits, is_method);
+             && (right_ && right_->check_initialize_before_use(inits, all_inits, is_method));
     }
     /**
      * Helper function to get the method name that desugars the binary operator.

@@ -422,8 +422,10 @@ namespace AST {
     if (type_name_.empty())
       return gen_var;
 
-    std::string cast_var = "(" + type_->generated_object_type_name() + ")" + gen_var;
-    return generate_temp_var(cast_var, settings, indent_lvl, is_lhs);
+//    std::string cast_var = "(" + type_->generated_object_type_name() + ")" + gen_var;
+//    return generate_temp_var(cast_var, settings, indent_lvl, is_lhs);
+    // Generate a cast temp variable
+    return generate_temp_var(gen_var, settings, indent_lvl, is_lhs);
   }
 
 

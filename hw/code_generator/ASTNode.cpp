@@ -17,12 +17,14 @@ namespace AST {
   unsigned long ASTNode::var_cnt_ = 0;
 
   std::string ASTNode::generate_temp_var(const std::string &var_to_store, CodeGen::Settings settings,
-                                         unsigned indent_lvl) const {
+                                         unsigned indent_lvl, bool is_lhs) const {
     std::string var_name = define_new_temp_var();
     PRINT_INDENT(indent_lvl);
-    settings.fout_ << type_->generated_object_type_name() << " " << var_name
-                   << " = " <<  var_to_store << ";\n";
-    return var_name;
+    settings.fout_ << type_->generated_object_type_name() << " " << (is_lhs?"* ":"") << var_name
+                   << " = " << (is_lhs ? "&(":"") <<  var_to_store << (is_lhs?")":"") << ";\n";
+    if (!is_lhs)
+      return var_name;
+    return "(*" + var_name + ")";
   }
 
   bool Typing::check_type_name_exists(const std::string &type_name) const {
@@ -341,11 +343,11 @@ namespace AST {
 
   const std::string ObjectCall::process_object_call(const std::string &left_obj,
                                                     CodeGen::Settings &settings,
-                                                    unsigned indent_lvl) const {
+                                                    unsigned indent_lvl, bool is_lhs) const {
     if (auto next = dynamic_cast<FunctionCall*>(next_))
-      return next->generate_object_call(left_obj, settings, indent_lvl);
+      return next->generate_object_call(left_obj, settings, indent_lvl, is_lhs);
     else if (auto next = dynamic_cast<Ident*>(next_))
-      return generate_temp_var(left_obj + "->" + next->text_, settings, indent_lvl);
+      return generate_temp_var(left_obj + "->" + next->text_, settings, indent_lvl, is_lhs);
 
     throw std::runtime_error("Unexpected bottoming out of ObjectCall code generation");
   }
@@ -395,21 +397,23 @@ namespace AST {
                                              const std::string &gen_func_name_) const {
     std::ostringstream ss;
     ss << gen_func_name_ << "(" << value_ << ")";
-    return generate_temp_var(ss.str(), settings, indent_lvl);
+    return generate_temp_var(ss.str(), settings, indent_lvl, false);
   }
 
-  std::string Typing::generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const {
+  std::string Typing::generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                                    bool is_lhs) const {
 
-    std::string gen_var = expr_->generate_code(settings, indent_lvl);
+    std::string gen_var = expr_->generate_code(settings, indent_lvl, is_lhs);
     if (type_name_.empty())
       return gen_var;
 
     std::string cast_var = "(" + type_->generated_object_type_name() + ")" + gen_var;
-    return generate_temp_var(cast_var, settings, indent_lvl);
+    return generate_temp_var(cast_var, settings, indent_lvl, is_lhs);
   }
 
 
-  std::string FunctionCall::generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const {
+  std::string FunctionCall::generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                                          bool is_lhs) const {
     Quack::Class * q_class = Quack::Class::Container::singleton()->get(ident_);
     assert(q_class);
 
@@ -427,12 +431,13 @@ namespace AST {
     ss << ")";
     delete arg_vars;
 
-    return generate_temp_var(ss.str(), settings, indent_lvl);
+    return generate_temp_var(ss.str(), settings, indent_lvl, is_lhs);
   }
 
   std::string FunctionCall::generate_object_call(std::string object_name,
                                                  CodeGen::Settings &settings,
-                                                 unsigned indent_lvl) const {
+                                                 unsigned indent_lvl,
+                                                 bool is_lhs) const {
     std::vector<std::string>* func_tmp_args = args_->generate_args(settings, indent_lvl);
     std::ostringstream ss;
     ss  << object_name << "->" << GENERATED_CLASS_FIELD << "->" << ident_ << "(" << object_name;
@@ -441,12 +446,16 @@ namespace AST {
     ss << ")";
     delete func_tmp_args;
 
-    return generate_temp_var(ss.str(), settings, indent_lvl);
+    return generate_temp_var(ss.str(), settings, indent_lvl, is_lhs);
   }
 
-  std::string Assn::generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const {
-    std::string rhs_var = rhs_->generate_code(settings, indent_lvl);
-    std::string lhs_var = lhs_->generate_code(settings, indent_lvl);
+  std::string Assn::generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                                  bool is_lhs) const {
+    if (is_lhs)
+      throw std::runtime_error("Cannot have assignment on LHS");
+
+    std::string rhs_var = rhs_->generate_code(settings, indent_lvl, false);
+    std::string lhs_var = lhs_->generate_code(settings, indent_lvl, true);
 
     PRINT_INDENT(indent_lvl);
     settings.fout_ << lhs_var << " = " << rhs_var << ";\n";

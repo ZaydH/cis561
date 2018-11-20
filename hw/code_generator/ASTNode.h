@@ -88,7 +88,8 @@ namespace AST {
      */
     inline Quack::Class* get_node_type() { return type_; }
 
-    virtual std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const {
+    virtual std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                                      bool is_lhs) const {
       // ToDo Switch generate code to pure virtual
       assert(false);
     }
@@ -155,7 +156,7 @@ namespace AST {
      * @return Pointer to the memory location
      */
     std::string generate_temp_var(const std::string &var_to_store, CodeGen::Settings settings,
-                                  unsigned indent_lvl) const;
+                                  unsigned indent_lvl, bool is_lhs) const;
 
    protected:
     /** Type for the node */
@@ -224,7 +225,7 @@ namespace AST {
       std::string indent_str = AST::ASTNode::indent_str(indent_lvl);
 
       for (auto * stmt : stmts_)
-        stmt->generate_code(settings, indent_lvl + 1);
+        stmt->generate_code(settings, indent_lvl + 1, false);
     }
 
     bool empty() { return stmts_.empty(); }
@@ -290,7 +291,11 @@ namespace AST {
      * @return No variable name returned.  This is because no temporary variables are associated
      *         with an If.
      */
-    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const override {
+    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                              bool is_lhs) const override {
+      if (is_lhs)
+        throw std::runtime_error("LHS is not possible in IF block");
+
       std::string if_label = define_new_label("if");
       std::string else_label = define_new_label("else");
       std::string end_if_label = define_new_label("end_if");
@@ -400,7 +405,8 @@ namespace AST {
      * @param settings Code generator settings.
      * @param indent_lvl Level of indentation.
      */
-    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const override {
+    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl ,
+                              bool is_lhs) const override {
       return text_;
     }
     /** Identifier name */
@@ -445,7 +451,8 @@ namespace AST {
       std::cout << std::to_string(value_);
     }
 
-    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const override {
+    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                              bool is_lhs) const override {
       return generate_lit_code(settings, indent_lvl, GENERATE_LIT_INT_FUNC);
     }
 
@@ -459,7 +466,8 @@ namespace AST {
       std::cout << (value_ ? "true" : "false");
     }
 
-    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const override {
+    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                              bool is_lhs) const override {
       return generate_lit_code(settings, indent_lvl, GENERATE_LIT_BOOL_FUNC);
     }
 
@@ -479,7 +487,8 @@ namespace AST {
      * @param settings Code generator setting
      * @param indent_lvl Level of indention
      */
-    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const override {
+    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                              bool is_lhs) const override {
       return generate_lit_code(settings, indent_lvl, GENERATE_LIT_STRING_FUNC);
     }
 
@@ -510,7 +519,8 @@ namespace AST {
       return right_->check_initialize_before_use(inits, all_inits, is_method);
     }
 
-    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const override {
+    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                              bool is_lhs) const override {
       assert(false);
     }
 
@@ -546,8 +556,12 @@ namespace AST {
      * @param settings Code generator settings
      * @param indent_lvl Level of indentation
      */
-    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const override {
-      std::string temp_var_name = right_->generate_code(settings, indent_lvl);
+    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                              bool is_lhs) const override {
+      if (is_lhs)
+        std::runtime_error("Return cannot be on left hand side");
+
+      std::string temp_var_name = right_->generate_code(settings, indent_lvl, is_lhs);
 
       PRINT_INDENT(indent_lvl);
       settings.fout_ << "return " << temp_var_name << ";\n";
@@ -604,7 +618,11 @@ namespace AST {
 
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
 
-    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const override{
+    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                              bool is_lhs) const override{
+      if (is_lhs)
+        throw std::runtime_error("While loop cannot be on LHS");
+
       assert(false);
       std::string test_cond_label = define_new_label("test_cond");
       std::string loop_again_label = define_new_label("loop_again");
@@ -623,7 +641,7 @@ namespace AST {
       // Checks while conditition
       PRINT_INDENT(indent_lvl + 1);
       settings.fout_ << "if(" GENERATED_CHECK_BOOL_TRUE_FUNC "(";
-      cond_->generate_code(settings, 0);
+      cond_->generate_code(settings, 0, false);
       settings.fout_ << ")) ";
       generate_goto(settings, 0, loop_again_label);
 
@@ -672,7 +690,8 @@ namespace AST {
      * @param settings Code generator settings
      * @param indent_lvl Level of indentation
      */
-    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const override {
+    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                              bool is_lhs) const override {
       throw std::runtime_error("Cannot generate RHS args similar to normal args");
     }
     /**
@@ -690,7 +709,8 @@ namespace AST {
         if (auto arg_cast = dynamic_cast<Ident *>(arg)) {
           gen_args->emplace_back(arg_cast->text_);
         } else {
-          std::string temp_var = arg->generate_code(settings, indent_lvl);
+          // Cannot have ARGS on LHS even if incoming is LHS
+          std::string temp_var = arg->generate_code(settings, indent_lvl, false);
           gen_args->emplace_back(temp_var);
         }
       }
@@ -751,7 +771,8 @@ namespace AST {
      * @param indent_lvl Level of indentation
      * @return Variable where the output of the constructor is stored.
      */
-    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const override;
+    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                              bool is_lhs) const override;
 
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
     /**
@@ -763,7 +784,8 @@ namespace AST {
      * @return Variable where the function call will be stored
      */
     std::string generate_object_call(std::string object_name, CodeGen::Settings &settings,
-                                     unsigned indent_lvl) const;
+                                     unsigned indent_lvl,
+                                     bool is_lhs) const;
   };
 
 
@@ -815,13 +837,14 @@ namespace AST {
             next->add_identifier_to_initialized(inits, true);
     }
 
-    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const override {
+    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                              bool is_lhs) const override {
       // Handle the bottom out of the recursion
       if (auto obj = dynamic_cast<Ident*>(object_))
-        return process_object_call(obj->text_, settings, indent_lvl);
+        return process_object_call(obj->text_, settings, indent_lvl, is_lhs);
 
-      std::string left_obj = object_->generate_code(settings, indent_lvl);
-      return process_object_call(left_obj, settings, indent_lvl);
+      std::string left_obj = object_->generate_code(settings, indent_lvl, is_lhs);
+      return process_object_call(left_obj, settings, indent_lvl, is_lhs);
     }
     /**
      * After the left object is processed, process the right object.
@@ -833,7 +856,7 @@ namespace AST {
      * @return Variable containing the combined results of the object call
      */
     const std::string process_object_call(const std::string &left_obj, CodeGen::Settings &settings,
-                                          unsigned indent_lvl) const;
+                                          unsigned indent_lvl, bool is_lhs) const;
 
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
 
@@ -906,8 +929,11 @@ namespace AST {
      * @param settings Code generator settings
      * @param indent_lvl Level of indentation
      */
-    virtual std::string generate_code(CodeGen::Settings &settings,
-                                      unsigned indent_lvl) const override {
+    virtual std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                                      bool is_lhs) const override {
+      if (is_lhs)
+        throw std::runtime_error("Boolean operator cannot be on LHS");
+
       // Create the ObjectCall stand-in AST node
       RhsArgs args;
       args.add(right_);
@@ -918,7 +944,7 @@ namespace AST {
 
       ObjectCall obj_call(left_, &func_call);
       obj_call.set_node_type(this->type_);
-      std::string obj_out = obj_call.generate_code(settings, indent_lvl);
+      std::string obj_out = obj_call.generate_code(settings, indent_lvl, is_lhs);
 
       // Clean up the memory to prevent deleting memory accidentally
       args.args_[0] = nullptr;
@@ -937,7 +963,8 @@ namespace AST {
     /** Boolean operator constructor */
     BoolOp(const std::string &sym, ASTNode *l, ASTNode *r) : BinOp(sym, l, r) {};
 
-    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const override {
+    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                              bool is_lhs) const override {
       assert(false);
     }
   };
@@ -959,7 +986,8 @@ namespace AST {
         std::cout << " : " << type_name_;
     }
 
-    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const override;
+    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                              bool is_lhs) const override;
     /**
      * Helper function used to check if the specified type name actually exists.
      *
@@ -1082,7 +1110,8 @@ namespace AST {
      * @param indent_lvl Level of indentation
      * @return No return information since not applicable to an assignment
      */
-    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const override;
+    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                              bool is_lhs) const override;
   };
 
   struct Typecase : public ASTNode {
@@ -1143,7 +1172,10 @@ namespace AST {
       return success;
     }
 
-    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl) const override {
+    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                              bool is_lhs) const override {
+      if (is_lhs)
+        throw std::runtime_error("Cannot have typecase on LHS");
       // ToDo Add typecase code generation
       assert(false);
     }

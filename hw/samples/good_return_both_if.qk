@@ -1,3 +1,6 @@
+/**
+ * Return is in both If and Else so make sure return on all paths check is correct.
+ */
 class C1() {
 
     def return_test() : Int {

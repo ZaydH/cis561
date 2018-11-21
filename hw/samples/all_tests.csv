@@ -9,6 +9,9 @@ bad_duplicate_class.qk,PARSER
 bad_escape.qk,SCANNER
 bad_init.qk,INIT_BEFORE_USE
 bad_method_field_duplicate.qk,INIT_BEFORE_USE
+bad_return_only_if_false.qk,CLASS_HIERARCHY
+bad_return_only_if_true.qk,CLASS_HIERARCHY
+bad_return_only_while.qk,CLASS_HIERARCHY
 bad_true_false.qk,PARSER
 bad_typecase_invalid_type.qk,TYPE_INF
 bad_typecase_recast.qk,TYPE_INF
@@ -18,8 +21,10 @@ duplicate_method.qk,PARSER
 good_GoodWalk.qk,PASS
 good_Pt.qk,PASS
 good_Pt2.qk,PASS
+good_add_return_none.qk,PASS
 good_adv_constructor_init.qk,PASS
 good_init_before_use_good.qk,PASS
+good_return_both_if.qk,PASS
 good_schroedinger2.qk,PASS
 good_short_circuit_outside_conditional.qk,PASS
 good_simple_classes_tree_good.qk,PASS
@@ -27,7 +32,7 @@ good_simple_inherited_method.qk,PASS
 good_simple_inheritingvariables_good.qk,PASS
 good_simple_int_math_and_bool.qk,PASS
 good_simple_method_return_good.qk,PASS
-good_simple_overridingmethod.pk,PASS
+good_simple_overridingmethod.qk,PASS
 good_simple_tree_good_anyorder.qk,PASS
 good_simple_unary_negation.qk,PASS
 good_simple_while_and_sugar.qk,PASS
@@ -54,6 +59,3 @@ subclass_method_return_mismatch.qk,CLASS_HIERARCHY
 typing_test.qk,TYPE_INF
 unknown_return_type.qk,CLASS_HIERARCHY
 while_init.qk,INIT_BEFORE_USE
-bad_return_only_if_true.qk,CLASS_HIERARCHY
-bad_return_only_if_false.qk,CLASS_HIERARCHY
-good_return_both_if.qk,PASS

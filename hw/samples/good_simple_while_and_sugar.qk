@@ -1,3 +1,7 @@
+/**
+ * Simple test method to verify that while loops work as expected.  It also
+ * verifies the proper calling of the sugared compare commands.
+ */
 x : Int = 1;
 while x < 10 {
     x.PRINT();

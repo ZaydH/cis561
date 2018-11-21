@@ -1,4 +1,6 @@
-//Return is of incorrect type. Foo is supposed to return a String not an int
+/**
+ * Verifies integer literals, string conversion, and printing.
+ */
 class A() {
     def foo(): Int { return 42; }
 }

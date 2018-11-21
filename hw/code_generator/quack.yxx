@@ -186,7 +186,7 @@ lexpr: ident          { $$ = $1; }
      ;
 ident: IDENT          { $$ = new AST::Ident($1); } ;
 return: RETURN rhs    { $$ = new AST::Return($2); }
-      | RETURN        { $$ = new AST::Return(nullptr); }
+      | RETURN        { $$ = new AST::Return(new AST::NothingLit()); }
       ;
 
 rhs: '(' rhs ')'       { $$ = $2; }

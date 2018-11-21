@@ -1,13 +1,17 @@
+/**
+ * Runs different type case calls taking different type.
+ * Makes sure the right type case matches and precedence is followed.
+ */
 class Point(x : Int, y:Int) {
     this.x = x;
     this.y = y;
 
     def type_case(other : Obj) : Obj {
         typecase other {
-            pt: Point { 
+            pt: Point {
                 """Point received.\n""".PRINT();
                 pt.PRINT();
-                return this.x == pt.x and this.y == pt.y; 
+                return this.x == pt.x and this.y == pt.y;
             }
             y : Nothing {
                 """Nothing received.\n""".PRINT();
@@ -20,9 +24,9 @@ class Point(x : Int, y:Int) {
                 z.PRINT();
                 """\n""".PRINT();
             }
-            thing: Obj { 
+            thing: Obj {
                 """Object received.\n""".PRINT();
-                return false; 
+                return false;
             }
         }
     }

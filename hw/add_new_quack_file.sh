@@ -12,5 +12,5 @@ git add ${SAMPLES_DIR}/good_${FILE_ROOT}.qk
 ./export_expected.sh $BIN $SAMPLES_DIR/good_${FILE_ROOT}.qk ${EXPECTED_DIR}
 git add ${EXPECTED_DIR}/good_${FILE_ROOT}.txt
 
-( cat ${TESTS_FILE} | sort | uniq -i ) > ${TESTS_FILE}
+cat ${TESTS_FILE} | sort | uniq -i | sponge ${TESTS_FILE}
 

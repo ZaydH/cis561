@@ -1,4 +1,8 @@
 //Return is of incorrect type. Foo is supposed to return a String not an int
 class A() {
-def foo(): Int { return 42; }
+    def foo(): Int { return 42; }
 }
+
+x = A();
+x.foo().PRINT();
+

@@ -4,8 +4,9 @@
  class Pt(x: Int, y: Int) {
      this.x = x;
      this.y = y;
-     w = 5 * 2 + 7 / 2;
-     z = this.x + this.y;
+     if (this.x > 4) {
+         z = 5;
+     }
 
      /* Note type of this.x and this.y is
       * fixed in the object --- methods cannot
@@ -24,12 +25,16 @@
      /* Mutator: Evaluate for effect */
      def translate(dx: Int, dy: Int): Nothing {
      	 this.x = this.x + dx;
-	     this.y = this.y + dy;
+	 this.y = this.y + dy;
      }
 
      /* More functional style: Evaluate for value */
      def PLUS(other: Pt): Pt {
      	 return Pt(this.x + other.x, this.y + other.y); 
+     }
+
+     def STR() : String {
+         return ("(" + this.x.STR() + ", " + this.y.STR() + ")");
      }
 }
 

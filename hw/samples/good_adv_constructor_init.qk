@@ -3,6 +3,6 @@ class C1_Fer(x: Int, y: Boolean, z: String) {
         w : Boolean = true;
     }
     return this;
-
 }
+
 

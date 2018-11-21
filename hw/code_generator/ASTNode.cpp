@@ -499,7 +499,6 @@ namespace AST {
 
     PRINT_INDENT(indent_lvl);
     settings.fout_ << lhs_var << " = " << rhs_var << ";\n";
-
     return NO_RETURN_VAR;
   }
 

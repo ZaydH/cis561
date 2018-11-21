@@ -9,6 +9,7 @@
 
 class C1()  extends Obj {
    def foo():  C1{
+       """Loop Run\n""".PRINT();
        return C1();    /* CHANGED */
    }
 }
@@ -35,8 +36,10 @@ class C4() extends C3 {
  * Now type x below ... what should happen? 
  */ 
 x = C4();
-while ( true ) {
+y = 1;
+while ( true and y < 10 ) {
    x = x.foo();      /* OK, terminates at C1 */
+   y = y + 1;
 }
 
 /* 
@@ -52,6 +55,3 @@ while ( true ) {
      
 */ 
 
-
-
-                  

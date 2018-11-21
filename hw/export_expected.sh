@@ -2,7 +2,7 @@
 
 if [ $# -ne 3 ]; then
     echo "Correct command \"export_expected.sh <BinFile> <QuackFile> <ExpectedOutFolder>\""
-    return
+    exit 0 
 fi
 
 BIN_FILE=$1

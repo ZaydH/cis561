@@ -41,7 +41,7 @@ test_code_file () {
     rm ${COMPILED_C_FILE} &> /dev/null    
     
     ${BIN} ${SAMPLES_FOLDER}/${TEST_FILE} &> /dev/null
-    RETURN_CODE=$?
+    local RETURN_CODE=$?
     if [[ ${RETURN_CODE} == ${TEST_PASSED} ]]; then
         COMPILE_PASSED=true
     else
@@ -53,12 +53,17 @@ test_code_file () {
     if [[ ${RETURN_CODE} = ${EXIT_CODE} ]]; then
         
         if ${COMPILE_PASSED}; then
+            COMPILED_PROG=${SAMPLES_FOLDER}/a.out
+            rm -rf a.out ${COMPILED_PROG} &> /dev/null      
+            gcc ${COMPILED_C_FILE} ${SAMPLES_FOLDER}/builtins.c -o ${COMPILED_PROG} &> /dev/null
+            if [[ $? -ne 0 ]]; then
+                printf "generated output ${RED}does not compile${NOCOLOR}.\n"
+                return;
+            fi
 
-            gcc ${COMPILED_C_FILE} ${SAMPLES_FOLDER}/builtins.c &> /dev/null
-            
-            PROG_OUT=${SAMPLES_FOLDER}/prog_out
+            local PROG_OUT=${SAMPLES_FOLDER}/prog_out
             rm -rf ${PROG_OUT} &> /dev/null
-            ${SAMPLES_FOLDER}/a.out &> ${PROG_OUT}
+            ${COMPILED_PROG} > ${PROG_OUT}
             
             EXPECTED_FILE="${EXPECTED_OUT_FOLDER}/${BASE_FILENAME}.txt"
 
@@ -67,12 +72,16 @@ test_code_file () {
                 return
             fi
 
-            DIFF_OUT=$( diff ${PROG_OUT} ${EXPECTED_FILE} ) 
+            DIFF_OUT=$( diff -w ${PROG_OUT} ${EXPECTED_FILE} ) 
             #echo "${DIFF_OUT}"
         fi
         if ! ${COMPILE_PASSED} || [[ -z ${DIFF_OUT} ]]; then
             ((PASSING_CNT++))
             printf "${GREEN}passed${NOCOLOR} with return code ${RETURN_CODE}\n"
+        else
+            cat ${PROG_OUT}
+            printf "compiled but output ${RED}does not match${NOCOLOR} expected output.\n"
+            echo ${DIFF_OUT}
         fi
     else
         printf "Test #${TOTAL_TESTS}: ${TEST_FILE} ${RED}FAILED${NOCOLOR} with return code ${RETURN_CODE}\n"

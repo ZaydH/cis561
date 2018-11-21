@@ -119,6 +119,12 @@ namespace AST {
     return true;
   }
 
+  bool NothingLit::perform_type_inference(TypeCheck::Settings &settings,
+                                          Quack::Class * parent_type) {
+    set_node_type(Quack::Class::Container::Nothing());
+    return true;
+  }
+
   bool StrLit::perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) {
     set_node_type(Quack::Class::Container::Str());
     return true;
@@ -226,7 +232,7 @@ namespace AST {
     if (opsym != UNARY_OP_NEG)
       throw std::runtime_error("Only unary operation supported is \"" UNARY_OP_NEG "\"");
 
-    Quack::Class * int_class = Quack::Class::Container::singleton()->get(CLASS_INT);
+    Quack::Class * int_class = Quack::Class::Container::Int();
     ASTNode * left = new IntLit(0);
     left->set_node_type(int_class);
 
@@ -386,7 +392,7 @@ namespace AST {
 
   bool Typecase::perform_type_inference(TypeCheck::Settings &settings, Quack::Class *parent_type) {
     // type case does not have a type
-    type_ = Quack::Class::Container::singleton()->get(CLASS_NOTHING);
+    type_ = Quack::Class::Container::Nothing();
     Quack::Class::Container * all_classes = Quack::Class::Container::singleton();
 
     bool success = expr_->perform_type_inference(settings, nullptr);
@@ -501,7 +507,7 @@ namespace AST {
 
     bool success = left_->perform_type_inference(settings, nullptr);
 
-    Quack::Class * bool_class = Quack::Class::Container::singleton()->get(CLASS_BOOL);
+    Quack::Class * bool_class = Quack::Class::Container::Bool();
 
     std::string msg;
     if (left_->get_node_type() != bool_class) {

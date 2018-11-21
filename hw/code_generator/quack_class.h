@@ -81,6 +81,14 @@ namespace Quack {
         return singleton()->get(CLASS_BOOL);
       }
       /**
+       * Static accessor to get the Boolean class.
+       *
+       * @return Boolean class reference.
+       */
+      static Class* Nothing() {
+        return singleton()->get(CLASS_NOTHING);
+      }
+      /**
        * Static accessor to get the String class.
        *
        * @return String class reference.

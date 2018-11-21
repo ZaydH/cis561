@@ -1,0 +1,4 @@
+(5 + 4).PRINT(); """\n""".PRINT();
+(5 / 4).PRINT(); """\n""".PRINT();
+(5 * 4).PRINT(); """\n""".PRINT();
+(5 - 4).PRINT(); """\n""".PRINT();

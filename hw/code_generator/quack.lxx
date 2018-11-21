@@ -98,6 +98,8 @@ not      { return parser::token::NOT; }
 true     { return parser::token::TRUE; }
 false    { return parser::token::FALSE; }
 
+none    { return parser::token::NONE; }
+
    /* The following tokens are value-bearing:
     * We pass a value back to the parser by copying
     * it into the yylval parameter.  The parser

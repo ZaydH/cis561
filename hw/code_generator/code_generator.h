@@ -107,7 +107,7 @@ namespace CodeGen {
      * @param main_subfunc_name Name of the function to be called inside main.
      */
     void generate_main(CodeGen::Settings settings, const std::string &main_subfunc_name) {
-      Quack::Class * nothing_class = Quack::Class::Container::singleton()->get(CLASS_NOTHING);
+      Quack::Class * nothing_class = Quack::Class::Container::Nothing();
 
       fout_ << "\n"
             << nothing_class->generated_object_type_name() << " " << main_subfunc_name << "() {\n";

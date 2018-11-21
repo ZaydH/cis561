@@ -63,6 +63,9 @@
 
 #define GENERATED_LIT_TRUE "lit_true"
 #define GENERATED_LIT_FALSE "lit_false"
+
+#define GENERATED_LIT_NONE "none"
+
 #define GENERATED_NO_JUMP ""
 
 #endif //PROJECT02_KEYWORDS_H

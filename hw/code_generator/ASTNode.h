@@ -482,6 +482,21 @@ namespace AST {
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
   };
 
+ struct NothingLit : public Literal<std::string>{
+    NothingLit() : Literal<std::string>("")  {};
+
+    void print_original_src(unsigned int indent_depth = 0) override {
+      std::cout << GENERATED_LIT_NONE;
+    }
+
+    std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                              bool is_lhs) const override {
+      return GENERATED_LIT_NONE;
+    }
+
+    bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
+  };
+
   struct StrLit : public Literal<std::string> {
     explicit StrLit(const char* v) : Literal<std::string>(std::string(v)) {}
 

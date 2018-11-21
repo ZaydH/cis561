@@ -460,7 +460,7 @@ namespace Quack {
 
       generate_object_struct(settings);
       settings.fout_ << "\n";
-      generate_class_struct(settings);
+      generate_clazz_struct(settings);
 
       generate_all_prototypes(settings);
 
@@ -477,7 +477,7 @@ namespace Quack {
      *
      * @param settings Code generator settings
      */
-    void generate_class_struct(CodeGen::Settings settings) {
+    void generate_clazz_struct(CodeGen::Settings settings) {
       settings.fout_ << "struct " << generated_struct_clazz_name() << " {";
 
       // Put constructor function pointer
@@ -587,11 +587,14 @@ namespace Quack {
      */
     void generate_clazz_object(CodeGen::Settings settings) {
       std::string class_obj_struct = generated_clazz_obj_name() + "_struct";
+
       settings.fout_ << "\nstruct " << generated_struct_clazz_name() << " "
                      << class_obj_struct << " = {";
 
       std::string indent_str = AST::ASTNode::indent_str(1);
-      settings.fout_ << "\n" << indent_str << super_->generated_clazz_type_name();
+
+      std::string super_obj_struct = super_->generated_clazz_obj_name() + "_struct";
+      settings.fout_ << "\n" << indent_str << "&" << super_obj_struct;
 
       settings.fout_ << ",\n" << indent_str << generated_constructor_name();
 

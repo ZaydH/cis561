@@ -72,6 +72,7 @@ struct class_Obj_struct {
 };
 
 extern class_Obj the_class_Obj; /* Initialized in Builtins.c */
+extern struct class_Obj_struct the_class_Obj_struct;
 
 /* ================
  * String
@@ -112,6 +113,7 @@ struct class_String_struct {
 };
 
 extern class_String the_class_String;
+extern struct class_String_struct the_class_String_struct;
 
 /* Construct an object from a string literal.
  * This is not available to the Quack programmer, but
@@ -148,6 +150,7 @@ struct class_Boolean_struct {
 };
 
 extern class_Boolean the_class_Boolean;
+extern struct class_Boolean_struct the_class_Boolean_struct;
 
 /* There are only two instances of Boolean,
  * lit_true and lit_false
@@ -194,6 +197,7 @@ struct class_Nothing_struct {
 };
 
 extern class_Nothing the_class_Nothing;
+extern struct class_Nothing_struct the_class_Nothing_struct;
 
 /* There is a single instance of Nothing,
  * called nothing
@@ -248,6 +252,7 @@ struct class_Int_struct {
 };
 
 extern class_Int the_class_Int;
+extern struct class_Int_struct the_class_Int_struct;
 
 /* Integer literals constructor,
  * used by compiler and not otherwise available in

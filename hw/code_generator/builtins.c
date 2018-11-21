@@ -131,7 +131,7 @@ obj_Boolean String_method_ATMOST(obj_String this, obj_String other) {
 
 /* The String Class (a singleton) */
 struct  class_String_struct  the_class_String_struct = {
-  the_class_Obj_struct,
+  &the_class_Obj_struct,
   new_String,     /* Constructor */
   String_method_EQUALS,
   Obj_method_PRINT,
@@ -193,7 +193,7 @@ obj_String Boolean_method_STR(obj_Boolean this) {
 
 /* The Boolean Class (a singleton) */
 struct  class_Boolean_struct  the_class_Boolean_struct = {
-  the_class_Obj_struct,
+  &the_class_Obj_struct,
   new_Boolean,     /* Constructor */
   Obj_method_EQUALS,
   Obj_method_PRINT,
@@ -241,7 +241,7 @@ obj_String Nothing_method_STR(obj_Nothing this) {
 
 /* The Nothing Class (a singleton) */
 struct  class_Nothing_struct  the_class_Nothing_struct = {
-  the_class_Obj_struct,
+  &the_class_Obj_struct,
   new_Nothing,     /* Constructor */
   Obj_method_EQUALS,
   Obj_method_PRINT,
@@ -336,7 +336,7 @@ obj_Int Int_method_DIVIDE(obj_Int this, obj_Int other) {
 
 /* The Int Class (a singleton) */
 struct class_Int_struct  the_class_Int_struct = {
-  the_class_Obj_struct,
+  &the_class_Obj_struct,
   new_Int,     /* Constructor */
   Int_method_EQUALS,
   Obj_method_PRINT,
@@ -374,4 +374,3 @@ bool is_subtype(class_Obj obj, class_Obj other) {
 bool is_bool_true(obj_Boolean cond_val) {
     return cond_val == lit_true;
 }
-

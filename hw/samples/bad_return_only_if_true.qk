@@ -1,0 +1,11 @@
+class C1() {
+
+    def return_test() : Int {
+        if (true) {
+            return 5;
+        } else {
+
+        }
+    }
+
+}

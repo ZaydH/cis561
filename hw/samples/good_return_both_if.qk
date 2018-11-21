@@ -1,0 +1,11 @@
+class C1() {
+
+    def return_test() : Int {
+        if (true) {
+            return 34 + 34343;
+        } else {
+            return 43 / 3432;
+        }
+    }
+
+}

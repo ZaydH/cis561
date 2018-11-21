@@ -54,3 +54,6 @@ subclass_method_return_mismatch.qk,CLASS_HIERARCHY
 typing_test.qk,TYPE_INF
 unknown_return_type.qk,CLASS_HIERARCHY
 while_init.qk,INIT_BEFORE_USE
+bad_return_only_if_true.qk,CLASS_HIERARCHY
+bad_return_only_if_false.qk,CLASS_HIERARCHY
+good_return_both_if.qk,PASS

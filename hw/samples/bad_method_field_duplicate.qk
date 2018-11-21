@@ -5,6 +5,8 @@
 class C1() {
     this.X = 5;
 
-    def X() : Int {} 
+    def X() : Int {
+      return 10 / 4;
+    } 
 }
 

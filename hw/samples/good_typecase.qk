@@ -2,7 +2,7 @@ class Point(x : Int, y:Int) {
     this.x = x;
     this.y = y;
 
-    def type_case(other : Obj) : Boolean {
+    def type_case(other : Obj) : Obj {
         typecase other {
             pt: Point { 
                 """Point received.\n""".PRINT();

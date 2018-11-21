@@ -167,6 +167,12 @@ namespace AST {
       PRINT_INDENT(indent_lvl);
       settings.fout_ << "/* " << msg << " */\n";
     }
+    /**
+     * Checks whether the statement has a return on all paths.
+     *
+     * @return True the tree node has a return on all possible subpaths
+     */
+    virtual bool contains_return_all_paths() { return false; }
 
    protected:
     /** Type for the node */
@@ -236,6 +242,17 @@ namespace AST {
 
       for (auto * stmt : stmts_)
         stmt->generate_code(settings, indent_lvl + 1, false);
+    }
+    /**
+     * Checks whether the block has a return on all paths through the block.
+     *
+     * @return True if it contains a return on all paths.
+     */
+    bool contains_return_all_paths() {
+      for (auto * stmt : stmts_)
+        if (stmt->contains_return_all_paths())
+          return true;
+      return false;
     }
 
     bool empty() { return stmts_.empty(); }
@@ -330,7 +347,14 @@ namespace AST {
 
       return NO_RETURN_VAR;
     }
-
+    /**
+     * Checks whether the if block contains a return in both the true and false parts
+     *
+     * @return True both the true and false parts always raise a return
+     */
+    bool contains_return_all_paths() override {
+      return truepart_->contains_return_all_paths() && falsepart_->contains_return_all_paths();
+    }
 
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
    private:
@@ -561,6 +585,12 @@ namespace AST {
 
       return NO_RETURN_VAR;
     }
+    /**
+     * Always returns true since this is a return statement.
+     *
+     * @return Always true
+     */
+    bool contains_return_all_paths() override { return true; }
 
     bool perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) override;
   };
@@ -1260,6 +1290,13 @@ namespace AST {
 
       return success;
     }
+    /**
+     * Typecase always returns false since no guarantee all objects are not guaranteed to
+     * match a statement.
+     *
+     * @return Always false
+     */
+    bool contains_return_all_paths() override { return false; }
 
     std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
                               bool is_lhs) const override;

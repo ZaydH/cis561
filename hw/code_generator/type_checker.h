@@ -17,6 +17,7 @@ namespace Quack {
       try {
         perform_initial_checks();
         Class::check_well_formed_hierarchy();
+        perform_return_all_paths_check();
       } catch (TypeCheckerException &e) {
         Quack::Utils::print_exception_info_and_exit(e, EXIT_CLASS_HIERARCHY);
       }
@@ -45,6 +46,28 @@ namespace Quack {
       for (auto &class_pair : *Class::Container::singleton()) {
         Class * q_class = class_pair.second;
         q_class->initial_type_check();
+      }
+    }
+    void perform_return_all_paths_check() {
+      for (auto class_pair : *Quack::Class::Container::singleton()) {
+        Quack::Class * q_class = class_pair.second;
+        if (!q_class->is_user_class())
+          continue;
+
+        for (auto method_pair : *q_class->methods_) {
+          Method * method = method_pair.second;
+
+          bool return_on_all_paths = method->block_->contains_return_all_paths();
+          if (return_on_all_paths)
+            continue;
+
+          Quack::Class * nothing = Quack::Class::Container::Nothing();
+          if (!nothing->is_subtype(method->return_type_))
+            throw ReturnAllPathsException(q_class->name_, method->name_);
+
+          // Append return Nothing to the path
+          method->block_->append(new AST::Return(new AST::NothingLit()));
+        }
       }
     }
     /**

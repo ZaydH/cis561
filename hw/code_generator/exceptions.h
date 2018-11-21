@@ -149,6 +149,17 @@ struct UnknownTypeException : public ClassHierarchyException {
 };
 
 
+class ReturnAllPathsException : public TypeCheckerException {
+ public:
+  explicit ReturnAllPathsException(const std::string &type_name, const std::string &method_name)
+      : TypeCheckerException("SymbolError", build_error_msg(type_name, method_name)) {}
+ private:
+  static std::string build_error_msg(const std::string &type_name, const std::string &method_name) {
+    return "Method " + method_name + " for class " + type_name + " does not have a return on all "
+           + " paths.  Cannot append \"return none\" without causing a type errorr.";
+  }
+};
+
 class UnknownSymbolException : public TypeCheckerException {
  public:
   explicit UnknownSymbolException(const std::string &symbol_name)

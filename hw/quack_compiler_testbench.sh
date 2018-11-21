@@ -78,15 +78,16 @@ test_code_file () {
             fi
 
             DIFF_OUT=$( diff -w ${PROG_OUT} ${EXPECTED_FILE} ) 
+            rm -rf ${PROG_OUT} &> /dev/null
             #echo "${DIFF_OUT}"
         fi
         if ! ${COMPILE_PASSED} || [[ -z ${DIFF_OUT} ]]; then
             ((PASSING_CNT++))
             printf "${GREEN}passed${NOCOLOR} with return code ${RETURN_CODE}\n"
         else
-            cat ${PROG_OUT}
             printf "compiled but output ${RED}does not match${NOCOLOR} expected output.\n"
             echo ${DIFF_OUT}
+            return;
         fi
     else
         printf "Test #${TOTAL_TESTS}: ${TEST_FILE} ${RED}FAILED${NOCOLOR} with return code ${RETURN_CODE}\n"

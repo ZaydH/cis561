@@ -26,6 +26,7 @@ $BIN_FILE $TEST_FILE &> /dev/null
 
 printf "Run GCC on ${COMPILED_C_FILE}\n"
 COMPILED_BIN="${SAMPLES_FOLDER}/a.out"
+rm -rf ${COMPILED_BIN} &> /dev/null
 gcc ${COMPILED_C_FILE}  ${BUILTINS} -o ${COMPILED_BIN} &> /dev/null
 
 OUTPUT_FILE="${EXPECTED_OUTPUT_FOLDER}/${BASE_FILENAME}.txt"

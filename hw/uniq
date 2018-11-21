@@ -21,6 +21,7 @@ good_Pt2.qk,PASS
 good_adv_constructor_init.qk,PASS
 good_init_before_use_good.qk,PASS
 good_schroedinger2.qk,PASS
+good_short_circuit_outside_conditional.qk,PASS
 good_simple_classes_tree_good.qk,PASS
 good_simple_inherited_method.qk,PASS
 good_simple_inheritingvariables_good.qk,PASS
@@ -53,4 +54,3 @@ subclass_method_return_mismatch.qk,CLASS_HIERARCHY
 typing_test.qk,TYPE_INF
 unknown_return_type.qk,CLASS_HIERARCHY
 while_init.qk,INIT_BEFORE_USE
-good_short_circuit_outside_conditional.qk,PASS

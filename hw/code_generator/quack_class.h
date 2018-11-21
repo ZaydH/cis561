@@ -54,7 +54,7 @@ namespace Quack {
        * @param indent_depth Depth to tab the contents.
        */
       const void print_original_src(unsigned int indent_depth) override {
-        auto print_class = new Container();
+        auto * print_class = new Container();
 
         for (const auto &pair : objs_) {
           if (pair.first == CLASS_OBJ || pair.first == CLASS_INT
@@ -95,6 +95,14 @@ namespace Quack {
        */
       static Class* Str() {
         return singleton()->get(CLASS_STR);
+      }
+      /**
+       * Static accessor to get the Object class.
+       *
+       * @return Object class reference
+       */
+      static Class* Obj() {
+        return singleton()->get(CLASS_OBJ);
       }
 
       Container(Container const&) = delete;       // Don't Implement
@@ -416,7 +424,7 @@ namespace Quack {
      *
      * @return Class name for object
      */
-    const std::string generated_clazz_name() const {
+    const std::string generated_clazz_type_name() const {
       return "class_" + name_;
     }
     /**
@@ -425,7 +433,7 @@ namespace Quack {
      * @return Class struct information
      */
     const std::string generated_struct_clazz_name() const {
-      return generated_clazz_name() + "_struct";
+      return generated_clazz_type_name() + "_struct";
     }
     /**
      * Gets the name used for constructors of this class.
@@ -447,7 +455,7 @@ namespace Quack {
                      << "/* Typedefs Required for Separation of class and object structs */\n"
                      << "struct " << generated_struct_clazz_name() << ";\n"
                      << "typedef struct " << generated_struct_clazz_name()
-                     << "* " << generated_clazz_name() << ";\n"
+                     << "* " << generated_clazz_type_name() << ";\n"
                      << std::endl;
 
       generate_object_struct(settings);
@@ -474,6 +482,9 @@ namespace Quack {
 
       // Put constructor function pointer
       std::string indent = AST::ASTNode::indent_str(1);
+      settings.fout_ << "\n" << indent << Container::Obj()->generated_clazz_type_name() << " "
+                     << GENERATED_SUPER_FIELD << ";";
+
       settings.fout_ << "\n" << indent << generated_object_type_name()
                      << " (*" << METHOD_CONSTRUCTOR << ")(";
       constructor_->params_->generate_code(settings, false, false);
@@ -505,7 +516,7 @@ namespace Quack {
       // ToDo Add super
       // Method object field
       settings.fout_ << "\n" << AST::ASTNode::indent_str(1)
-                     << generated_clazz_name() << " " << GENERATED_CLASS_FIELD << ";";
+                     << generated_clazz_type_name() << " " << GENERATED_CLASS_FIELD << ";";
 
       build_generated_fields(this);
       for (auto field_info : *gen_fields_) {
@@ -577,10 +588,12 @@ namespace Quack {
     void generate_clazz_object(CodeGen::Settings settings) {
       std::string class_obj_struct = generated_clazz_obj_name() + "_struct";
       settings.fout_ << "\nstruct " << generated_struct_clazz_name() << " "
-                     << class_obj_struct << " = {\n";
+                     << class_obj_struct << " = {";
 
       std::string indent_str = AST::ASTNode::indent_str(1);
-      settings.fout_ << indent_str << generated_constructor_name();
+      settings.fout_ << "\n" << indent_str << super_->generated_clazz_type_name();
+
+      settings.fout_ << ",\n" << indent_str << generated_constructor_name();
 
       build_generated_methods(this);
       for (auto method_info : *gen_methods_) {
@@ -589,7 +602,7 @@ namespace Quack {
       }
 
       settings.fout_ << "\n};\n\n"
-                     << generated_clazz_name() << " " << generated_clazz_obj_name()
+                     << generated_clazz_type_name() << " " << generated_clazz_obj_name()
                      << " = &" << class_obj_struct << ";";
     }
     /**
@@ -812,7 +825,7 @@ namespace Quack {
     void add_binop_method(const std::string &method_name, const std::string &return_type,
                           const std::string &param_type) {
 
-      auto params = new Param::Container();
+      auto * params = new Param::Container();
       params->add(new Param(FIELD_OTHER_LIT_NAME, param_type));
 
       methods_->add(new Method(method_name, return_type, params, new AST::Block()));
@@ -820,7 +833,7 @@ namespace Quack {
     }
 
     void add_unary_op_method(const std::string &method_name, const std::string &return_type) {
-      auto params = new Param::Container();
+      auto * params = new Param::Container();
 
       methods_->add(new Method(method_name, return_type, params, new AST::Block()));
     }

@@ -115,7 +115,7 @@ namespace Quack {
     Quack::Program* parse(std::istream &f_in, const std::string &file_path) {
       yy::Lexer lexer(f_in);
       Quack::Program *prog;
-      yy::parser *parser = new yy::parser(lexer, &prog);
+      auto * parser = new yy::parser(lexer, &prog);
 
       if (parser->parse() != 0 || !report::ok()) {
         report::bail();

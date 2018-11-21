@@ -62,6 +62,8 @@ typedef struct obj_Obj_struct {
 } * obj_Obj;
 
 struct class_Obj_struct {
+  class_Obj super_;
+
   /* Method table */
   obj_Obj (*constructor) ( void );
   obj_Boolean (*EQUALS) (obj_Obj, obj_Obj);
@@ -91,6 +93,8 @@ typedef struct obj_String_struct {
 } * obj_String;
 
 struct class_String_struct {
+  class_Obj super_;
+
   /* Method table: Inherited or overridden */
   obj_String (*constructor) ( void );
   obj_Boolean (*EQUALS) (obj_String, obj_Obj);
@@ -134,6 +138,8 @@ typedef struct obj_Boolean_struct {
 } * obj_Boolean;
 
 struct class_Boolean_struct {
+  class_Obj super_;
+
   /* Method table: Inherited or overridden */
   obj_Boolean (*constructor) ( void );
   obj_Boolean (*EQUALS) (obj_Obj, obj_Obj); /* Inherit */
@@ -178,6 +184,8 @@ typedef struct obj_Nothing_struct {
  * "None".
  */
 struct class_Nothing_struct {
+  class_Obj super_;
+
   /* Method table */
   obj_Nothing (*constructor) ( void );
   obj_Boolean (*EQUALS) (obj_Obj, obj_Obj); /* Inherited */
@@ -220,6 +228,8 @@ typedef struct obj_Int_struct {
 } * obj_Int;
 
 struct class_Int_struct {
+  class_Obj super_;
+
   /* Method table: Inherited or overridden */
   obj_Int (*constructor) ( void );
 
@@ -283,6 +293,6 @@ obj_Int Int_method_MINUS(obj_Int this, obj_Int other);
 obj_Int Int_method_DIVIDE(obj_Int this, obj_Int other);
 obj_Int Int_method_TIMES(obj_Int this, obj_Int other);
 
-bool is_bool_true(obj_Boolean cond_val);
+bool is_subtype(class_Obj obj, class_Obj other);
 
 #endif

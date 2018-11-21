@@ -1262,12 +1262,7 @@ namespace AST {
     }
 
     std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
-                              bool is_lhs) const override {
-      if (is_lhs)
-        throw std::runtime_error("Cannot have typecase on LHS");
-      // ToDo Add typecase code generation
-      assert(false);
-    }
+                              bool is_lhs) const override;
 
    private:
     ASTNode* expr_;

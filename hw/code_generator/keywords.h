@@ -68,4 +68,7 @@
 
 #define GENERATED_NO_JUMP ""
 
+#define GENERATED_IS_SUBTYPE_FUNC "is_subtype"
+#define GENERATED_SUPER_FIELD "super_"
+
 #endif //PROJECT02_KEYWORDS_H

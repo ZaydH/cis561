@@ -94,6 +94,7 @@ namespace CodeGen {
     void export_includes() {
       std::pair<std::string, bool> libs[] = {{"stdlib", false},
                                              {"stdio", false},
+                                             {"stdbool", false},
                                              {"builtins", true}};
       for (auto &lib_pair : libs) {
         fout_ << "#include " << (lib_pair.second ? "\"" : "<")

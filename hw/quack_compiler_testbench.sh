@@ -64,7 +64,12 @@ test_code_file () {
             local PROG_OUT=${SAMPLES_FOLDER}/prog_out
             rm -rf ${PROG_OUT} &> /dev/null
             ${COMPILED_PROG} > ${PROG_OUT}
-            
+
+            if [[ $? -ne 0 ]]; then
+                printf "generated code ${RED}exited with an error${NOCOLOR}.\n"
+                return;
+            fi
+
             EXPECTED_FILE="${EXPECTED_OUT_FOLDER}/${BASE_FILENAME}.txt"
 
             if ! [[ -f ${EXPECTED_FILE} ]]; then

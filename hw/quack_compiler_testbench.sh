@@ -124,7 +124,7 @@ get_exit_code() {
 }
 
 # Delete all existing C-files in the samples directory to prevent any weirdness 
-find ${SAMPLES_FOLDER}*.c -type f -not -name 'builtins.c' | xargs rm &> /dev/null 
+( find ${SAMPLES_FOLDER}*.c -type f -not -name 'builtins.c' | xargs rm ) &> /dev/null 
 
 # Exit code if the compiler passes
 get_exit_code "PASS"

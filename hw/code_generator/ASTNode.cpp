@@ -425,66 +425,6 @@ namespace AST {
     return success;
   }
 
-  std::string Typecase::generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
-                                      bool is_lhs) const {
-    if (is_lhs)
-      throw std::runtime_error("Cannot have typecase on LHS");
-
-    // End of the TypeCase
-    std::string end_typecase = define_new_label("end_typecase");
-
-    // Build the label set
-    std::vector<std::string> labels;
-    labels.reserve(alts_->size() + 1);
-    for (auto * alt : *alts_)
-      labels.emplace_back(define_new_label("typecase_" + alt->type_names_[1] + "_"));
-    labels.emplace_back(end_typecase);
-
-    generate_one_line_comment(settings, indent_lvl, "Typecase START");
-
-    std::string typecase_var = expr_->generate_code(settings, indent_lvl+1, false);
-
-    for (unsigned i = 0; i < alts_->size(); i++) {
-      TypeAlternative * alt = (*alts_)[i];
-
-      std::string tc_name = alt->type_names_[1];
-
-      generate_one_line_comment(settings, indent_lvl, "Typecase Type - " + tc_name);
-
-      // Start the typecase check for this type
-      generate_label(settings, indent_lvl+1, labels[i], true);
-
-      Quack::Class * typecase_class = Quack::Class::Container::singleton()->get(tc_name);
-
-      // Go To Next typecase check
-      PRINT_INDENT(indent_lvl);
-      settings.fout_ << "if(!" << GENERATED_IS_SUBTYPE_FUNC << "(" << typecase_var << "->"
-                     << GENERATED_CLASS_FIELD << ", " << typecase_class->generated_clazz_type_name()
-                     << ")) { goto " << labels[i+1] <<  "; }";
-
-      // Set assign the expression
-      auto * var = new Ident(alt->type_names_[0].c_str());
-      var->set_node_type(typecase_class);
-      auto * typing = new Typing(var, "");
-      auto * other_var = new Ident(typecase_var.c_str());
-      Assn assn(typing, other_var);
-      assn.generate_code(settings, indent_lvl+1, false);
-      // Prevent an issue where the rhs is deleted
-      assn.rhs_ = nullptr;
-
-      alt->block_->generate_code(settings, indent_lvl+1);
-
-      // End fhe type case
-      generate_goto(settings, indent_lvl+1, end_typecase, true);
-    }
-
-    generate_label(settings, indent_lvl, end_typecase, true);
-    generate_one_line_comment(settings, indent_lvl, "Typecase END");
-
-    return NO_RETURN_VAR;
-  }
-
-
   //====================================================================//
   //                   Code Generation Related Method                   //
   //====================================================================//
@@ -603,4 +543,65 @@ namespace AST {
     }
     return success;
   }
+
+  std::string Typecase::generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                                      bool is_lhs) const {
+    if (is_lhs)
+      throw std::runtime_error("Cannot have typecase on LHS");
+
+    // End of the TypeCase
+    std::string end_typecase = define_new_label("end_typecase");
+
+    // Build the label set
+    std::vector<std::string> labels;
+    labels.reserve(alts_->size() + 1);
+    for (auto * alt : *alts_)
+      labels.emplace_back(define_new_label("typecase_" + alt->type_names_[1] + "_"));
+    labels.emplace_back(end_typecase);
+
+    generate_one_line_comment(settings, indent_lvl, "Typecase START");
+
+    std::string typecase_var = expr_->generate_code(settings, indent_lvl, false);
+
+    for (unsigned i = 0; i < alts_->size(); i++) {
+      TypeAlternative * alt = (*alts_)[i];
+
+      std::string tc_name = alt->type_names_[1];
+
+      generate_one_line_comment(settings, indent_lvl, "Typecase Type - " + tc_name);
+
+      // Start the typecase check for this type
+      generate_label(settings, indent_lvl, labels[i], true);
+
+      Quack::Class * typecase_class = Quack::Class::Container::singleton()->get(tc_name);
+
+      // Go To Next typecase check
+      PRINT_INDENT(indent_lvl);
+      settings.fout_ << "if(!" << GENERATED_IS_SUBTYPE_FUNC << "(" << typecase_var << "->"
+                     << GENERATED_CLASS_FIELD << ", &"
+                     << typecase_class->generated_clazz_obj_struct_name()
+                     << ")) { goto " << labels[i+1] <<  "; }";
+
+      // Set assign the expression
+      auto * var = new Ident(alt->type_names_[0].c_str());
+      var->set_node_type(typecase_class);
+      auto * typing = new Typing(var, "");
+      auto * other_var = new Ident(typecase_var.c_str());
+      Assn assn(typing, other_var);
+      assn.generate_code(settings, indent_lvl+1, false);
+      // Prevent an issue where the rhs is deleted
+      assn.rhs_ = nullptr;
+
+      alt->block_->generate_code(settings, indent_lvl);
+
+      // End fhe type case
+      generate_goto(settings, indent_lvl, end_typecase, true);
+    }
+
+    generate_label(settings, indent_lvl, end_typecase, true);
+    generate_one_line_comment(settings, indent_lvl, "Typecase END");
+
+    return NO_RETURN_VAR;
+  }
+
 }

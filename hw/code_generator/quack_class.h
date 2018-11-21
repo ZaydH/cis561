@@ -444,6 +444,15 @@ namespace Quack {
       return "new_" + name_;
     }
     /**
+     * Gets the name of the struct object used to store the clazz information include super class.
+     * This function is used in typecase statements and in the generated class definitions.
+     *
+     * @return Name of the struct clazz struct const object
+     */
+    const std::string generated_clazz_obj_struct_name() const {
+      return this->generated_clazz_obj_name() + "_struct";
+    }
+    /**
      * Generates all code associated with a specific class
      *
      * @param settings Code generator settings
@@ -586,14 +595,14 @@ namespace Quack {
      * @param settings Code generator settings
      */
     void generate_clazz_object(CodeGen::Settings settings) {
-      std::string class_obj_struct = generated_clazz_obj_name() + "_struct";
+      std::string class_obj_struct = generated_clazz_obj_struct_name();
 
       settings.fout_ << "\nstruct " << generated_struct_clazz_name() << " "
                      << class_obj_struct << " = {";
 
       std::string indent_str = AST::ASTNode::indent_str(1);
 
-      std::string super_obj_struct = super_->generated_clazz_obj_name() + "_struct";
+      std::string super_obj_struct = super_->generated_clazz_obj_struct_name();
       settings.fout_ << "\n" << indent_str << "&" << super_obj_struct;
 
       settings.fout_ << ",\n" << indent_str << generated_constructor_name();

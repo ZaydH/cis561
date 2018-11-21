@@ -366,11 +366,11 @@ obj_Int int_literal(int n) {
 bool is_subtype(class_Obj obj, class_Obj other) {
   if (obj == other)
     return true;
-  if (obj->super_)
+  if (obj->super_ == NULL)
     return false;
   return is_subtype(obj->super_, other);
 }
 
 bool is_bool_true(obj_Boolean cond_val) {
-    return cond_val == lit_true;
+  return cond_val == lit_true;
 }

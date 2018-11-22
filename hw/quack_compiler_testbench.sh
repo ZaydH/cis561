@@ -21,6 +21,8 @@ BIN=$1
 ALL_TESTS=$2
 SAMPLES_FOLDER=$3
 EXPECTED_OUT_FOLDER=$4
+BUILTINS_C_FILE=builtins.c
+BUILTINS_C_PATH=${SAMPLES_FOLDER}/${BUILTINS_C_FILE}
 
 PASSING_CNT=0
 TOTAL_TESTS=0
@@ -28,6 +30,11 @@ TOTAL_TESTS=0
 RED='\033[0;31m'
 GREEN='\033[1;32m'
 NOCOLOR='\033[0m'
+
+if ! [[ -f ${BUILTINS_C_PATH} ]]; then
+    printf "${RED}Error${NOCOLOR}: Unable to find builtins file at: ${BUILTINS_C_PATH}\n" 
+    exit 1
+fi
 
 test_code_file () {
     ((TOTAL_TESTS++))
@@ -55,7 +62,7 @@ test_code_file () {
         if ${COMPILE_PASSED}; then
             COMPILED_PROG=${SAMPLES_FOLDER}/a.out
             rm -rf a.out ${COMPILED_PROG} &> /dev/null      
-            gcc ${COMPILED_C_FILE} ${SAMPLES_FOLDER}/builtins.c -o ${COMPILED_PROG} &> /dev/null
+            gcc ${COMPILED_C_FILE} ${BUILTINS_C_PATH} -o ${COMPILED_PROG} &> /dev/null
             if [[ $? -ne 0 ]]; then
                 printf "generated output ${RED}does not compile${NOCOLOR}.\n"
                 return;
@@ -124,7 +131,7 @@ get_exit_code() {
 }
 
 # Delete all existing C-files in the samples directory to prevent any weirdness 
-( find ${SAMPLES_FOLDER}*.c -type f -not -name 'builtins.c' | xargs rm ) &> /dev/null 
+( find ${SAMPLES_FOLDER}*.c -type f -not -name ${BUILTINS_C_FILE} | xargs rm ) &> /dev/null 
 # Delete any already compiled binarys
 ( rm -rf ${SAMPLES_FOLDER}/*.out ) &> /dev/null
 

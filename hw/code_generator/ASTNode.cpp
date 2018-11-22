@@ -288,6 +288,9 @@ namespace AST {
 
   bool Ident::update_inferred_type(TypeCheck::Settings &settings, Quack::Class *inferred_type,
                                    bool is_field) {
+    if (!is_field && (text_ == OBJECT_TRUE || text_ == OBJECT_FALSE || text_ == OBJECT_NONE))
+      return true;
+
     Symbol * sym = settings.st_->get(text_, is_field);
     assert(sym != OBJECT_NOT_FOUND);
 
@@ -304,6 +307,16 @@ namespace AST {
   }
 
   bool Ident::perform_type_inference(TypeCheck::Settings &settings, Quack::Class *parent_type) {
+    if (!parent_type) {
+      if (text_ == OBJECT_TRUE || text_ == OBJECT_FALSE) {
+        type_ = Quack::Class::Container::Bool();
+        return true;
+      }
+      if (text_ == OBJECT_NONE) {
+        type_ = Quack::Class::Container::Nothing();
+        return true;
+      }
+    }
     // If the identifier is this, then mark as the type of this
     if (settings.this_class_ != nullptr && text_ == OBJECT_SELF) {
       Quack::Class * tc = settings.this_class_;
@@ -358,6 +371,10 @@ namespace AST {
     if (auto obj = dynamic_cast<Ident *>(object_)) {
       if (obj->text_ == OBJECT_SELF)
         next_class = settings.this_class_;
+      else if (!parent_type && (obj->text_ == OBJECT_TRUE || obj->text_ == OBJECT_FALSE))
+        next_class = Quack::Class::Container::Bool();
+      else if (!parent_type && obj->text_ == OBJECT_NONE)
+        next_class = Quack::Class::Container::Int();
       else
         next_class = settings.st_->get(obj->text_, false)->get_type();
     } else {

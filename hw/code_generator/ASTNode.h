@@ -376,6 +376,8 @@ namespace AST {
 
     bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
                                      bool is_method) override {
+      if (text_ == OBJECT_TRUE || text_ == OBJECT_FALSE || text_ == OBJECT_NONE)
+        return true;
       return check_ident_initialized(inits, all_inits, false);
     }
     /**
@@ -437,6 +439,13 @@ namespace AST {
      */
     std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl ,
                               bool is_lhs) const override {
+      if (text_ == OBJECT_TRUE)
+        return GENERATED_LIT_TRUE;
+      if (text_ == OBJECT_FALSE)
+        return GENERATED_LIT_FALSE;
+      if (text_ == OBJECT_NONE)
+        return GENERATED_LIT_NONE;
+
       return text_;
     }
     /** Identifier name */
@@ -857,8 +866,10 @@ namespace AST {
     std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
                               bool is_lhs) const override {
       // Handle the bottom out of the recursion
-      if (auto obj = dynamic_cast<Ident*>(object_))
-        return process_object_call(obj->text_, settings, indent_lvl, is_lhs);
+      if (auto obj = dynamic_cast<Ident*>(object_)) {
+        std::string obj_name = obj->generate_code(settings, indent_lvl, is_lhs);
+        return process_object_call(obj_name, settings, indent_lvl, is_lhs);
+      }
 
       std::string left_obj = object_->generate_code(settings, indent_lvl, is_lhs);
       return process_object_call(left_obj, settings, indent_lvl, is_lhs);

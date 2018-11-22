@@ -44,6 +44,10 @@
 #define METHOD_NOT "not"
 
 #define OBJECT_SELF "this"
+#define OBJECT_TRUE "true"
+#define OBJECT_FALSE "false"
+#define OBJECT_NONE "none"
+
 #define OBJECT_NOT_FOUND nullptr
 #define BASE_CLASS nullptr
 

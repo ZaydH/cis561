@@ -1270,7 +1270,7 @@ namespace AST {
     bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
                                      bool is_method) override {
       bool success = expr_->check_initialize_before_use(inits, all_inits, false);
-      all_inits->var_intersect(inits);
+      all_inits->var_union(inits);
 
       for (unsigned i = 0; i < alts_->size(); i++) {
         TypeAlternative * alt = (*alts_)[i];
@@ -1283,8 +1283,9 @@ namespace AST {
         // Update the initialized variable lists.
         if (i == 0)
           inits = type_init;
-        else
-          inits.var_intersect(type_init);
+        // Removed as no effect. Anyway not correct as may not match any typecase
+//        else
+//          inits.var_intersect(type_init);
         all_inits->var_union(type_init);
       }
 

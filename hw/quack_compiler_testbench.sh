@@ -11,6 +11,8 @@
 # inference) each has exit code in the compiler as defined in the function "get_exit_code".  If your
 # program does not use that convention, you can change that function as needed.
 
+VERSION_NUM=2.00.00
+printf "Quack Compiler - Testbench Version ${VERSION_NUM}\n\n"
 
 if [[ $# -ne 4 ]] ; then
     echo "Correct command \"test_type_checker.sh <BinFile> <TestCsvFile> <SamplesFolder> <ExpectedOutFolder>\""

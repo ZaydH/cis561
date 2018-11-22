@@ -125,11 +125,11 @@ namespace Quack {
       constructor_ = new Method(name, this->name_, params, constructor);
       constructor_->return_type_ = this;
 
-      for (auto method_info : *methods_) {
-        Quack::Method * method = method_info.second;
-        if (name_ == method->name_)
-          throw ParserException("Method name cannot match class name for class " + name_);
-      }
+//      for (auto method_info : *methods_) {
+//        Quack::Method * method = method_info.second;
+//        if (name_ == method->name_)
+//          throw ParserException("Method name cannot match class name for class " + name_);
+//      }
 
 //      Container* classes = Container::singleton();
 //      if (classes->exists(name))
@@ -345,16 +345,19 @@ namespace Quack {
         Method * method = method_pair.second;
         configure_method_params(*method->params_);
 
+        if (Quack::Class::Container::singleton()->get(method->name_) != OBJECT_NOT_FOUND)
+          throw MethodClassNameCollisionException(method->name_);
+
         // Check and configure the method return type.
 //        if (method->return_type_name_ == CLASS_NOTHING) {
 //          method->return_type_ = BASE_CLASS;
 //        } else {
-          method->return_type_ = Container::singleton()->get(method->return_type_name_);
-          if (method->return_type_ == OBJECT_NOT_FOUND) {
-            throw UnknownTypeException("Class: " + this->name_ + ", method " + method->name_
-                                     + ", unknown return type \"" + method->return_type_name_ +
-                                     "\"");
-          }
+        method->return_type_ = Container::singleton()->get(method->return_type_name_);
+        if (method->return_type_ == OBJECT_NOT_FOUND) {
+          throw UnknownTypeException("Class: " + this->name_ + ", method " + method->name_
+                                   + ", unknown return type \"" + method->return_type_name_ +
+                                   "\"");
+        }
 //        }
       }
     }

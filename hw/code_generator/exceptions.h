@@ -152,7 +152,7 @@ struct UnknownTypeException : public ClassHierarchyException {
 class ReturnAllPathsException : public TypeCheckerException {
  public:
   explicit ReturnAllPathsException(const std::string &type_name, const std::string &method_name)
-      : TypeCheckerException("SymbolError", build_error_msg(type_name, method_name)) {}
+      : TypeCheckerException("MissingReturnMismatch", build_error_msg(type_name, method_name)) {}
  private:
   static std::string build_error_msg(const std::string &type_name, const std::string &method_name) {
     return "Method " + method_name + " for class " + type_name + " does not have a return on all "
@@ -208,6 +208,15 @@ struct MissingSuperFieldsException : public TypeCheckerException {
  private:
   static const std::string build_error_msg(const std::string &class_name) {
     return "Class \"" + class_name + "\" missing fields from its super class.";
+  }
+};
+
+struct MethodClassNameCollisionException : public TypeCheckerException {
+  explicit MethodClassNameCollisionException(const std::string &name)
+      : TypeCheckerException("NameCollision", build_error_msg(name)) { }
+ private:
+  static const std::string build_error_msg(const std::string &name) {
+    return "\"" + name + "\" is both a class and method name.";
   }
 };
 

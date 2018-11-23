@@ -580,7 +580,7 @@ namespace AST {
       settings.fout_ << "if(!" << GENERATED_IS_SUBTYPE_FUNC << "(" << typecase_var << "->"
                      << GENERATED_CLASS_FIELD << ", &"
                      << typecase_class->generated_clazz_obj_struct_name()
-                     << ")) { goto " << labels[i+1] <<  "; }";
+                     << ")) { goto " << labels[i+1] <<  "; }\n";
 
       // Set assign the expression
       auto * var = new Ident(alt->type_names_[0].c_str());

@@ -8,7 +8,7 @@ make
 cd ..
 
 BIN_DIR=bin
-BIN_NAME=type_checker
-chmod 777 $BIN_DIR
+BIN_NAME=code_generator
+#chmod 777 $BIN_DIR
 chmod 777 $BIN_DIR/$BIN_NAME
 

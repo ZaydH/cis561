@@ -791,7 +791,7 @@ namespace Quack {
         _T * obj = obj_pair.second;
         bool found = false;
         // "Override" the existing object in the vector
-        for (int i = 0; i < gen_vec->size(); i++) {
+        for (unsigned i = 0; i < gen_vec->size(); i++) {
           if ((*gen_vec)[i].second->name_ == obj->name_) {
             (*gen_vec)[i] = std::pair<Class*, _T*>(q_class, obj);
             found = true;

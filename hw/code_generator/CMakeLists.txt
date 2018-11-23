@@ -9,18 +9,20 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
-# ToDo verify Boost on ix-dev
-find_package(Boost 1.45.0 COMPONENTS filesystem )
-
 IF(APPLE)
   set(REFLEX_LIB "/usr/local/lib/libreflex.a")
   set(REFLEX_INCLUDE "/usr/local/include/reflex")
   set(REFLEX reflex)
 ELSE(APPLE)
+  set(BOOST_ROOT "/home/users/zayd/boost_1_68_0")
   set(REFLEX_LIB "/home/faculty/michal/classes/cis461/RE-flex/lib/libreflex.a")
   set(REFLEX_INCLUDE "/home/faculty/michal/classes/cis461/RE-flex/include")
   set(REFLEX "/home/faculty/michal/classes/cis461/RE-flex/bin/reflex")
+  link_directories("/home/users/zayd/boost_1_68_0/stage/lib")
 ENDIF(APPLE)
+
+# ToDo verify Boost on ix-dev
+find_package(Boost REQUIRED COMPONENTS system filesystem )
 
 # Run re-Flex
 add_custom_command(
@@ -39,6 +41,7 @@ include_directories(
         ${CMAKE_CURRENT_BINARY_DIR}
         ${REFLEX_INCLUDE}
         ${CMAKE_CURRENT_SOURCE_DIR}
+        ${Boost_INCLUDE_DIRS}
 )
 
 add_executable(${BIN_NAME}

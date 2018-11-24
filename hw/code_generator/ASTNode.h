@@ -853,7 +853,16 @@ namespace AST {
           if (auto next = dynamic_cast<Ident*>(next_))
             next->add_identifier_to_initialized(inits, true);
     }
-
+    /**
+     * Processes object calls in the quack program.  Object calls take two forms namely:
+     * obj.<field> and obj.<method>(...).  Dynamic casting is used to determine which of the
+     * two applies for this specific case of code generator.
+     *
+     * @param settings Code generator settings
+     * @param indent_lvl Level of indentation.
+     * @param is_lhs True if the node corresponds to a left hand side.
+     * @return Any object call string.
+     */
     std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
                               bool is_lhs) const override {
       // Handle the bottom out of the recursion

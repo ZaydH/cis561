@@ -382,11 +382,15 @@ namespace AST {
   const std::string ObjectCall::process_object_call(const std::string &left_obj,
                                                     CodeGen::Settings &settings,
                                                     unsigned indent_lvl, bool is_lhs) const {
+    // Use a dynamic cast to handle a method call, e.g. obj.<FuncName>(..)
     if (auto func_call = dynamic_cast<FunctionCall*>(next_))
       return func_call->generate_object_call(left_obj, settings, indent_lvl, is_lhs);
+    // Use a dynamic cast to handle a field reference, e.g., obj.<FieldName>
+    // Store the field value in a temporary variable
     else if (auto ident = dynamic_cast<Ident*>(next_))
       return generate_temp_var(left_obj + "->" + ident->text_, settings, indent_lvl, is_lhs);
 
+    // THe code should never get here.  This indicates a logic error in the compiler
     throw std::runtime_error("Unexpected bottoming out of ObjectCall code generation");
   }
 

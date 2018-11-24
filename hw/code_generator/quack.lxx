@@ -144,14 +144,14 @@ none     { return parser::token::NONE; }
    }
 <SIMPLE_STRING>{
 [^\\"\n]+   { s_out += text(); }
-\\0         { s_out += '\0'; }
-\\b         { s_out += '\b'; }
-\\t         { s_out += '\t'; }
-\\n         { s_out += '\n'; }
-\\r         { s_out += '\r'; }
-\\f         { s_out += '\f'; }
-\\\"        { s_out += '\"'; }
-'\\\\'      { s_out += '\\'; }
+\\0         { s_out += "\\0"; }
+\\b         { s_out += "\\b"; }
+\\t         { s_out += "\\t"; }
+\\n         { s_out += "\\n"; }
+\\r         { s_out += "\\r"; }
+\\f         { s_out += "\\f"; }
+\\\"        { s_out += "\\\""; }
+'\\\\'      { s_out += "\\\\"; }
 \\.         { std::string ss_err;
               ss_err = "Unknown escape character " + std::string(WHERE_AT);
               report::error(ss_err);

@@ -31,6 +31,13 @@ namespace AST {
 
   void ASTNode::generate_eval_branch(CodeGen::Settings settings, const unsigned indent_lvl,
                                      const std::string &true_label, const std::string &false_label){
+    if (auto bool_lit = dynamic_cast<BoolLit*>(this)) {
+      if (bool_lit->value_)
+        generate_goto(settings, indent_lvl, true_label);
+      else
+        generate_goto(settings, indent_lvl, false_label);
+      return;
+    }
     if (auto bool_op = dynamic_cast<BoolOp*>(this))
       return bool_op->generate_eval_bool_op(settings, indent_lvl, true_label, false_label);
 
@@ -483,6 +490,8 @@ namespace AST {
     std::vector<std::string> * arg_vars = args_->generate_args(settings, indent_lvl);
 
     std::ostringstream ss;
+    if (q_class != get_node_type())
+      ss << "(" << get_node_type()->generated_object_type_name() << ")";
     ss << q_class->generated_constructor_name() << "(";
     assert(arg_vars->size() == params->count());
     for (unsigned i = 0; i < arg_vars->size(); i++) {

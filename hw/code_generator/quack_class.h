@@ -932,7 +932,7 @@ namespace Quack {
       add_binop_method(METHOD_MULTIPLY, CLASS_INT, CLASS_INT);
       add_binop_method(METHOD_DIVIDE, CLASS_INT, CLASS_INT);
 
-      add_binop_method(METHOD_EQUALITY, CLASS_BOOL, CLASS_INT);
+      add_binop_method(METHOD_EQUALITY, CLASS_BOOL, CLASS_OBJ);
       add_binop_method(METHOD_LEQ, CLASS_BOOL, CLASS_INT);
       add_binop_method(METHOD_LT, CLASS_BOOL, CLASS_INT);
       add_binop_method(METHOD_GEQ, CLASS_BOOL, CLASS_INT);
@@ -946,7 +946,7 @@ namespace Quack {
 
       add_binop_method(METHOD_ADD, CLASS_STR, CLASS_STR);
 
-      add_binop_method(METHOD_EQUALITY, CLASS_BOOL, CLASS_STR);
+      add_binop_method(METHOD_EQUALITY, CLASS_BOOL, CLASS_OBJ);
       add_binop_method(METHOD_LEQ, CLASS_BOOL, CLASS_STR);
       add_binop_method(METHOD_LT, CLASS_BOOL, CLASS_STR);
       add_binop_method(METHOD_GEQ, CLASS_BOOL, CLASS_STR);

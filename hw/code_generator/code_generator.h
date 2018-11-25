@@ -114,6 +114,8 @@ namespace CodeGen {
             << nothing_class->generated_object_type_name() << " " << main_subfunc_name << "() {\n";
 
       settings.return_type_ = Quack::Class::Container::Nothing();
+      settings.st_ = prog_->main_->symbol_table_;
+
       Quack::Class::generate_symbol_table(settings, 1, prog_->main_);
       AST::ASTNode::generate_one_line_comment(settings, 1, "main Method Body");
       prog_->main_->block_->generate_code(settings, 0);
@@ -122,6 +124,7 @@ namespace CodeGen {
             << "}" << std::endl;
 
       settings.return_type_ = nullptr;
+      settings.st_ = nullptr;
     }
     /** Writes the main() function to the output file. */
     void export_main(CodeGen::Settings settings) {

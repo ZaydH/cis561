@@ -611,15 +611,17 @@ namespace AST {
       // Go To Next typecase check
       PRINT_INDENT(indent_lvl);
       settings.fout_ << "if(!" << GENERATED_IS_SUBTYPE_FUNC << "(" << typecase_var << "->"
-                     << GENERATED_CLASS_FIELD << ", &"
-                     << typecase_class->generated_clazz_obj_struct_name()
+                     << GENERATED_CLASS_FIELD << ", "
+                     << "(" << Quack::Class::Container::Obj()->generated_clazz_type_name() << ")"
+                     << "(&" << typecase_class->generated_clazz_obj_struct_name() << ")"
                      << ")) { goto " << labels[i+1] <<  "; }\n";
 
       // Set assign the expression
       auto * var = new Ident(alt->type_names_[0].c_str());
-      var->set_node_type(typecase_class);
+      Quack::Class * var_class = settings.st_->get(var->text_, false)->get_type();
+      var->set_node_type(var_class);
       auto * typing = new Typing(var, "");
-      typing->set_node_type(expr_->get_node_type());
+      typing->set_node_type(var_class);
 
       auto * other_var = new Ident(typecase_var.c_str());
       Assn assn(typing, other_var);

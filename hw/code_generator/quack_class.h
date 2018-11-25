@@ -607,7 +607,10 @@ namespace Quack {
       std::string indent_str = AST::ASTNode::indent_str(1);
 
       std::string super_obj_struct = super_->generated_clazz_obj_struct_name();
-      settings.fout_ << "\n" << indent_str << "&" << super_obj_struct;
+      // Include in the super reference a cast to prevent compiler warnings
+      settings.fout_ << "\n" << indent_str
+                     << "(" << Quack::Class::Container::Obj()->generated_clazz_type_name() << ")"
+                     << "&" << super_obj_struct;
 
       settings.fout_ << ",\n" << indent_str << generated_constructor_name();
 

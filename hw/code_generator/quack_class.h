@@ -125,11 +125,12 @@ namespace Quack {
       constructor_ = new Method(name, this->name_, params, constructor);
       constructor_->return_type_ = this;
 
-//      for (auto method_info : *methods_) {
-//        Quack::Method * method = method_info.second;
+      for (auto method_info : *methods_) {
+        Quack::Method * method = method_info.second;
+        method->obj_class_ = this;
 //        if (name_ == method->name_)
 //          throw ParserException("Method name cannot match class name for class " + name_);
-//      }
+      }
 
 //      Container* classes = Container::singleton();
 //      if (classes->exists(name))
@@ -833,9 +834,9 @@ namespace Quack {
      * Used to add binary operation methods to the a class.  Only used for base classes
      * like Obj, Boolean, Integer, etc.
      *
-     * @param method_name
-     * @param return_type
-     * @param param_type
+     * @param method_name Name of the binary operation method
+     * @param return_type Return type of binary operation
+     * @param param_type Type of the other parameter's type
      */
     void add_binop_method(const std::string &method_name, const std::string &return_type,
                           const std::string &param_type) {
@@ -843,14 +844,18 @@ namespace Quack {
       auto * params = new Param::Container();
       params->add(new Param(FIELD_OTHER_LIT_NAME, param_type));
 
-      methods_->add(new Method(method_name, return_type, params, new AST::Block()));
-      methods_->get(method_name)->init_list_ = new InitializedList();
+      Method * method = new Method(method_name, return_type, params, new AST::Block());
+      method->init_list_ = new InitializedList();
+      method->obj_class_ = this;
+
+      methods_->add(method);
     }
 
     void add_unary_op_method(const std::string &method_name, const std::string &return_type) {
       auto * params = new Param::Container();
-
-      methods_->add(new Method(method_name, return_type, params, new AST::Block()));
+      Method * method = new Method(method_name, return_type, params, new AST::Block());
+      method->obj_class_ = this;
+      methods_->add(method);
     }
   };
 

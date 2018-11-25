@@ -77,6 +77,8 @@ namespace Quack {
     InitializedList* init_list_;
     /** Name of the return type of the method (if any) */
     const std::string return_type_name_;
+    /** Class of the object associated with the method */
+    Class * obj_class_;
    private:
     /** Statements (if any) to perform in method */
     AST::Block* block_;

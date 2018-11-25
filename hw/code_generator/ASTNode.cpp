@@ -485,14 +485,19 @@ namespace AST {
                                                  CodeGen::Settings &settings, unsigned indent_lvl,
                                                  bool is_lhs) const {
     std::vector<std::string>* func_tmp_args = args_->generate_args(settings, indent_lvl);
-    std::ostringstream ss;
-    ss << "(" << get_node_type()->generated_object_type_name() << ")"
-       << object_name << "->" << GENERATED_CLASS_FIELD << "->" << ident_ << "(" << object_name;
 
-    Quack::Param::Container * params = obj_type->get_method(ident_)->params_;
+    Quack::Method * method = obj_type->get_method(ident_);
+
+    std::ostringstream ss;
+    ss << object_name << "->" << GENERATED_CLASS_FIELD << "->" << ident_ << "("
+        << "(" << method->obj_class_->generated_object_type_name() << ")" << object_name;
+
+    Quack::Param::Container * params = method->params_;
     assert(func_tmp_args->size() == params->count());
-    for (const auto &arg : *func_tmp_args)
-      ss << ", " << arg;
+    for (unsigned i = 0; i < params->count(); i ++) {
+      Quack::Class * param_type = (*params)[i]->type_;
+      ss << ", " << "(" << param_type->generated_object_type_name() << ")" << (*func_tmp_args)[i];
+    }
     ss << ")";
     delete func_tmp_args;
 

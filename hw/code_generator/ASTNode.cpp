@@ -520,7 +520,7 @@ namespace AST {
     // Check the method information
     if (opsym == METHOD_AND || opsym == METHOD_OR) {
       if (right_ == nullptr) {
-        msg = "Right child missing for for op " + opsym + "";
+        msg = "Right child missing for binary op " + opsym + "";
         throw TypeInferenceException("BinOp", msg);
       }
 

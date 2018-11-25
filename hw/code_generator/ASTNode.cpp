@@ -352,22 +352,23 @@ namespace AST {
 
   bool ObjectCall::perform_type_inference(TypeCheck::Settings &settings, Quack::Class *parent_type){
     bool success = true;
-    Quack::Class * next_class;
+    Quack::Class * obj_class;
 
     // Process the object. Could be either a "this", symbol, or expression
     if (auto obj = dynamic_cast<Ident *>(object_)) {
       if (obj->text_ == OBJECT_SELF)
-        next_class = settings.this_class_;
+        obj_class = settings.this_class_;
       else
-        next_class = settings.st_->get(obj->text_, false)->get_type();
+        obj_class = settings.st_->get(obj->text_, false)->get_type();
     } else {
       // Type infer the object then pass that information to
       success = object_->perform_type_inference(settings, nullptr);
-      next_class = object_->get_node_type();
+      obj_class = object_->get_node_type();
     }
+    object_->set_node_type(obj_class);
 
     // Infer the call then update the node type
-    success = success && next_->perform_type_inference(settings, next_class);
+    success = success && next_->perform_type_inference(settings, obj_class);
     if (type_ == nullptr)
       type_ = next_->get_node_type();
     else
@@ -383,11 +384,14 @@ namespace AST {
                                                     CodeGen::Settings &settings,
                                                     unsigned indent_lvl, bool is_lhs) const {
     // Use a dynamic cast to handle a method call, e.g. obj.<FuncName>(..)
-    if (auto func_call = dynamic_cast<FunctionCall*>(next_))
-      return func_call->generate_object_call(left_obj, settings, indent_lvl, is_lhs);
+    if (auto func_call = dynamic_cast<FunctionCall*>(next_)) {
+      return func_call->generate_object_call(object_->get_node_type(), left_obj,
+                                             settings, indent_lvl, is_lhs);
+    }
+
     // Use a dynamic cast to handle a field reference, e.g., obj.<FieldName>
     // Store the field value in a temporary variable
-    else if (auto ident = dynamic_cast<Ident*>(next_))
+    if (auto ident = dynamic_cast<Ident*>(next_))
       return generate_temp_var(left_obj + "->" + ident->text_, settings, indent_lvl, is_lhs);
 
     // THe code should never get here.  This indicates a logic error in the compiler
@@ -477,13 +481,16 @@ namespace AST {
     return generate_temp_var(ss.str(), settings, indent_lvl, is_lhs);
   }
 
-  std::string FunctionCall::generate_object_call(std::string object_name,
-                                                 CodeGen::Settings &settings,
-                                                 unsigned indent_lvl,
+  std::string FunctionCall::generate_object_call(Quack::Class * obj_type, std::string object_name,
+                                                 CodeGen::Settings &settings, unsigned indent_lvl,
                                                  bool is_lhs) const {
     std::vector<std::string>* func_tmp_args = args_->generate_args(settings, indent_lvl);
     std::ostringstream ss;
-    ss << object_name << "->" << GENERATED_CLASS_FIELD << "->" << ident_ << "(" << object_name;
+    ss << "(" << get_node_type()->generated_object_type_name() << ")"
+       << object_name << "->" << GENERATED_CLASS_FIELD << "->" << ident_ << "(" << object_name;
+
+    Quack::Param::Container * params = obj_type->get_method(ident_)->params_;
+    assert(func_tmp_args->size() == params->count());
     for (const auto &arg : *func_tmp_args)
       ss << ", " << arg;
     ss << ")";

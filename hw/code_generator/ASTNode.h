@@ -800,8 +800,9 @@ namespace AST {
      * @param indent_lvl Level of indentation
      * @return Variable where the function call will be stored
      */
-    std::string generate_object_call(std::string object_name, CodeGen::Settings &settings,
-                                     unsigned indent_lvl, bool is_lhs) const;
+    std::string generate_object_call(Quack::Class * obj_type, std::string object_name,
+                                     CodeGen::Settings &settings, unsigned indent_lvl,
+                                     bool is_lhs) const;
   };
 
 

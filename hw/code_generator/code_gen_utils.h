@@ -7,11 +7,15 @@
 
 #include <fstream>
 
+// Forward Declaration
+namespace Quack { class Class; }
+
 namespace CodeGen {
   struct Settings {
     std::ofstream & fout_;
+    Quack::Class * return_type_;
 
-    explicit Settings(std::ofstream& fout) : fout_(fout) {}
+    explicit Settings(std::ofstream& fout) : fout_(fout), return_type_(nullptr) {}
   };
 }
 

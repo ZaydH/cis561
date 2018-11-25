@@ -574,17 +574,7 @@ namespace AST {
      * @param indent_lvl Level of indentation
      */
     std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
-                              bool is_lhs) const override {
-      if (is_lhs)
-        std::runtime_error("Return cannot be on left hand side");
-
-      std::string temp_var_name = right_->generate_code(settings, indent_lvl, is_lhs);
-
-      PRINT_INDENT(indent_lvl);
-      settings.fout_ << "return " << temp_var_name << ";\n";
-
-      return NO_RETURN_VAR;
-    }
+                              bool is_lhs) const override;
     /**
      * Always returns true since this is a return statement.
      *

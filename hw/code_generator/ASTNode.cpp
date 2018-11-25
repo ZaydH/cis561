@@ -213,6 +213,21 @@ namespace AST {
     return true;
   }
 
+  std::string Return::generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
+                                    bool is_lhs) const {
+    if (is_lhs)
+      std::runtime_error("Return cannot be on left hand side");
+
+    std::string temp_var_name = right_->generate_code(settings, indent_lvl, is_lhs);
+
+    PRINT_INDENT(indent_lvl);
+    settings.fout_ << "return "
+                   << "(" << settings.return_type_->generated_object_type_name() << ")"
+                   << "(" << temp_var_name << ");\n";
+
+    return NO_RETURN_VAR;
+  }
+
   bool UniOp::perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) {
     right_->perform_type_inference(settings, nullptr);
     type_ = right_->get_node_type();

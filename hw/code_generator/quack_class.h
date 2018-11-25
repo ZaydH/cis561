@@ -650,6 +650,8 @@ namespace Quack {
      * @param settings Code generator settings
      */
     void generate_constructor(CodeGen::Settings settings) {
+      settings.return_type_ = this;
+
       settings.fout_ << "\n";
       generate_method_prototype(settings, constructor_, true);
       settings.fout_ << " {";
@@ -670,6 +672,8 @@ namespace Quack {
 
       settings.fout_ << "\n" << indent_str << "return " << OBJECT_SELF << ";";
       settings.fout_ << "\n}\n";
+
+      settings.return_type_ = nullptr;
     }
     /**
      * Generates the C code associated with all methods in the class.
@@ -679,6 +683,8 @@ namespace Quack {
     void generate_methods(CodeGen::Settings settings) {
       for (auto method_info : *methods_) {
         Method * method = method_info.second;
+
+        settings.return_type_ = method->return_type_;
 
         // Define function header
         settings.fout_ << "\n";
@@ -691,6 +697,7 @@ namespace Quack {
 
         settings.fout_ << "}\n";
       }
+      settings.return_type_ = nullptr;
     }
     /** Container used to store generated objects in the class */
     template <typename _S>

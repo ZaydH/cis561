@@ -528,7 +528,9 @@ namespace AST {
     std::string lhs_var = lhs_->generate_code(settings, indent_lvl, true);
 
     PRINT_INDENT(indent_lvl);
-    settings.fout_ << lhs_var << " = " << rhs_var << ";\n";
+    settings.fout_ << lhs_var << " = "
+                   << "(" << lhs_->get_node_type()->generated_object_type_name() << ")"
+                   << "(" << rhs_var << ");\n";
     return NO_RETURN_VAR;
   }
 
@@ -617,6 +619,8 @@ namespace AST {
       auto * var = new Ident(alt->type_names_[0].c_str());
       var->set_node_type(typecase_class);
       auto * typing = new Typing(var, "");
+      typing->set_node_type(expr_->get_node_type());
+
       auto * other_var = new Ident(typecase_var.c_str());
       Assn assn(typing, other_var);
       assn.generate_code(settings, indent_lvl+1, false);

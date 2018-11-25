@@ -781,8 +781,9 @@ namespace AST {
       std::cout << ")";
     }
     /**
-     * Generate code only gets called directly for constructors.  All other calls will be through
-     * and object call and will have a special implementation.
+     * This generate_code method only gets called directly for constructors.  All other calls
+     * will be through an ObjectCall object and will have a special implementation (see method
+     * generate_object_call);
      *
      * @param settings Code generation settings
      * @param indent_lvl Level of indentation

@@ -84,7 +84,7 @@ namespace AST {
      * Accessor for the type of the node.
      * @return Node type
      */
-    inline Quack::Class* get_node_type() { return type_; }
+    inline Quack::Class* get_node_type() const { return type_; }
 
     virtual std::string generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
                                       bool is_lhs) const = 0;
@@ -801,8 +801,7 @@ namespace AST {
      * @return Variable where the function call will be stored
      */
     std::string generate_object_call(std::string object_name, CodeGen::Settings &settings,
-                                     unsigned indent_lvl,
-                                     bool is_lhs) const;
+                                     unsigned indent_lvl, bool is_lhs) const;
   };
 
 

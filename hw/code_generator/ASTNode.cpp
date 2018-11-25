@@ -458,18 +458,18 @@ namespace AST {
   std::string FunctionCall::generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
                                           bool is_lhs) const {
     Quack::Class * q_class = Quack::Class::Container::singleton()->get(ident_);
+    Quack::Param::Container * params = q_class->get_constructor()->params_;
     assert(q_class);
 
     std::vector<std::string> * arg_vars = args_->generate_args(settings, indent_lvl);
 
     std::ostringstream ss;
     ss << q_class->generated_constructor_name() << "(";
-    bool first_arg = true;
-    for (const auto &arg : *arg_vars) {
-      if (!first_arg)
+    assert(arg_vars->size() == params->count());
+    for (unsigned i = 0; i < arg_vars->size(); i++) {
+      if (i != 0)
         ss << ", ";
-      first_arg = false;
-      ss << arg;
+      ss << "(" << (*params)[i]->type_->generated_object_type_name() << ")" << (*arg_vars)[i];
     }
     ss << ")";
     delete arg_vars;
@@ -483,7 +483,7 @@ namespace AST {
                                                  bool is_lhs) const {
     std::vector<std::string>* func_tmp_args = args_->generate_args(settings, indent_lvl);
     std::ostringstream ss;
-    ss  << object_name << "->" << GENERATED_CLASS_FIELD << "->" << ident_ << "(" << object_name;
+    ss << object_name << "->" << GENERATED_CLASS_FIELD << "->" << ident_ << "(" << object_name;
     for (const auto &arg : *func_tmp_args)
       ss << ", " << arg;
     ss << ")";

@@ -17,7 +17,7 @@ namespace CodeGen {
     Quack::Class * return_type_;
     Symbol::Table * st_;
 
-    explicit Settings(std::ofstream& fout) : fout_(fout), return_type_(nullptr) {}
+    explicit Settings(std::ofstream& fout) : fout_(fout), return_type_(nullptr), st_(nullptr) {}
   };
 }
 

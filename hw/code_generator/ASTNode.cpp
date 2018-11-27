@@ -18,7 +18,8 @@ namespace AST {
   unsigned long ASTNode::label_cnt_ = 0;
   unsigned long ASTNode::var_cnt_ = 0;
 
-  std::string ASTNode::generate_temp_var(const std::string &var_to_store, CodeGen::Settings settings,
+  std::string ASTNode::generate_temp_var(const std::string &var_to_store,
+                                         CodeGen::Settings settings,
                                          unsigned indent_lvl, bool is_lhs) const {
     std::string var_name = define_new_temp_var();
     PRINT_INDENT(indent_lvl);
@@ -104,7 +105,7 @@ namespace AST {
     return true;
   }
 
-  bool If::perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) {
+  bool If::perform_type_inference(TypeCheck::Settings &settings, Quack::Class *) {
 //    cond_->set_node_type(Quack::Class::Container::Bool());
     bool success = cond_->perform_type_inference(settings, nullptr);
     if (cond_->get_node_type() != Quack::Class::Container::Bool())
@@ -116,28 +117,27 @@ namespace AST {
     return success;
   }
 
-  bool IntLit::perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) {
+  bool IntLit::perform_type_inference(TypeCheck::Settings &settings, Quack::Class *) {
     set_node_type(Quack::Class::Container::Int());
     return true;
   }
 
-  bool BoolLit::perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) {
+  bool BoolLit::perform_type_inference(TypeCheck::Settings &settings, Quack::Class *) {
     set_node_type(Quack::Class::Container::Bool());
     return true;
   }
 
-  bool NothingLit::perform_type_inference(TypeCheck::Settings &settings,
-                                          Quack::Class * parent_type) {
+  bool NothingLit::perform_type_inference(TypeCheck::Settings &settings, Quack::Class *) {
     set_node_type(Quack::Class::Container::Nothing());
     return true;
   }
 
-  bool StrLit::perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) {
+  bool StrLit::perform_type_inference(TypeCheck::Settings &settings, Quack::Class *) {
     set_node_type(Quack::Class::Container::Str());
     return true;
   }
 
-  bool While::perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) {
+  bool While::perform_type_inference(TypeCheck::Settings &settings, Quack::Class *) {
     bool success = cond_->perform_type_inference(settings, nullptr);
     if (cond_->get_node_type() != Quack::Class::Container::Bool())
       throw TypeInferenceException("WhileCondType", "While conditional not of type Bool");
@@ -223,7 +223,7 @@ namespace AST {
   std::string Return::generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
                                     bool is_lhs) const {
     if (is_lhs)
-      std::runtime_error("Return cannot be on left hand side");
+      throw std::runtime_error("Return cannot be on left hand side");
 
     std::string temp_var_name = right_->generate_code(settings, indent_lvl, is_lhs);
 
@@ -235,7 +235,7 @@ namespace AST {
     return NO_RETURN_VAR;
   }
 
-  bool UniOp::perform_type_inference(TypeCheck::Settings &settings, Quack::Class * parent_type) {
+  bool UniOp::perform_type_inference(TypeCheck::Settings &settings, Quack::Class *) {
     right_->perform_type_inference(settings, nullptr);
     type_ = right_->get_node_type();
 
@@ -249,8 +249,7 @@ namespace AST {
     return true;
   }
 
-  std::string UniOp::generate_code(CodeGen::Settings &settings, unsigned indent_lvl,
-                                   bool is_lhs) const {
+  std::string UniOp::generate_code(CodeGen::Settings &settings, unsigned indent_lvl, bool) const {
     if (opsym != UNARY_OP_NEG)
       throw std::runtime_error("Only unary operation supported is \"" UNARY_OP_NEG "\"");
 
@@ -347,7 +346,7 @@ namespace AST {
   }
 
   bool ObjectCall::update_inferred_type(TypeCheck::Settings &settings, Quack::Class *inferred_type,
-                                        bool is_field) {
+                                        bool) {
     if (auto obj = dynamic_cast<Ident *>(object_)) {
       if (obj->text_ == OBJECT_SELF) {
         if (auto next = dynamic_cast<Ident *>(next_)) {
@@ -372,7 +371,7 @@ namespace AST {
     return true;
   }
 
-  bool ObjectCall::perform_type_inference(TypeCheck::Settings &settings, Quack::Class *parent_type){
+  bool ObjectCall::perform_type_inference(TypeCheck::Settings &settings, Quack::Class *){
     bool success = true;
     Quack::Class * obj_class;
 
@@ -543,7 +542,7 @@ namespace AST {
     return NO_RETURN_VAR;
   }
 
-  bool BoolOp::perform_type_inference(TypeCheck::Settings &settings, Quack::Class *parent_type) {
+  bool BoolOp::perform_type_inference(TypeCheck::Settings &settings, Quack::Class *) {
 
     bool success = left_->perform_type_inference(settings, nullptr);
 

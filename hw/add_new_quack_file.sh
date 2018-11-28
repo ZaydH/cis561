@@ -2,7 +2,7 @@
 
 FILE_ROOT=$1
 BIN=code_generator/bin/code_generator
-SAMPLES_DIR=samples
+SAMPLES_DIR=demo
 EXPECTED_DIR=$SAMPLES_DIR/expected
 TESTS_FILE=${SAMPLES_DIR}/all_tests.csv
 

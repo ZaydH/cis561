@@ -30,6 +30,7 @@ good_return_both_if.qk,PASS
 good_schroedinger2.qk,PASS
 good_short_circuit_outside_conditional.qk,PASS
 good_simple_classes_tree_good.qk,PASS
+good_simple_if_else.qk,PASS
 good_simple_inherited_method.qk,PASS
 good_simple_inheritingvariables_good.qk,PASS
 good_simple_int_math_and_bool.qk,PASS

@@ -21,6 +21,12 @@ To compile the generated output, you call:
 
 Observe that `builtins.c` is a dependency of the generated code.  `builtins.c` and `builtins.h` are included in this directory.  Calling `gcc` as above should yield a compiled binary named `a.out` (or whatever name you specify with the `-o`) option.  This file can simply be run via: `./a.out`.
 
+## Testbench
+
+All test cases are in the repo folder `hw/demo` and for the programs that are valid, the expected output is in the folder `hw/demo/expected`.  
+
+The full testbench suite was verified on my Mac (running Mojave) and on ix-dev.
+
 ## GitHub Repo
 
 The GitHub repository cited in the config file **is a private repository.** I have sent you a collaborator invitation so you can download and use it. 

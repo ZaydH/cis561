@@ -19,7 +19,7 @@ To compile the generated output, you call:
 
 `gcc <filename.c> builtins.c`
 
-Observe that `builtins.c` is a dependency of the generated code.  `builtins.c` and `builtins.h` are included in this directory.  Calling `gcc` as above should yield a compiled binary named `a.out` (or whatever name you specify with the `-o`) option.  This file can simply be run via: `./a.out`.
+Observe that `builtins.c` is a dependency of the generated code.  `builtins.c` and `builtins.h` are included in this directory.  Calling `gcc` as above should yield a compiled binary named `a.out` (or whatever name you specify with the `-o` option).  This file can simply be run via: `./a.out`.  
 
 ## Testbench
 

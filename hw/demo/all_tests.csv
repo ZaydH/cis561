@@ -33,6 +33,7 @@ good_simple_classes_tree_good.qk,PASS
 good_simple_if_and_short_circuit.qk,PASS
 good_simple_if_else.qk,PASS
 good_simple_inherited_method.qk,PASS
+good_simple_inherited_method_printing.qk,PASS
 good_simple_inheritingvariables_good.qk,PASS
 good_simple_int_math_and_bool.qk,PASS
 good_simple_method_return_good.qk,PASS

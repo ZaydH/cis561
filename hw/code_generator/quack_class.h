@@ -964,8 +964,8 @@ namespace Quack {
 
       add_binop_method(METHOD_EQUALITY, CLASS_BOOL, CLASS_BOOL);
 
-      add_binop_method(METHOD_OR, CLASS_BOOL, CLASS_BOOL);
-      add_binop_method(METHOD_AND, CLASS_BOOL, CLASS_BOOL);
+//      add_binop_method(METHOD_OR, CLASS_BOOL, CLASS_BOOL);
+//      add_binop_method(METHOD_AND, CLASS_BOOL, CLASS_BOOL);
     }
   };
 }

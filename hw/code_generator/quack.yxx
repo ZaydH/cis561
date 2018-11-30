@@ -100,11 +100,12 @@
 %left  '='
 %left  OR
 %left  AND
+// Out of place for C++ rules. THis is because of rule in quack grammar logical operators have lower precedence than comparison
+%precedence NOT NEG  // No direction since unary operator
 %left  EQUALS
 %left  ATLEAST ATMOST '>' '<'
 %left  '-' '+'
 %left  '*' '/'
-%precedence NOT NEG  // No direction since unary operator
 %left  '.'
 %%
 

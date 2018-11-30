@@ -419,7 +419,7 @@ namespace AST {
     throw std::runtime_error("Unexpected bottoming out of ObjectCall code generation");
   }
 
-  bool Typecase::perform_type_inference(TypeCheck::Settings &settings, Quack::Class *parent_type) {
+  bool Typecase::perform_type_inference(TypeCheck::Settings &settings, Quack::Class *) {
     // type case does not have a type
     type_ = Quack::Class::Container::Nothing();
     Quack::Class::Container * all_classes = Quack::Class::Container::singleton();

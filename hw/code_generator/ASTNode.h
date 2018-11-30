@@ -909,7 +909,8 @@ namespace AST {
     bool check_initialize_before_use(InitializedList &inits, InitializedList *all_inits,
                                      bool is_method) override {
       return left_->check_initialize_before_use(inits, all_inits, is_method)
-             && (right_ && right_->check_initialize_before_use(inits, all_inits, is_method));
+             && (opsym == UNARY_OP_NOT
+                 || (right_ && right_->check_initialize_before_use(inits, all_inits, is_method)));
     }
     /**
      * Helper function to get the method name that desugars the binary operator.

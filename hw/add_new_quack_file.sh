@@ -6,6 +6,11 @@ SAMPLES_DIR=demo
 EXPECTED_DIR=$SAMPLES_DIR/expected
 TESTS_FILE=${SAMPLES_DIR}/all_tests.csv
 
+if [[ $# -ne 1 ]] ; then
+    echo "Correct command \"add_new_quack_file.sh <GoodFileSuffix>\" where in directory \"${SAMPLES_DIR}\" there should be a file \"good_<GoodFileSuffix>.qk\""
+    exit 1
+fi
+
 echo "good_${FILE_ROOT}.qk,PASS" >> ${TESTS_FILE}
 git add ${SAMPLES_DIR}/good_${FILE_ROOT}.qk
 

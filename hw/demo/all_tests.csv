@@ -6,6 +6,7 @@ bad_break.qk,SCANNER
 bad_class.qk,PARSER
 bad_class_and_method_match2.qk,CLASS_HIERARCHY
 bad_class_params.qk,PARSER
+bad_contravariance.qk,CLASS_HIERARCHY
 bad_duplicate_class.qk,PARSER
 bad_escape.qk,SCANNER
 bad_init.qk,INIT_BEFORE_USE

@@ -125,7 +125,7 @@ namespace Quack {
       constructor_ = new Method(name, this->name_, params, constructor);
       constructor_->return_type_ = this;
 
-      for (auto method_info : *methods_) {
+      for (const auto &method_info : *methods_) {
         Quack::Method * method = method_info.second;
         method->obj_class_ = this;
 //        if (name_ == method->name_)
@@ -224,10 +224,11 @@ namespace Quack {
           if (!method_rtype->is_subtype(super_rtype))
             throw InheritedMethodReturnTypeException(q_class->name_, method->name_);
 
-          for (unsigned i = 0; i < method->params_->count(); i++) {
+          // Start loop at 1 since contravariance does not apply to the first parameter
+          for (unsigned i = 1; i < method->params_->count(); i++) {
             Quack::Class * meth_param_type = (*method->params_)[i]->type_;
             Quack::Class * super_param_type = (*super_method->params_)[i]->type_;
-            if (!meth_param_type->is_subtype(super_param_type)) {
+            if (!super_param_type->is_subtype(meth_param_type)) {
               throw InheritedMethodParamTypeException(q_class->name_, method->name_,
                                                       (*method->params_)[i]->name_);
             }
@@ -587,7 +588,7 @@ namespace Quack {
       generate_method_prototype(settings, constructor_, true);
       settings.fout_ << ";\n";
 
-      for (auto method : *methods_) {
+      for (const auto &method : *methods_) {
         generate_method_prototype(settings, method.second);
         settings.fout_ << ";\n";
       }
@@ -683,7 +684,7 @@ namespace Quack {
      * @param settings Code generator settings
      */
     void generate_methods(CodeGen::Settings settings) {
-      for (auto method_info : *methods_) {
+      for (const auto &method_info : *methods_) {
         Method * method = method_info.second;
 
         settings.return_type_ = method->return_type_;
@@ -802,7 +803,7 @@ namespace Quack {
 
       // Add remaining objects in this class
       unsigned long start_size = gen_vec->size();
-      for (auto obj_pair : *container) {
+      for (const auto &obj_pair : *container) {
         _T * obj = obj_pair.second;
         bool found = false;
         // "Override" the existing object in the vector
@@ -962,7 +963,7 @@ namespace Quack {
     BooleanClass() : PrimitiveClass(strdup(CLASS_BOOL)) {
       add_unary_op_method(METHOD_STR, CLASS_STR);
 
-      add_binop_method(METHOD_EQUALITY, CLASS_BOOL, CLASS_BOOL);
+      add_binop_method(METHOD_EQUALITY, CLASS_BOOL, CLASS_OBJ);
 
 //      add_binop_method(METHOD_OR, CLASS_BOOL, CLASS_BOOL);
 //      add_binop_method(METHOD_AND, CLASS_BOOL, CLASS_BOOL);

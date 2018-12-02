@@ -130,8 +130,8 @@ struct InheritedMethodParamTypeException : public ClassHierarchyException {
  private:
   static std::string build_error_msg(const std::string &class_name, const std::string &method_name,
                                      const std::string &param_name){
-    return "Class \"" + class_name + "\" has method \"" + method_name + "\" whose parameter "
-           + param_name + "does not match its super class parameter type.";
+    return "Class \"" + class_name + "\" has method \"" + method_name + "\" whose parameter \""
+           + param_name + "\" does not match its super class parameter type.";
   }
 };
 

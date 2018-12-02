@@ -224,8 +224,7 @@ namespace Quack {
           if (!method_rtype->is_subtype(super_rtype))
             throw InheritedMethodReturnTypeException(q_class->name_, method->name_);
 
-          // Start loop at 1 since contravariance does not apply to the first parameter
-          for (unsigned i = 1; i < method->params_->count(); i++) {
+          for (unsigned i = 0; i < method->params_->count(); i++) {
             Quack::Class * meth_param_type = (*method->params_)[i]->type_;
             Quack::Class * super_param_type = (*super_method->params_)[i]->type_;
             if (!super_param_type->is_subtype(meth_param_type)) {

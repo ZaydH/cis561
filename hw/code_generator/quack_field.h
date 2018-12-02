@@ -43,17 +43,21 @@ namespace Quack {
        * @return True if the implicit container is a superset.
        */
       bool is_super_set(Container *other) {
-        for (const auto field_info : *other) {
+        for (const auto &field_info : *other) {
           if (!exists(field_info.first))
             return false;
         }
         return true;
       }
     };
-
-    explicit Field(std::string name) : name_(std::move(name)), type_(nullptr) { }
+    /**
+     * Initialize a field stored as a member of a class.
+     * @param name Name of the field
+     */
+    explicit Field(std::string name) : name_(std::move(name)) { }
 
     std::string name_;
+    /** Type of the field object **/
     Class* type_ = nullptr;
   };
 }

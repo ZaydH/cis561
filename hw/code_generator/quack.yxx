@@ -100,7 +100,7 @@
 %left  '='
 %left  OR
 %left  AND
-// Out of place for C++ rules. THis is because of rule in quack grammar logical operators have lower precedence than comparison
+// Out of place for C++ rules. This is because of rule in quack grammar logical operators have lower precedence than comparison
 %precedence NOT NEG  // No direction since unary operator
 %left  EQUALS
 %left  ATLEAST ATMOST '>' '<'
@@ -117,7 +117,7 @@ program: classes block  { *root = new Quack::Program($1, $2); } ;
 
 /*
  * Classes are listed one after another.  They are stored in a singleton object
- * generally accessible for simplifed type checking.
+ * generally accessible for simplified type checking.
  */
 classes: classes q_class  { $1->add($2);
                             $$=$1;

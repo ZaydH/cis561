@@ -39,7 +39,7 @@ namespace Quack {
 
     Method(std::string name, const std::string &return_type,
            Param::Container* params, AST::Block* block)
-      : name_(std::move(name)), params_(params), symbol_table_(nullptr), init_list_(nullptr),
+      : name_(std::move(name)), params_(params),
         return_type_name_(return_type.empty()? CLASS_NOTHING : return_type), block_(block) { };
 
     ~Method() {
@@ -72,16 +72,16 @@ namespace Quack {
 
     Param::Container* params_;
 
-    Symbol::Table* symbol_table_;
+    Symbol::Table* symbol_table_ = nullptr;
 
-    InitializedList* init_list_;
+    InitializedList* init_list_ = nullptr;
     /** Name of the return type of the method (if any) */
     const std::string return_type_name_;
     /** Class of the object associated with the method */
-    Class * obj_class_;
+    Class * obj_class_ = nullptr;
    private:
     /** Statements (if any) to perform in method */
-    AST::Block* block_;
+    AST::Block* block_ = nullptr;
   };
 }
 

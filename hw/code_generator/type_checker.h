@@ -49,12 +49,12 @@ namespace Quack {
       }
     }
     void perform_return_all_paths_check() {
-      for (auto class_pair : *Quack::Class::Container::singleton()) {
+      for (const auto &class_pair : *Quack::Class::Container::singleton()) {
         Quack::Class * q_class = class_pair.second;
         if (!q_class->is_user_class())
           continue;
 
-        for (auto method_pair : *q_class->methods_) {
+        for (const auto &method_pair : *q_class->methods_) {
           Method * method = method_pair.second;
 
           bool return_on_all_paths = method->block_->contains_return_all_paths();
@@ -140,7 +140,7 @@ namespace Quack {
       auto all_inits = new InitializedList(init_list);
       q_class->constructor_->block_->check_initialize_before_use(init_list, all_inits, true);
 
-      for (auto init_var : all_inits->all_items()) {
+      for (const auto &init_var : all_inits->all_items()) {
         // Only consider the class fields when caring about initialized before use.
         if (!init_var.second)
           continue;
@@ -283,13 +283,13 @@ namespace Quack {
      * @return True if the super class field type check passes.
      */
     bool check_super_type_field_types() {
-      for (auto class_info : *Quack::Class::Container::singleton()) {
+      for (const auto &class_info : *Quack::Class::Container::singleton()) {
         Class * q_class = class_info.second;
         if (!q_class->is_user_class())
           continue;
 
         Class * super = q_class->super_;
-        for (auto field_info : *q_class->fields_) {
+        for (const auto &field_info : *q_class->fields_) {
           Field * field = field_info.second;
           // If super class does not have this object, move on
           if (!super->fields_->exists(field->name_))

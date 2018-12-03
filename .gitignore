@@ -309,6 +309,8 @@ TSWLatexianTemp*
 
 # expex forward references with \gathertags
 *-tags.tex
+# Gutentags file
+tags
 
 # standalone packages
 *.sta

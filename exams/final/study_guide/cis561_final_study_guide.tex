@@ -24,82 +24,82 @@
 
 
 \begin{document}
-  \twocolumn
-  
-  \begin{@twocolumnfalse}
-    \begin{center}
-      \LARGE \textbf{CIS561 Final Exam Review}
-    \end{center}
-  \end{@twocolumnfalse}
-  
-  \section{Introduction}
-  
-  \textbf{Compiler Stages}:
-  \begin{enumerate}
-    \item \textit{Lexer/scanner}: Read text and produce token stream. FSM-based.  Tools: (F)lex
-    \item Parser - Analyze grammatical structure.
-    \item Abstract syntax tree \& Symbol Table
-    \item Static semantics
-    \item Code generation
-  \end{enumerate}
+\twocolumn
 
-  \section{Lexical Analysis}
-  
-  \textbf{Finite State Machine}: Consumes one character on each move and announces a pattern when matched.
-  \begin{itemize}
-    \item Linear time
-    \item Possible States: (Non-)Accepting, Start
-  \end{itemize}
+\begin{@twocolumnfalse}
+  \begin{center}
+    \LARGE \textbf{CIS561 Final Exam Review}
+  \end{center}
+\end{@twocolumnfalse}
 
-  \textbf{Angelic Non-determinism}: Try all possible paths. If any ends in a final state, accept.
-  
-  \textbf{Limitations of Regular Expressions}: Not fully expressive for many regular languages.
-  \begin{enumerate}
-    \item \textit{Example}: Balanced parentheses
-    \item \textit{Intuition}: Regular expressions cannot count.
-  \end{enumerate}
+\section{Introduction}
 
-  \textbf{Representing an NFA as a DFA}: If the NFA has $k$~states, the equivalent DFA will have \textit{at most} $2^{k}$ states.
-  
-  
-  \textbf{Chomsky Hierarchy}: Orders languages from most to least expressive.
-  \begin{itemize}
-    \item \textbf{Type~0}: No restrictions
-    \item \textbf{Type~1}: Context sensitive
-    \item \textbf{Type~2}: Context free
-    \item \textbf{Type~3}: Right linear, i.e.,~regular
-  \end{itemize}
-  
-  \section{Parsing}
-  
-  \textbf{LL(*)} -- Left-to-right, leftmost derivation
-  \begin{itemize}
-    \item Example: ANTLR
-    \item Top-down parser
-    \item Rely on first and follow sets
-    \item Construct right skewed trees
-  \end{itemize}
-  \textbf{LL1}: Also known as recursive descent parser.
-  \textbf{Angelic Recursive Descent Parser}: Example shown in class that similar to an NFA, the angelic parser ``magically'' which production to select at any point in the input.
+\textbf{Compiler Stages}:
+\begin{enumerate}
+  \item \textit{Lexer/scanner}: Read text and produce token stream. FSM-based.  Tools: (F)lex
+  \item Parser - Analyze grammatical structure.
+  \item Abstract syntax tree \& Symbol Table
+  \item Static semantics
+  \item Code generation
+\end{enumerate}
 
-  \textbf{LR(*)}: Left-to-right, rightmost derivation
-  \begin{itemize}
-    \item Examples: Bison, Yacc, CUP 
-    \item Bottom-Up parser: Build leaves then parents
-    \item Construct left skewed trees
-  \end{itemize}
+\section{Lexical Analysis}
 
-  Two parser operators:
-  \begin{enumerate}
-    \item \textit{Peak}: Check the next character and report an error if it is invalid.
-    \item \textit{Match}: Consume next token if it is the same as the expected value or throw an error.
-  \end{enumerate}
+\textbf{Finite State Machine}: Consumes one character on each move and announces a pattern when matched.
+\begin{itemize}
+  \item Linear time
+  \item Possible States: (Non-)Accepting, Start
+\end{itemize}
 
-  \textbf{First Set}: Set of terminals that can appear at the beginning of a specific non-terminal. \textbf{Follow Set}: Set of possible terminals can that appear after a specific non-terminal.
-  
-  \textbf{Example Grammar with Precedence}:
-  
-  \texttt{% 
+\textbf{Angelic Non-determinism}: Try all possible paths. If any ends in a final state, accept.
+
+\textbf{Limitations of Regular Expressions}: Not fully expressive for many regular languages.
+\begin{enumerate}
+  \item \textit{Example}: Balanced parentheses
+  \item \textit{Intuition}: Regular expressions cannot count.
+\end{enumerate}
+
+\textbf{Representing an NFA as a DFA}: If the NFA has $k$~states, the equivalent DFA will have \textit{at most} $2^{k}$ states.
+
+
+\textbf{Chomsky Hierarchy}: Orders languages from most to least expressive.
+\begin{itemize}
+  \item \textbf{Type~0}: No restrictions
+  \item \textbf{Type~1}: Context sensitive
+  \item \textbf{Type~2}: Context free
+  \item \textbf{Type~3}: Right linear, i.e.,~regular
+\end{itemize}
+
+\section{Parsing}
+
+\textbf{LL(*)} -- Left-to-right, leftmost derivation
+\begin{itemize}
+  \item Example: ANTLR
+  \item Top-down parser
+  \item Rely on first and follow sets
+  \item Construct right skewed trees
+\end{itemize}
+\textbf{LL1}: Also known as recursive descent parser.
+\textbf{Angelic Recursive Descent Parser}: Example shown in class that similar to an NFA, the angelic parser ``magically'' which production to select at any point in the input.
+
+\textbf{LR(*)}: Left-to-right, rightmost derivation
+\begin{itemize}
+  \item Examples: Bison, Yacc, CUP
+  \item Bottom-Up parser: Build leaves then parents
+  \item Construct left skewed trees
+\end{itemize}
+
+Two parser operators:
+\begin{enumerate}
+  \item \textit{Peak}: Check the next character and report an error if it is invalid.
+  \item \textit{Match}: Consume next token if it is the same as the expected value or throw an error.
+\end{enumerate}
+
+\textbf{First Set}: Set of terminals that can appear at the beginning of a specific non-terminal. \textbf{Follow Set}: Set of possible terminals can that appear after a specific non-terminal.
+
+\textbf{Example Grammar with Precedence}:
+
+\texttt{%
   expr $\rightarrow$ expr '+' term\\
   \hbox{\hspace{30pt}}| expr '-' term\\
   \hbox{\hspace{30pt}}| term\\
@@ -111,163 +111,218 @@
   factor $\rightarrow$ '-' factor\\
   \hbox{\hspace{39pt}}| prim\\
   \\
-  prim $\rightarrow$ NUMBER}
-  
-  \subsection*{Bottom-Up Parser Operations}
-  
-  \textbf{Shift}: Move over a token
-  
-  \textbf{Reduce}: At end of rule, reduce to non-terminal then do a GoTo.
-  
-  \textbf{GoTo}: Move over non-terminal. \textit{Can never have a conflict}
-  
-  \textbf{Dotted Item}: Represents how far along we are in the production. \textbf{Kernel}: Set of productions yielded by applying the transition operation.
-  
-  \subsection*{Resolving Conflicts w/ Lookahead}
-  \textbf{Shift-Reduce}: Character after shift not in reduce lookahead.
-  
-  \textbf{Reduce/Reduce}: Intersection of all pairs reduce lookaheads empty.
-  
-  \section*{Languages}
-  
-  \noindent
-  \textbf{Regular Language}: Any language that can be represented via a DFA/NFA or that can be expressed via a regular expression.
-  \begin{itemize}
-    \item All finite languages are inherently regular.
-  \end{itemize}
+  prim $\rightarrow$ NUMBER
+}
+
+\subsection*{Bottom-Up Parser Operations}
+
+\textbf{Shift}: Move over a token
+
+\textbf{Reduce}: At end of rule, reduce to non-terminal then do a GoTo.
+
+\textbf{GoTo}: Move over non-terminal. \textit{Can never have a conflict}
+
+\textbf{Dotted Item}: Represents how far along we are in the production. \textbf{Kernel}: Set of productions yielded by applying the transition operation.
+
+\subsection*{Resolving Conflicts w/ Lookahead}
+\textbf{Shift-Reduce}: Character after shift not in reduce lookahead.
+
+\textbf{Reduce/Reduce}: Intersection of all pairs reduce lookaheads empty.
+
+\section*{Languages}
+
+\noindent
+\textbf{Regular Language}: Any language that can be represented via a DFA/NFA or that can be expressed via a regular expression.
+\begin{itemize}
+  \item All finite languages are inherently regular.
+\end{itemize}
 
 \section{AST -- Why}
 
-  \textbf{Benefits of Building an AST}
-  \begin{itemize}
-    \item 
-  \end{itemize}
-
-  \textbf{Type System Design Choices}
-  \begin{itemize}
-    \item \textit{Static versus Dynamic} -- Are variables typed or are values (respectively)?
-    \item \textit{Other Object Typing} -- Functions, collections, etc. 
+\textbf{Type System Design Choices}
+\begin{itemize}
+  \item \textit{Static versus Dynamic} -- Are variables typed or are objects/values (respectively)?
+  \item \textit{Other Object Typing} (What to Type?) -- Functions, collections, etc.
     \begin{itemize}
       \item What objects are \textbf{first class}, etc., can be passed to functions, returned from functions, stored in variables, etc.?
     \end{itemize}
-    \item \textit{Named versus Structural} -- Can types be anonymous? Can types with different names be identical?
-    \item \textit{Safety} -- What happens if the program has a bug?
+  \item \textit{Named versus Structural} -- Can types be anonymous? Can types with different names be identical?
+  \item \textit{Safety} -- What happens if the program has a bug?
     \begin{itemize}
       \item Java is safe with limited checks at runtimes (e.g., array accesses, null references)
       \item Python achieves safety by performing all checks at runtime
       \item C/C++ unsafe since the type system can be cheated. ``\textbf{Catch fire}'' semantics. By design.
     \end{itemize}
-    
-    \item \textit{Type Substitution} -- Inheritance, subtyping
-    \item \textit{Explicit or Implicit} -- Do variables need to have their type explicitly declared or can it be inferred?
-  \end{itemize}
 
-  \textbf{Method Boundary Typing}: Simplifies inference by allowing each method to be analyzed separately.
+  \item \textit{Type Substitution} -- Inheritance, subtyping
+  \item \textit{Explicit or Implicit} -- Do variables need to have their type explicitly declared or can it be inferred?
+\end{itemize}
 
-  \textbf{Dynamic Typing} -- Allows dynamic method dispatch.
-  \begin{itemize}
-    \item Supported in languages such as Java, C++, and Quack
-  \end{itemize}
+\textbf{Method Boundary Typing}: Simplifies inference by allowing each method to be analyzed separately.
 
-  \textbf{Quack Static Semantic Rules}:
-  \begin{itemize}
-    \item No shadowing or redefinition of classes/methods
-    \item Methods can be overridden but definition must be compatible.
-    \item Variable must be assigned before use.
-  \end{itemize}
+\textbf{Static Type} -- Provides an upper (least restrictive) bound on the type on the value of a variable. \textbf{Dynamic Dispatch} -- Allows dynamic method dispatch.
+\begin{itemize}
+  \item Supported in languages such as Java, C++, and Quack
+\end{itemize}
 
-  \textbf{Quack Class Hierarchy}
-  \begin{itemize}
-    \item Class hierarchy must be rooted at \texttt{Obj}
-  \end{itemize}
+\textbf{Quack Static Semantic Rules}:
+\begin{itemize}
+  \item No shadowing or redefinition of classes/methods
+  \item Methods can be overridden but definition must be compatible.
+  \item Variable must be assigned before use.
+\end{itemize}
 
-  \textbf{Variable Initialization}
-  \begin{itemize}
-    \item Variables must be initialized on all paths before they are used.
-  \end{itemize}
+\textbf{Quack Class Hierarchy}
+\begin{itemize}
+  \item Class hierarchy must be rooted at \texttt{Obj}
+  \item \emph{Tree}: Some languages (C/C++) allow type hierarchies that are a DAG\@.  Quack's is exclusively a tree due to single inheritance.
+\end{itemize}
+
+\textbf{Variable Initialization}
+\begin{itemize}
+  \item Variables must be initialized on all paths before they are used.
+\end{itemize}
+
+\textbf{Concrete Syntax Tree}: More direct representation of the original code.
+\begin{enumerate}
+  \item \emph{Example}: Removing parentheses from the AST.
+\end{enumerate}
+
+\textbf{Syntactic Sugar}: Syntax for readability or convenience, without adding any new expressiveness to the language.\\
+\textbf{Desugaring}: Removing syntactic sugar from the AST.
+
+\section{Incremental AST}
+
+\textbf{Rule of Thumb}: Associate non-terminals in the grammar with node-types in the AST.
+
+\textbf{Fewer Node Types}: Generally leads to a simpler AST with less duplication.  Too few node types is also problematic.
+
+
+
+\section{Type Inference}
+
+\textbf{Evaluating an Assignment}
+\begin{enumerate}
+  \item Evaluate the right hand side to a value
+  \item Evaluate the left hand side to a location
+  \item Store the evaluated value in the evaluated location
+\end{enumerate}
+
+\textbf{Evaluating a Call}
+\begin{enumerate}
+  \item Evaluate each actual argument
+  \item Find the method to call
+  \item Pass the arguments to the method
+\end{enumerate}
+
+\textbf{Finding the Method to Call}
+\begin{enumerate}
+  \item Evaluate the object expression
+  \item Look up the method
+\end{enumerate}
+
+\textbf{Flow insensitive}: All possible values a variable can take are lumped together without respect to the point in the program.  \emph{Over-rejecting}: Some valid flow sensitive programs are invalid under the flow insensitive paradigm.
+{\tt x = 32;}\\
+{\tt x = x + 7;}\\
+{\tt x = "Ostrich";}\\
+{\tt x = x + Feathers;}
+\section{Dispatch Introduction}
+
+\textbf{Members of a Class}
+\begin{itemize}
+  \item Reference to the superclass
+  \item List of Methods -- Must be in same order as super class.  New methods appended at end. Includes inherited and overridden methods.
+  \item Instance Variables (fields)
+\end{itemize}
+
+\textbf{Compatibility of Overridden Methods}
+\begin{itemize}
+  \item Parameters must be
+  \item Return type must be a subclass of the overridden method;s return
+\end{itemize}
 
 \section{Code Generation -- Branching}
 
-  \begin{algorithm}[h]
-    \caption{Generated Code for an If Statement}
-    \begin{algorithmic}[1]
-      \Procedure{If}{cond}
-      \State  $\Call{EvalBranch}{cond, TrueLabel, FalseLabel}$
-      \State  \fbox{\textbf{TrueLabel}:}
-      \Indent
-      \State    $\left[\left[~\textrm{TrueStatements}~\right]\right]$
-      \State    \fbox{\Goto{\tt EndIf}}
-      \EndIndent
-      \State  \fbox{\textbf{FalseLabel}:}
-      \Indent
-      \State    $\left[\left[~\textrm{FalseStatements}~\right]\right]$
-      \EndIndent
-      \State  \fbox{\textbf{EndIf}:}
-      \EndProcedure
-    \end{algorithmic}
-  \end{algorithm}
+\begin{algorithm}[h]
+  \caption{Generated Code for an If Statement}
+  \begin{algorithmic}[1]
+    \Procedure{If}{cond}
+    \State  $\Call{EvalBranch}{cond, TrueLabel, FalseLabel}$
+    \State  \fbox{\textbf{TrueLabel}:}
+    \Indent
+    \State    $\left[\left[~\textrm{TrueStatements}~\right]\right]$
+    \State    \fbox{\Goto{\tt EndIf}}
+    \EndIndent
+    \State  \fbox{\textbf{FalseLabel}:}
+    \Indent
+    \State    $\left[\left[~\textrm{FalseStatements}~\right]\right]$
+    \EndIndent
+    \State  \fbox{\textbf{EndIf}:}
+    \EndProcedure
+  \end{algorithmic}
+\end{algorithm}
 
-  \begin{algorithm}[H]
-    \caption{Generated Skeleton Code for Evaluating a Boolean}
-    \begin{algorithmic}[1]
-      \Procedure{EvalBranch}{cond, TrueLabel, FalseLabel}
-      \State $tmp \gets \Call{EvalValue}{cond}$
-      \If{$tmp$} goto TrueLabel \EndIf
-      \State \fbox{\Goto{FalseLabel}}
-      \EndProcedure
-    \end{algorithmic}
-  \end{algorithm}
+\begin{algorithm}[H]
+  \caption{Generated Skeleton Code for Evaluating a Boolean}
+  \begin{algorithmic}[1]
+    \Procedure{EvalBranch}{cond, TrueLabel, FalseLabel}
+    \State $tmp \gets \Call{EvalValue}{cond}$
+    \If{$tmp$} goto TrueLabel \EndIf
+    \State \fbox{\Goto{FalseLabel}}
+    \EndProcedure
+  \end{algorithmic}
+\end{algorithm}
 
-  \begin{algorithm}[H]
-    \caption{``AND'' Short Circuit Compare}
-    \begin{algorithmic}[1]
-      \Function{AndEvalBr}{\textproc{And}($l,r$), TrueLabel, FalseLabel}
-      \Indent
-      \State \Call{EvalBranch}{$l$, \blue{HalfWayLabel}, \blue{FalseLabel}}
-      \EndIndent
-      \State \fbox{\textbf{HalfWayLabel}:}
-      \Indent
-      \State \Call{EvalBranch}{$r$, TrueLabel, FalseLabel}
-      \EndIndent
-      \EndFunction
-    \end{algorithmic}
-  \end{algorithm}
+\begin{algorithm}[H]
+  \caption{``AND'' Short Circuit Compare}
+  \begin{algorithmic}[1]
+    \Function{AndEvalBr}{\textproc{And}($l,r$), TrueLabel, FalseLabel}
+    \Indent
+    \State \Call{EvalBranch}{$l$, \blue{HalfWayLabel}, \blue{FalseLabel}}
+    \EndIndent
+    \State \fbox{\textbf{HalfWayLabel}:}
+    \Indent
+    \State \Call{EvalBranch}{$r$, TrueLabel, FalseLabel}
+    \EndIndent
+    \EndFunction
+  \end{algorithmic}
+\end{algorithm}
 
-  \begin{algorithm}[H]
-    \caption{``Or'' Short Circuit Compare}
-    \begin{algorithmic}[1]
-      \Function{OrEvalBr}{\textproc{And}($l,r$), TrueLabel, FalseLabel}
-      \Indent
-      \State \Call{EvalBranch}{$l$, \red{TrueLabel}, \red{HalfWayLabel}}
-      \EndIndent
-      \State \fbox{\textbf{HalfWayLabel}}:
-      \Indent
-      \State \Call{EvalBranch}{$r$, TrueLabel, FalseLabel}
-      \EndIndent
-      \EndFunction
-    \end{algorithmic}
-  \end{algorithm}
+\begin{algorithm}[H]
+  \caption{``Or'' Short Circuit Compare}
+  \begin{algorithmic}[1]
+    \Function{OrEvalBr}{\textproc{And}($l,r$), TrueLabel, FalseLabel}
+    \Indent
+    \State \Call{EvalBranch}{$l$, \red{TrueLabel}, \red{HalfWayLabel}}
+    \EndIndent
+    \State \fbox{\textbf{HalfWayLabel}}:
+    \Indent
+    \State \Call{EvalBranch}{$r$, TrueLabel, FalseLabel}
+    \EndIndent
+    \EndFunction
+  \end{algorithmic}
+\end{algorithm}
 
-  \begin{algorithm}[H]
-    \caption{``Not'' Code Generation Compare}
-    \begin{algorithmic}[1]
-      \Function{NotEvalBranch}{$expr$), \blue{TrueLabel}, \blue{FalseLabel}}
-      \State \Call{EvalBranch}{$expr$, \red{FalseLabel}, \red{TrueLabel}}
-      \EndFunction
-    \end{algorithmic}
-  \end{algorithm}
-      
+\begin{algorithm}[H]
+  \caption{``Not'' Code Generation Compare}
+  \begin{algorithmic}[1]
+    \Function{NotEvalBranch}{$expr$), \blue{TrueLabel}, \blue{FalseLabel}}
+    \State \Call{EvalBranch}{$expr$, \red{FalseLabel}, \red{TrueLabel}}
+    \EndFunction
+  \end{algorithmic}
+\end{algorithm}
+
 \section{Code-Improving Transformations (``Optimizations'')}
-  
-  \noindent
-  Benefits of Optimization:
-  \begin{itemize}
-    \item Encourages good programing -- Reduce penalty of writing clean, well organized code
-    \item Simplifies code generation -- Reduce penalty of writing simple code, which reduces bugs
-    \item Make programs fast and small (least important)
-  \end{itemize}
 
-  \subsection*{Optimization Examples}
+\noindent
+Benefits of Optimization:
+\begin{itemize}
+  \item Encourages good programing -- Reduce penalty of writing clean, well organized code
+  \item Simplifies code generation -- Reduce penalty of writing simple code, which reduces bugs
+  \item Make programs fast and small (least important)
+\end{itemize}
+
+\subsection*{Optimization Examples}
 
   \newcommand{\longopt}[4]{\item \textbf{#1}: #2\vspace{-6pt}\begin{itemize} \item \textit{Example}: Replace \texttt{{#3}} with \texttt{{#4}} \end{itemize}}
   \newcommand{\shortopt}[2]{\item \textbf{#1}: #2}
@@ -283,133 +338,202 @@
     \shortopt{Loop Splitting}{Break large loop into multiple pieces}
     \shortopt{Peephole}{Pattern matching and replacement in a sliding window}
     \shortopt{Tiling}{Bring operations together to improve cache hit rate.}
-  \end{itemize}
+\end{itemize}
 
-  \textbf{Global Optimizations}: Spans blocks within the same procedure.
-  \begin{itemize}
-    \item  \textbf{Code Motion}:
+\textbf{Global Optimizations}: Spans blocks within the same procedure.
+\begin{itemize}
+  \item  \textbf{Code Motion}:
     \begin{itemize}
       \item \textit{Invariant Hoisting}: Move invariant code out of a loop and place before the loop.
       \item \textit{Looping Unrolling}: Duplicate loop code to reduce jumps.  Often exposes other optimizations
     \end{itemize}
-  \end{itemize}
+\end{itemize}
 
-  \textbf{Inter-procedural Optimizations}: Performed across methods and may even include whole program optimization
+\textbf{Inter-procedural Optimizations}: Performed across methods and may even include whole program optimization
+\begin{itemize}
+  \shortopt{Inlining}{Treats a function call as a macro and copy caller could into a procedure.}
   \begin{itemize}
-    \shortopt{Inlining}{Treats a function call as a macro and copy caller could into a procedure.}
-    \begin{itemize}
-      \item Eliminates call overhead, e.g. stack creation/deletion
-      \item May expose further optimization opportunities
-    \end{itemize} 
+    \item Eliminates call overhead, e.g.\ stack creation/deletion
+    \item May expose further optimization opportunities
   \end{itemize}
+\end{itemize}
+
+\section{From Abstract Machine to Concrete Machine}
+
+\textbf{Two Types of Generated Code}:
+\begin{enumerate}
+  \item \textbf{Intermediate Code}: Machine independent representation of a program.
+    \begin{enumerate}
+      \item \emph{Examples}: LLVM
+    \end{enumerate}
+  \item \textbf{Target Code}: Specific to the hardware of the target system. Includes information about the machine description.
+\end{enumerate}
+
+Items to Manage in Target Code
+\begin{enumerate}
+  \item \emph{Memory} -- This includes the code (program code), data (globals, statics), stack (activation record), and heap (dynamically allocated) segments.
+  \item Register allocation -- Generally untyped although some may be typed (e.g., floating point registers)
+\end{enumerate}
+
+\textbf{Calling Conventions}
+\begin{enumerate}
+  \item \emph{Before the Call}: Put parameters into registers or onto the stack. Save any volatile registers with important data.
+  \item \emph{On Entry}: Allocate a stack frame. Save return address and all stack pointer.
+  \item \emph{On Exit}: Place return value in register (or onto the stack). Restore stack frame. Jump to return address.
+\end{enumerate}
+
+\textbf{Addressing Data}
+\begin{enumerate}
+  \item \emph{Local Variables} -- Offset from stack pointer or frame pointer
+  \item \emph{Object Fields} -- Offset from object pointer. In C, each field is at some fixed offset from the beginning of the object.  Inherited fields must be at the same offset.
+  \item \emph{Non-local} -- Display or lexical chain.
+\end{enumerate}
 
 \section{Data Flow Analysis}
 
-  \textbf{Def-Use Pairs}: Directed edge from where a variable is defined to where it may be used
-  \begin{itemize}
-    \item $<WhereDefined,WhereUsed>$
-    \item Same use point may have multiple possible def points and vice versa.
-  \end{itemize}
+\textbf{Def-Use Pairs}: Directed edge from where a variable is defined to where it may be used
+\begin{itemize}
+  \item $<WhereDefined,WhereUsed>$
+  \item Same use point may have multiple possible def points and vice versa.
+  \item When building the control-flow diagram, place the condition check at the bottom of the block of instructions in the loop.
+\end{itemize}
 
-  \textbf{Live Variable}: A variable holding a value that may be needed in the future \\
-  \textbf{Live Range}: Portion of the program where a variable is \textit{live}.
+\textbf{Live Variable}: A variable holding a value that may be needed in the future
+\begin{enumerate}
+  \item The value of a \emph{live} vary \emph{might} still be used
+\end{enumerate}
 
-  \begin{itemize}
-    \item \textbf{Gen}: Points in data flow graph where fact becomes \green{true}
+\textbf{Live Range}: Portion of the program where a variable is \textit{live}.
+
+\begin{itemize}
+  \item \textbf{Gen}: Points in data flow graph where fact becomes \green{true}
     \begin{itemize}
       \item Analysis: Perform a ``gen'' at the \textbf{use} of a variable (i.e., \textit{become live})
     \end{itemize}
-    \item \textbf{Kill}: Points in data flow graph where fact becomes \red{false}
+  \item \textbf{Kill}: Points in data flow graph where fact becomes \red{false}
     \begin{itemize}
       \item Analysis: Perform a ``kill'' at the \textbf{def} (store) of a variable  (i.e., get clobbered)
     \end{itemize}
-  \end{itemize}
+\end{itemize}
 
-  \begin{equation}
-    Live(n) = \bigcup_{m\in succ(n)}Live(m) - Kill(m) + Gen(n)
-  \end{equation}
-  \begin{itemize}
-    \item ``-'' -- Represents set difference
-    \item ``+'' -- Represents set union
-  \end{itemize}
+\begin{equation}
+  Live(n) = \bigcup_{m\in succ(n)}Live(m) - Kill(m) + Gen(n)
+\end{equation}
+\begin{itemize}
+  \item ``-'' -- Represents set difference
+  \item ``+'' -- Represents set union
+\end{itemize}
 
-  \textbf{Bit Vector Analyses}
-  \begin{itemize}
-    \item \textbf{Forward Analysis}: Relies on ``\texttt{pred}''
-    \item \textbf{Backward Analysis}: Relies on ``\texttt{succ}''
-    \item \textbf{May Analysis}: Starts with $\emptyset$ and take union of values from neighbor
-    \item \textbf{Must Analysis}: Start with everything and take intersection of values from neighbors
-  \end{itemize}
+\textbf{Bit Vector Analyses}
+\begin{itemize}
+  \item \textbf{Forward Analysis}: Relies on ``\texttt{pred}''
+  \item \textbf{Backward Analysis}: Relies on ``\texttt{succ}''
+  \item \textbf{May Analysis}: Starts with $\emptyset$ and take union of values from neighbor
+  \item \textbf{Must Analysis}: Start with everything and take intersection of values from neighbors
+\end{itemize}
 
-  \textbf{Handling Circular Dependencies}
+\textbf{Handling Circular Dependencies}
+\begin{itemize}
+  \item \textbf{Chaotic Iteration}: Keep applying transfer function until no value at any node can change
+  \item \textbf{Work-List Iteration}: Keep a list of nodes to evaluate. If a value changes in some node, add its neighbors to the work list.
+  \item \textbf{Interval Analysis}: Designed for work with loops. An "inside out" approach.
+\end{itemize}
+
+\textbf{Common Data Flow Facts of Interest (Questions)}
+\begin{itemize}
+  \item Is variable $x$ live at this statement?
+  \item Is $expr_i$ available at this statement?
+  \item Is $expr_i$ invariable in the loop?
+  \item Is constant (copy) propagation possible?
+\end{itemize}
+
+\textbf{Transfer Function}: Applied on a code block (i.e., $in_m$) to determine its output state (i.e., $out_n$).
+
+\textbf{Auxiliary Variables}: Variables that do not exist in the program but are added to the analysis to simplify proof generation.
+
+\textbf{Abstract Interpretation}
+\begin{itemize}
+  \item Generally \textbf{flow sensitive}
+  \item $\bot$ (Bottom): Represents the empty set ($\emptyset$)
   \begin{itemize}
-    \item \textbf{Chaotic Iteration}: Keep applying transfer function until no value at any node can change
-    \item \textbf{Work-List Iteration}: Keep a list of nodes to evaluate. If a value changes in some node, add its neighbors to the work list.
-    \item \textbf{Interval Analysis}:
+    \item Treated as ``no value yet"
   \end{itemize}
-  
-  \textbf{Common Data Flow Facts of Interest (Questions)}
+  \item $\top$ (Top): Set of all values
   \begin{itemize}
-    \item Is variable $x$ live at this statement?
-    \item Is $expr_i$ available at this statement?
-    \item Is $expr_i$ invariable in the loop?
-    \item Can constant (copy) propagation possible?
+    \item Can be treated as "who knows?" or ``anything"
   \end{itemize}
+  \item Replace bit vectors with finite-height lattice of values
+\end{itemize}
+
+\textbf{Concrete Semantics $\rightarrow$ Collecting $\rightarrow$ Abstract Semantics}
+\begin{enumerate}
+  \item \textit{Concrete}: Actual execution semantics and holds actual values from the program execution with values like 42.
+  \item \textit{Collecting}: Variable holds a collection of every value it ever held.
+  \begin{enumerate}
+    \item Flow sensitive since the collection represents the variable held at each point in the program
+    \item \emph{Intuition}: Value table attached to edges in the control flow graph.
+  \end{enumerate}
+  \item \emph{Abstract Semantics} Symbolic representation of sets of values in the collecting semantics.
+  \begin{enumerate}
+    \begin \emph{Example}: Abstract value for the type checker are the types themselves.
+  \end{enumerate}
+\end{enumerate}
 
 \subsection{Abstract Interpretation}
 
 
 \section{Garbage Collection}
 
-  \textbf{Definitions}:
-  
-  \begin{itemize}
-    \item \textit{Object Space}: Area of the heap where declared objects are stored.
-  \end{itemize}
+\textbf{Definitions}:
 
-  \textbf{Mental Model} -- Rooted Graph
-  \begin{enumerate}
-    \item \textit{Vertices}: Objects on the stack and heap
-    \item \textit{Directed Edges}: Pointer from stack object to a heap object \textbf{or} from one heap object to another
-    \item \textit{Roots}: Objects on the stack or in registers
-    \item \textit{Garbage}: Any object on the heap that is \textbf{unreachable from a root}
-  \end{enumerate}
+\begin{itemize}
+  \item \textit{Object Space}: Area of the heap where declared objects are stored.
+\end{itemize}
 
-  \textbf{Motivations for Garbage Collection}
-  \begin{enumerate}
-    \item Programmers make mistakes and forget to free memory
-    \item Programmers write messier, less efficient code trying to avoid mistakes
-    \item Storage management can be complicated
-    \item Garbage collection can lead to cleaner, more modular code with fewer bugs
-  \end{enumerate}
+\textbf{Mental Model} -- Rooted Graph
+\begin{enumerate}
+  \item \textit{Vertices}: Objects on the stack and heap
+  \item \textit{Directed Edges}: Pointer from stack object to a heap object \textbf{or} from one heap object to another
+  \item \textit{Roots}: Objects on the stack or in registers
+  \item \textit{Garbage}: Any object on the heap that is \textbf{unreachable from a root}
+\end{enumerate}
+
+\textbf{Motivations for Garbage Collection}
+\begin{enumerate}
+  \item Programmers make mistakes and forget to free memory
+  \item Programmers write messier, less efficient code trying to avoid mistakes
+  \item Storage management can be complicated
+  \item Garbage collection can lead to cleaner, more modular code with fewer bugs
+\end{enumerate}
 
 \subsection*{Mark and Sweep}
-  \textit{Phase \#1}: \textbf{Mark} -- Recursively traverse (with a stack) from the roots marking any encountered object ``reachable''
-  
-  \textit{Phase \#2}: \textbf{Sweep} -- Sequentially sweep through object space reclaiming anything that is not marked.
-  
-  \textbf{Disadvantages:}
-  \begin{enumerate}
-    \item May lead to poor cache locality (i.e. fragmentation)
-    \item Requires \textit{stop the world} to perform collection
-  \end{enumerate}
-  
+\textit{Phase \#1}: \textbf{Mark} -- Recursively traverse (with a stack) from the roots marking any encountered object ``reachable''
+
+\textit{Phase \#2}: \textbf{Sweep} -- Sequentially sweep through object space reclaiming anything that is not marked.
+
+\textbf{Disadvantages:}
+\begin{enumerate}
+  \item May lead to poor cache locality (i.e.\ fragmentation)
+  \item Requires \textit{stop the world} to perform collection
+\end{enumerate}
+
 \subsection*{Other Ideas}
 
-  \textbf{Generational Collecting}: Multiple ``generations'' of objects depending on when the object was allocated. Transforms complexity from proportional to heap size to proportional to generation size. \textit{Intuition}: Most objects are discarded shortly after being used.
-  \begin{itemize}
-    \item Complex to implement, in particular if concurrent
-    \item May not be \textit{comprehensive}, i.e., may not successfully remove all (long-lived) garbage.
-  \end{itemize}
+\textbf{Generational Collecting}: Multiple ``generations'' of objects depending on when the object was allocated. Transforms complexity from proportional to heap size to proportional to generation size. \textit{Intuition}: Most objects are discarded shortly after being used.
+\begin{itemize}
+  \item Complex to implement, in particular if concurrent
+  \item May not be \textit{comprehensive}, i.e., may not successfully remove all (long-lived) garbage.
+\end{itemize}
 
-  \textbf{Reference Counting}: Store a counter with each object denoting the number of references to the object.  Delete the object when the reference count equals zero.
-  \begin{itemize}
-    \item Sensitive to circular structures, i.e., $A \rightarrow B$ and $A \leftarrow B$.
-    \item Adds overhead
-  \end{itemize}
+\textbf{Reference Counting}: Store a counter with each object denoting the number of references to the object.  Delete the object when the reference count equals zero.
+\begin{itemize}
+  \item Sensitive to \textbf{reference cycles}, i.e., $A \rightarrow B$ and $A \leftarrow B$.  Can be coupled with Mark-Sweep to handle reference cycles.
+  \item Potentially more responsive than other garbage collection schemes since memory can be freed as soon as it is no longer needed.
+  \item Adds overhead -- May be made incremental to reduce the overhead.
+\end{itemize}
 
-  \textbf{Concurrency}: Implement garbage collection in a separate thread to eliminate ``stop the world''
-  
-  \textbf{Tuning}: Different collection strategies may be superior depending on the language or language-type (e.g., functional)
+\textbf{Concurrency}: Implement garbage collection in a separate thread to eliminate ``stop the world''
+
+\textbf{Tuning}: Different collection strategies may be superior depending on the language or language-type (e.g., functional)
 
 \end{document}

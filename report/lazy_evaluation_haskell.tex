@@ -1,0 +1,40 @@
+\documentclass[11pt]{report}
+
+\usepackage{listings}
+
+\title{Lazy Evaluation in Haskell}
+\subtitle{CIS561 Graduate Report}
+\author{Zayd Hammoudeh}
+
+\begin{document}
+    A language's evaluation strategy consists of a set of rules that define how expressions are evaluated  Most programming languages, e.g., C/C++, Java, Python, ML~, JavaScript, generally employ \emph{strict} or \emph{eager evaluation}.  The strategy is fundamentally greedy; all parameters to a function must already be evaluated before the function can be executed.  The programmer can rely on this intuitive ordering of tasks since essentially expressions are evaluated in they are written.
+
+    Intuitively, this eager paradigm aligns with how work is performed in the real world.  A worker is told to do a job; the worker does what he is instructed. When that job is completed, the worker is assigned the next job and so forth. In this example, the worker is not thinking whether the work being performed ends up being useful.  His only concern is doing the work he is assigned.  Clearly, this can lead to waste.
+
+    Contrast this eager strategy with a lazy evaluator, which only performs an evaluation step when necessary.!\cite{Henderson:1976}. Perhaps the simplest form of lazy evaluation is a Boolean short circuit operator.  Take the case of {\tt AND}.  If the first operand is False, the value of the second operand is irrelevant, and its evaluation can be lazily skipped.
+
+    Consider the sample function shown in Figure~\ref{lst:Square}.  Depending on the value of parameter ``{\tt x}'', parameter ``{\tt y}'' is either needed once or not at all.  In either case, an eager evaluator copies the value (or reference) to ``{\tt y}'' onto the stack.
+
+    \begin{figure}
+        \begin{listings}[python]
+            def f(x, y):
+            if x == 1:
+            return 0
+            else:
+            return y * y
+        \end{listings}
+        \caption{Simple procedure that optionally returns the square of an input parameter}\label{lst:Square}
+    \end{figure}
+
+    In addition, since eager evaluators create objects as soon as the object is defined, they introduce challenges when the object size is initially unknowable.  For example, consider the mathematical concept of an infinite sequence of the form $i = 1, 2,\ldots$.
+
+    The first lazy evaluator, presented by Henderson and Morris,~\cite{Henderson:1976}, had two primary goals:
+    \begin{enumerate}
+        \item Perform an evaluation step only when necessary
+        \item Never perform the same step twice.
+    \end{enumerate}
+\noindent
+
+
+\end{document}
+

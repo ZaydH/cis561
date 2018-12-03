@@ -27,6 +27,7 @@ good_Pt.qk,PASS
 good_Pt2.qk,PASS
 good_add_return_none.qk,PASS
 good_adv_constructor_init.qk,PASS
+good_f18_final_pt_print.qk,PASS
 good_init_before_use.qk,PASS
 good_return_both_if.qk,PASS
 good_rgb.qk,PASS

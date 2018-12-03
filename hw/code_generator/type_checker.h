@@ -118,7 +118,7 @@ namespace Quack {
       // Verifies the main block (i.e., any statments not in a class method)
       InitializedList main_inits;
       auto * all_inits = new InitializedList();
-      prog->main_->block_->check_initialize_before_use(main_inits, nullptr, false);
+      prog->main_->block_->check_initialize_before_use(main_inits, all_inits, false);
 
       all_inits->var_union(main_inits);
       prog->main_->init_list_ = all_inits;

@@ -618,7 +618,9 @@ namespace AST {
 
       // Go To Next typecase check
       PRINT_INDENT(indent_lvl);
-      settings.fout_ << "if(!" << GENERATED_IS_SUBTYPE_FUNC << "(" << typecase_var << "->"
+      settings.fout_ << "if(!" << GENERATED_IS_SUBTYPE_FUNC << "("
+                     << "(" << Quack::Class::Container::Obj()->generated_clazz_type_name() << ")"
+                     << typecase_var << "->"
                      << GENERATED_CLASS_FIELD << ", "
                      << "(" << Quack::Class::Container::Obj()->generated_clazz_type_name() << ")"
                      << "(&" << typecase_class->generated_clazz_obj_struct_name() << ")"

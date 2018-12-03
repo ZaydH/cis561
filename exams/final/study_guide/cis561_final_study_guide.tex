@@ -78,6 +78,7 @@
   \item Top-down parser
   \item Rely on first and follow sets
   \item Construct right skewed trees
+  \item Productions are \textbf{\green{right}-recursive}, i.e.,~take the form ${A\rightarrow xA}$
 \end{itemize}
 \textbf{LL1}: Also known as recursive descent parser.
 \textbf{Angelic Recursive Descent Parser}: Example shown in class that similar to an NFA, the angelic parser ``magically'' which production to select at any point in the input.
@@ -87,6 +88,8 @@
   \item Examples: Bison, Yacc, CUP
   \item Bottom-Up parser: Build leaves then parents
   \item Construct left skewed trees
+  \item Productions are \textbf{\red{left}-recursive}, i.e.,~take the form ${A\rightarrow Ax}$
+  \item Primary steps are \emph{shift} and \emph{reduce} since its operation is modeled on a shift register/stack
 \end{itemize}
 
 Two parser operators:
@@ -340,6 +343,13 @@ Benefits of Optimization:
     \shortopt{Tiling}{Bring operations together to improve cache hit rate.}
 \end{itemize}
 
+\textbf{Dynamic Knowledge}:
+\begin{enumerate}
+  \item \emph{Previous Trend}: Make all optimization decisions at compile time.
+  \item \emph{Intuition}: Runtime overhead of gathering performance data made up for in the future runtime savings.
+  \item More common in dynamically typed languages
+\end{enumerate}
+
 \textbf{Global Optimizations}: Spans blocks within the same procedure.
 \begin{itemize}
   \item  \textbf{Code Motion}:
@@ -475,7 +485,7 @@ Items to Manage in Target Code
   \end{enumerate}
   \item \emph{Abstract Semantics} Symbolic representation of sets of values in the collecting semantics.
   \begin{enumerate}
-    \begin \emph{Example}: Abstract value for the type checker are the types themselves.
+    \item \emph{Example}: Abstract value for the type checker are the types themselves.
   \end{enumerate}
 \end{enumerate}
 

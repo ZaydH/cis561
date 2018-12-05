@@ -7,7 +7,12 @@
 \author{Zayd Hammoudeh}
 
 \begin{document}
-    A language's evaluation strategy consists of a set of rules that define how expressions are evaluated  Most programming languages, e.g., C/C++, Java, Python, JavaScript, etc., generally employ \emph{strict} or \emph{eager evaluation}.  The strategy is fundamentally greedy; all parameters to a function must already be evaluated before the function can be executed.~\cite{hoover:Notes}  The programmer can rely on this intuitive ordering of tasks since essentially expressions are evaluated in they are written.
+
+A language's evaluation semantics codify a set of rules that describe how expressions are evaluated.~\cite{hoover:Notes}  Non-functional programming languages almost exclusively follow \textit{strict}, also known as \textit{greedy} or \textit{eager}, semantic rules where expressions are evaluated immediately after being bound to a variable.  Therefore, the order of operations is implicitly defined by the structure of the code written by the programmer.
+
+In contrast, many modern functional programming languages utilize \textit{non-strict}, also known as lazy, semantics.  This style of evaluation has two basic goals:
+
+
 
     Intuitively, this eager paradigm aligns with how work is performed in the real world.  A worker is told to do a job; the worker does what he is instructed. When that job is completed, the worker is assigned the next job and so forth. In this example, the worker is not thinking whether the work being performed ends up being useful.  His only concern is doing the work he is assigned.  Clearly, this can lead to waste.
 

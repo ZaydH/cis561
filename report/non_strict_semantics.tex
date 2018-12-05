@@ -1,45 +1,60 @@
-\documentclass[11pt]{report}
+\documentclass[11pt]{article}
+
 
 \usepackage{listings}
-
-\title{Lazy Evaluation in Haskell}
-\subtitle{CIS561 Graduate Report}
-\author{Zayd Hammoudeh}
+\usepackage[margin=1in]{geometry}
 
 \begin{document}
 
-A language's evaluation semantics codify a set of rules that describe how expressions are evaluated.~\cite{hoover:Notes}  Non-functional programming languages almost exclusively follow \textit{strict}, also known as \textit{greedy} or \textit{eager}, semantic rules where expressions are evaluated immediately after being bound to a variable.  Therefore, the order of operations is implicitly defined by the structure of the code written by the programmer.
+\begin{center}
+  \textbf{\Large Optimizations for Non-Strict Semantics}\\\vspace{3pt}
+  {\large CIS561 Graduate Report}\\\vspace{3pt}
+  Zayd Hammoudeh
+\end{center}
 
-In contrast, many modern functional programming languages utilize \textit{non-strict}, also known as lazy, semantics.  This style of evaluation has two basic goals:
+A language's evaluation semantics codify a set of rules that describe how expressions are evaluated.~\cite{hoover:Notes}  Non-functional programming languages almost exclusively follow \textit{strict}, also known as ``\textit{greedy}'' or ``\textit{eager},'' semantic rules where expressions are evaluated immediately after being bound to a variable.  Therefore, the order of operations is implicitly defined by the structure of the code written by the programmer.
 
+In contrast, many modern functional programming languages utilize \textit{non-strict}, also known as ``lazy'' semantics. The basic intuition behind lazy evaluation is that an expression only gets evaluated at the time it is absolutely needed.
 
+This paper focuses on non-strict semantics, specifically their efficient implementation. The remainder of this document is divided into two primary sections. Section~\ref{sec:Background} reviews basic background on non-strict semantics.  This includes a brief introduction regarding the program analysis techniques that underpin lazy evaluation.  Section~\ref{sec:RepresentingDelayedComputation} contrasts three schemes for representing a delayed evaluation. Section~\ref{sec:Conclusions} contains brief concluding remarks.
 
-    Intuitively, this eager paradigm aligns with how work is performed in the real world.  A worker is told to do a job; the worker does what he is instructed. When that job is completed, the worker is assigned the next job and so forth. In this example, the worker is not thinking whether the work being performed ends up being useful.  His only concern is doing the work he is assigned.  Clearly, this can lead to waste.
+\section{Background}\label{sec:Background}
 
-    Contrast this eager strategy with a lazy evaluator, which only performs an evaluation step when necessary.!\cite{Henderson:1976}. Perhaps the simplest form of lazy evaluation is a Boolean short circuit operator.  Take the case of {\tt AND}.  If the first operand is False, the value of the second operand is irrelevant, and its evaluation can be lazily skipped.
+\subsection{Motivating Example}
 
-    Consider the sample function shown in Figure~\ref{lst:Square}.  Depending on the value of parameter ``{\tt x}'', parameter ``{\tt y}'' is either needed once or not at all.  In either case, an eager evaluator copies the value (or reference) to ``{\tt y}'' onto the stack.
+Consider the simple program in Figure~\ref{fig:LazyEvalExample}.  A function ``\texttt{f}'' takes as input three parameters ``\texttt{x}'', ``\texttt{y}'', and ``\texttt{z}''.  Observe that depending on the value of \texttt{x} either \texttt{y} or \texttt{z} will be used, but never both.~\cite{Henderson:1976}
 
-    \begin{figure}
-        \begin{listings}[python]
-            def f(x, y):
-            if x == 1:
-            return 0
-            else:
-            return y * y
-        \end{listings}
-        \caption{Simple procedure that optionally returns the square of an input parameter}\label{lst:Square}
-    \end{figure}
+\begin{figure}[h]
+  \centering
+  \begin{lstlisting}
+    f(x,y,z) = if (x == 0) then y else g(x, z)
+  \end{lstlisting}
+  \caption{Non-strict semantics motivating example}
+  \label{fig:LazyEvalExample}
+\end{figure}
 
-    In addition, since eager evaluators create objects as soon as the object is defined, they introduce challenges when the object size is initially unknowable.  For example, consider the mathematical concept of an infinite sequence of the form $i = 1, 2,\ldots$.
+In \textit{applicative-order semantics} semantics (more commonly known as \textit{call-by-value}), a function evaluates \textit{all} of its arguments before execution.  Therefore, \texttt{x}, \texttt{y}, and \texttt{z} all are evaluated before invoking \texttt{f} despite only at most two of them being required at once.
 
-    The first lazy evaluator, presented by Henderson and Morris,~\cite{Henderson:1976}, had two primary goals:
-    \begin{enumerate}
-        \item Perform an evaluation step only when necessary
-        \item Never perform the same step twice.
-    \end{enumerate}
-\noindent
+In lazy evaluation, an argument is evaluated at the exact moment its value is needed.  Under this paradigm, only argument \texttt{x} must necessarily be evaluated in a given invocation of~\texttt{f}. In the case that \texttt{x}, \texttt{y}'s value is still not explicitly required despite being returned.  Similarly, whether \texttt{z}'s evaluation can be further delayed will depend on function~\texttt{g}.
 
+\subsection{Thunks}\label{sec:Thunks}
+
+A \textit{thunk} is encapsulates a single delayed computation.
+
+\subsection{Path Analysis}\label{sec:PathAnalysis}
+
+\section{Representing Delayed Computations}\label{sec:RepresentingDelayedComputation}
+
+\subsection{Closure Mode ($CL$)}\label{sec:ClosureMode}
+
+\subsection{Cell Mode ($C$)}\label{sec:CellMode}
+
+\subsection{Optimized Cell Mode ($CO$)}\label{sec:OptCellMode}
+
+\section{Conclusions}\label{sec:Conclusions}
+
+\bibliographystyle{abbrv}
+\bibliography{references.bib}
 
 \end{document}
 

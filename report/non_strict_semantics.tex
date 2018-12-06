@@ -14,7 +14,7 @@
 
 A language's evaluation semantics codify a set of rules that describe how expressions are evaluated.~\cite{hoover:Notes}  Non-functional programming languages almost exclusively follow \textit{strict}, also known as ``\textit{greedy}'' or ``\textit{eager},'' semantic rules where expressions are evaluated immediately after being bound to a variable.  Therefore, the order of operations is implicitly defined by the structure of the code written by the programmer.
 
-In contrast, many modern functional programming languages utilize \textit{non-strict}, also known as ``lazy'' semantics. The basic intuition behind lazy evaluation is that an expression only gets evaluated at the time it is absolutely needed.
+In contrast, many modern functional programming languages utilize \textit{non-strict}, also known as ``\textit{lazy},'' semantics. The two most important properties underpinning non-strict evaluation is that an expression only gets evaluated at the time it is absolutely needed, and any expression is never evaluated more than once.~\cite{Henderson:1976}
 
 This paper focuses on non-strict semantics, specifically their efficient implementation. The remainder of this document is divided into two primary sections. Section~\ref{sec:Background} reviews basic background on non-strict semantics.  This includes a brief introduction regarding the program analysis techniques that underpin lazy evaluation.  Section~\ref{sec:RepresentingDelayedComputation} contrasts three schemes for representing a delayed evaluation. Section~\ref{sec:Conclusions} contains brief concluding remarks.
 
@@ -35,11 +35,16 @@ Consider the simple program in Figure~\ref{fig:LazyEvalExample}.  A function ``\
 
 In \textit{applicative-order semantics} semantics (more commonly known as \textit{call-by-value}), a function evaluates \textit{all} of its arguments before execution.  Therefore, \texttt{x}, \texttt{y}, and \texttt{z} all are evaluated before invoking \texttt{f} despite only at most two of them being required at once.
 
-In lazy evaluation, an argument is evaluated at the exact moment its value is needed.  Under this paradigm, only argument \texttt{x} must necessarily be evaluated in a given invocation of~\texttt{f}. In the case that \texttt{x}, \texttt{y}'s value is still not explicitly required despite being returned.  Similarly, whether \texttt{z}'s evaluation can be further delayed will depend on function~\texttt{g}.
+In lazy evaluation, an argument is evaluated at the exact moment its value is needed.  Under this paradigm, only argument \texttt{x} must necessarily be evaluated in a given invocation of~\texttt{f}. In the case that \texttt{x}, \texttt{y}'s value is still not explicitly required despite being returned.  Whether \texttt{z}'s evaluation can be further delayed depends on function~\texttt{g}.
 
 \subsection{Thunks}\label{sec:Thunks}
 
-A \textit{thunk} is encapsulates a single delayed computation.
+A \textit{thunk} is a run-time representation of a delayed expression evaluation.  Returning to the example in Figure~\ref{fig:LazyEvalExample}, variables \texttt{x}, \texttt{y}, and \texttt{z} are each a thunk.  Similarly, expression \texttt{g(x,z)} is a thunk that is partially composed form the values of other thunks.
+
+A program~$\mathcal{P}$ implementing non-strict semantics can be represented as a directed acyclic graph (DAG), $(V,E)$.  The set of vertices,~$V$, are all possible thunks.  A directed edge, ${u \rightarrow v \in E}$ where ${u,v\in V}$, if and only if thunk~$v$ \textit{may} need to be evaluated before thunk~$u$.
+
+Recall that one of the requirements of non-strict evaluation is that no expression is evaluated more than once. Therefore, $V$ contains no duplicate verticies.  Instead, if multiple thunks (e.g.,~$u$ and $v$) directly depend on the value another thunk~(e.g.,~$w$), then all edges corresponding to these dependencies (e.g.,~${u\rightarrow w}$ and ${v\rightarrow w}$ appear in $E$.
+
 
 \subsection{Path Analysis}\label{sec:PathAnalysis}
 

@@ -14,15 +14,11 @@ IF(APPLE)
   set(REFLEX_INCLUDE "/usr/local/include/reflex")
   set(REFLEX reflex)
 ELSE(APPLE)
-  set(BOOST_ROOT "/home/users/zayd/boost_1_68_0")
   set(REFLEX_LIB "/home/faculty/michal/classes/cis461/RE-flex/lib/libreflex.a")
   set(REFLEX_INCLUDE "/home/faculty/michal/classes/cis461/RE-flex/include")
   set(REFLEX "/home/faculty/michal/classes/cis461/RE-flex/bin/reflex")
   link_directories("/home/users/zayd/boost_1_68_0/stage/lib")
 ENDIF(APPLE)
-
-# ToDo verify Boost on ix-dev
-find_package(Boost REQUIRED COMPONENTS system filesystem )
 
 # Run re-Flex
 add_custom_command(
@@ -61,4 +57,4 @@ add_executable(${BIN_NAME}
                code_generator.h
                code_gen_utils.h)
 
-target_link_libraries(${BIN_NAME} ${REFLEX_LIB} ${Boost_LIBRARIES})
+target_link_libraries(${BIN_NAME} ${REFLEX_LIB})

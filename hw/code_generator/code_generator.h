@@ -10,7 +10,6 @@
 #include <sstream>
 #include <fstream>
 #include <stack>
-#include <boost/filesystem.hpp>
 
 #include "quack_program.h"
 #include "quack_class.h"
@@ -18,17 +17,29 @@
 #include "compiler_utils.h"
 #include "ASTNode.h"
 
-namespace filesys = boost::filesystem;
-
 namespace CodeGen {
   class Gen {
    public:
 
     Gen(Quack::Program * prog, const std::string &quack_filename) : prog_(prog) {
-      // Preserve path and filename for the exported quack
-      filesys::path path(quack_filename);
-      path.replace_extension(".c");
-      output_file_path_ = path.string();
+      #ifdef _WIN32
+        char file_sep = '\\';
+      #else
+        char file_sep = '/';
+      #endif
+      std::size_t per_loc = quack_filename.rfind('.');
+      std::size_t slash_loc = quack_filename.rfind(file_sep);
+
+      // Preserve path and filename for the generated code
+      if (per_loc==std::string::npos || (slash_loc != std::string::npos && per_loc < slash_loc)) {
+        output_file_path_ = quack_filename;
+      } else if (per_loc == 0 || (slash_loc != std::string::npos && per_loc == slash_loc + 1)) {
+        throw std::runtime_error("It appears you have only file extension and no file name");
+      } else {
+        output_file_path_ = quack_filename.substr(0, per_loc);
+      }
+      output_file_path_ += ".c";
+
       fout_.open(output_file_path_);
     }
 

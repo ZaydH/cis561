@@ -1,65 +1,160 @@
 \documentclass[11pt]{article}
 
+\usepackage[margin=1in]{geometry}
+\usepackage{enumitem}
+
+\newcommand{\Delay}{\texttt{DELAY}}
+\newcommand{\Force}{\texttt{FORCE}}
 
 \usepackage{listings}
-\usepackage[margin=1in]{geometry}
+\lstloadaspects{formats}   % Needed for proper formatting
+\lstset{%
+  basicstyle=\ttfamily
+}
 
 \begin{document}
 
 \begin{center}
-  \textbf{\Large Optimizations for Non-Strict Semantics}\\\vspace{3pt}
+  \textbf{\Large Implementing Non-Strict Semantics}\\\vspace{3pt}
   {\large CIS561 Graduate Report}\\\vspace{3pt}
   Zayd Hammoudeh
 \end{center}
 
-A language's evaluation semantics codify a set of rules that describe how expressions are evaluated.~\cite{hoover:Notes}  Non-functional programming languages almost exclusively follow \textit{strict}, also known as ``\textit{greedy}'' or ``\textit{eager},'' semantic rules where expressions are evaluated immediately after being bound to a variable.  Therefore, the order of operations is implicitly defined by the structure of the code written by the programmer.
+Evaluation semantics codify the set of rules that describe how a programming language evaluates expressions.~\cite{hoover:Notes}  Imperative programming languages almost exclusively follow \textit{strict}, also known as ``\textit{greedy}'' or ``\textit{eager},'' semantic rules where expressions are evaluated immediately after being bound to a variable.  Therefore, the order of operations is implicitly defined in the source code's structure.
 
-In contrast, many modern functional programming languages utilize \textit{non-strict}, also known as ``\textit{lazy},'' semantics. The two most important properties underpinning non-strict evaluation is that an expression only gets evaluated at the time it is absolutely needed, and any expression is never evaluated more than once.~\cite{Henderson:1976}
+In contrast, many modern functional programming languages utilize \textit{non-strict}, also known as ``\textit{lazy},'' semantics. Non-strict evaluators adhere to two primary principles:~\cite{Henderson:1976}
 
-This paper focuses on non-strict semantics, specifically their efficient implementation. The remainder of this document is divided into two primary sections. Section~\ref{sec:Background} reviews basic background on non-strict semantics.  This includes a brief introduction regarding the program analysis techniques that underpin lazy evaluation.  Section~\ref{sec:RepresentingDelayedComputation} contrasts three schemes for representing a delayed evaluation. Section~\ref{sec:Conclusions} contains brief concluding remarks.
+\begin{enumerate}
+  \item An expression only gets evaluated at the time its value is \textit{absolutely} needed
+  \item Any expression is evaluated at most once.
+\end{enumerate}
+
+This paper provides an introductory overview of the techniques used to implement non-strict semantics. Section~\ref{sec:Background} reviews basic background, introduces key terminology, and discusses the overhead associated with this semantic paradigm.  Section~\ref{sec:RepresentingDelayedComputation} describes two schemes commonly used to implement lazy evaluation.  The section also includes a short commentary on the practical considerations of purely non-strict semantics.  Section~\ref{sec:Conclusions} contains brief concluding remarks.
 
 \section{Background}\label{sec:Background}
 
-\subsection{Motivating Example}
+\subsection{Motivating Example}\label{sec:MotivatingExample}
 
-Consider the simple program in Figure~\ref{fig:LazyEvalExample}.  A function ``\texttt{f}'' takes as input three parameters ``\texttt{x}'', ``\texttt{y}'', and ``\texttt{z}''.  Observe that depending on the value of \texttt{x} either \texttt{y} or \texttt{z} will be used, but never both.~\cite{Henderson:1976}
+Consider the simple program in Figure~\ref{fig:LazyEvalExample}.  A function ``\texttt{f}'' takes as input three parameters ``\texttt{x}'', ``\texttt{y}'', and ``\texttt{z}''.  Observe that depending on the value of \texttt{x} either \texttt{y} or \texttt{z} is used, but never both.~\cite{Henderson:1976}
 
-\begin{figure}[h]
+\begin{figure}[ht]
   \centering
   \begin{lstlisting}
-    f(x,y,z) = if (x == 0) then y else g(x, z)
+    f(x,y,z) := if (x == 0)
+                then y
+                else (g(x, z))
   \end{lstlisting}
   \caption{Non-strict semantics motivating example}
   \label{fig:LazyEvalExample}
 \end{figure}
 
-In \textit{applicative-order semantics} semantics (more commonly known as \textit{call-by-value}), a function evaluates \textit{all} of its arguments before execution.  Therefore, \texttt{x}, \texttt{y}, and \texttt{z} all are evaluated before invoking \texttt{f} despite only at most two of them being required at once.
+In \textit{applicative-order semantics} (more commonly known as \textit{call-by-value}), a function evaluates \textit{all} of its arguments before execution.  Therefore, \texttt{x}, \texttt{y}, and \texttt{z} are all evaluated before invoking \texttt{f} despite only at most two of these parameters being required at once.
 
-In lazy evaluation, an argument is evaluated at the exact moment its value is needed.  Under this paradigm, only argument \texttt{x} must necessarily be evaluated in a given invocation of~\texttt{f}. In the case that \texttt{x}, \texttt{y}'s value is still not explicitly required despite being returned.  Whether \texttt{z}'s evaluation can be further delayed depends on function~\texttt{g}.
+In lazy evaluation, an expression is evaluated at the exact moment its \textit{value} is needed.  Under this paradigm, only argument \texttt{x} must necessarily be evaluated in a given invocation of~\texttt{f}. In the case where \texttt{x} equals~0, \texttt{y}'s value is still not yet explicitly needed despite being returned by \texttt{f}.  When \texttt{x} does not equal~0, the implementation of function \texttt{g} determines whether evaluation of variable~\texttt{z} can be further delayed. Thus, when using non-strict instead of strict evaluation for this example, at least one and potentially two evaluations are saved.
 
 \subsection{Thunks}\label{sec:Thunks}
 
-A \textit{thunk} is a run-time representation of a delayed expression evaluation.  Returning to the example in Figure~\ref{fig:LazyEvalExample}, variables \texttt{x}, \texttt{y}, and \texttt{z} are each a thunk.  Similarly, expression \texttt{g(x,z)} is a thunk that is partially composed form the values of other thunks.
+A \textit{thunk} is a run-time representation of a delayed expression evaluation.  Returning to the example in Figure~\ref{fig:LazyEvalExample}, variables \texttt{x}, \texttt{y}, and \texttt{z} are each a thunk.  Similarly, expression \texttt{g(x,z)} is a thunk that is composed of other thunks.
 
-A program~$\mathcal{P}$ implementing non-strict semantics can be represented as a directed acyclic graph (DAG), $(V,E)$.  The set of vertices,~$V$, are all possible thunks.  A directed edge, ${u \rightarrow v \in E}$ where ${u,v\in V}$, if and only if thunk~$v$ \textit{may} need to be evaluated before thunk~$u$.
+A program~$\mathcal{P}$ implementing non-strict semantics can be represented as a directed graph $(V,E)$.  The set of vertices,~$V$, is all thunks in $P$.  For all ${u,v\in V}$, directed edge, ${u \rightarrow v \in E}$, if and only if thunk~$v$ \textit{may} need to be evaluated before thunk~$u$.
 
-Recall that one of the requirements of non-strict evaluation is that no expression is evaluated more than once. Therefore, $V$ contains no duplicate verticies.  Instead, if multiple thunks (e.g.,~$u$ and $v$) directly depend on the value another thunk~(e.g.,~$w$), then all edges corresponding to these dependencies (e.g.,~${u\rightarrow w}$ and ${v\rightarrow w}$ appear in $E$.
+Recall that formal non-strict evaluation requires that no expression be evaluated more than once. Therefore, $V$ contains no duplicate vertices.  Instead, if multiple thunks (e.g.,~$u$ and~$v$) directly depend on the value of the same thunk~(e.g.,~$w$), then all edges corresponding to these dependencies (e.g.,~${u\rightarrow w}$ \textit{and} ${v\rightarrow w}$) are in $E$.
 
+\subsection{Overhead of Non-Strict Evaluation}\label{sec:Overhead}
 
-\subsection{Path Analysis}\label{sec:PathAnalysis}
+Section~\ref{sec:MotivatingExample} demonstrated the benefits of non-strict evaluation. However, there is no free lunch.  Lazy evaluation introduces both space and time overhead as described below.
 
-\section{Representing Delayed Computations}\label{sec:RepresentingDelayedComputation}
+\begin{enumerate}
+  \item Time complexity: Entails the time required to:
+  \begin{enumerate}
+    \item Create the thunk
+    \item \label{item:InvokeEvaluation} Invoke the (one) evaluation
+    \item Cache the computed value
+    \item Check whether a computed value already exists each time the thunk is used
+  \end{enumerate}
+
+  \item Space complexity: Added storage for:
+  \begin{enumerate}
+    \item Reference(s) (edges) to ``child'' (dependent) thunks
+    \item Cached value
+    \item State indicator flag(s) (e.g., has the thunk already been evaluated)
+  \end{enumerate}
+\end{enumerate}
+
+\noindent
+Note that all of the items above apply to each thunk individually so minimizing the cost on a per thunk basis is critical.  Also observe that most of the overhead is associated with the construction and traversal of the thunk graph described in the preceding section.
+
+\section{Implementing a Thunk}\label{sec:RepresentingDelayedComputation}
+
+A thunk's implementation relies on two primary constructs.  First, the \Delay\ construct ``boxes'' the expression into a thunk for possible future computation.  At zero or more points in the future, the second construct, \Force, is invoked.  The first time \Force\ is called on a given thunk, the corresponding expression is evaluated, the calculated value stored, and the stored value returned.  In all future invocations, the evaluation and storage steps are skipped.
+
+A simple implementations of delayed evaluation is shown in Figure~\ref{fig:LazyEvalExample}.  Function \Delay\ takes a single expression, \texttt{expr}, as input; the returned lambda function takes no parameters and simply evaluates \texttt{expr}. Function \Force\ executes this lambda function generated previously by \Delay.
+
+\begin{figure}[ht]
+  \begin{lstlisting}[]
+    DELAY(expr) := lambda () : expr
+
+    FORCE(expr) := (expr)
+  \end{lstlisting}
+  \caption{Basic parameterless procedure for \Delay\ and \Force}
+  \label{fig:impl:DelayForceBase}
+\end{figure}
+
+The scheme in Figure~\ref{fig:LazyEvalExample} effectively addresses most of the common causes of overhead discussed in Section~\ref{sec:Overhead}.  However, this implementation does not satisfy the key attribute of a lazy evaluator that an expression can be evaluated no more than once. The following subsections describe two modifications to this basic scheme to ensure compliance with non-strict semantic requirements.  These two \textit{modes} were first proposed by Bloss et~al.\ in~\cite{Bloss:1988}.
 
 \subsection{Closure Mode ($CL$)}\label{sec:ClosureMode}
 
+A \textit{closure} is a programming language concept first described by Landen~\cite{Landen:1964} in his seminal series of papers on the $\lambda$~calculus.  Closures are a technique that generate a higher-order function that encapsulates within the returned function one or more variables from the generating scope,
+
+Bloss et~al.'s closure mode is an extension of the \Delay\textbackslash\Force paradigm shown in Figure~\ref{fig:impl:DelayForceBase}.  The \Force\ method is unchanged. The updated \Delay\texttt{\_CL} method uses a closure as shown in Figure~\ref{fig:impl:ClosureDelay}.  The closure contains two local two variables, \texttt{done} and \texttt{val}.  As before, the updated \Delay\texttt{\_CL} method returns a parameterless lambda function. The first time this returned function is executed, the function calculates, caches, and returns the value of the expression.  In all subsequent invocations, the function returns the expression's cached value,~\texttt{val}.
+
+\begin{figure}[ht]
+  \begin{lstlisting}[]
+    DELAY_CL(expr) := (let (done = False)
+                           (val = nil)
+                       lambda () : if done
+                                   then val
+                                   else ((set val = (expr))
+                                         (set done = True)
+                                         val))
+  \end{lstlisting}
+  \caption{Modified \Delay\ function in Closure Mode}
+  \label{fig:impl:ClosureDelay}
+\end{figure}
+
+The primary disadvantage of closure mode is that it relies upon a procedure call.  Therefore, even if \texttt{expr} has already been found, the procedure invocation cost (item~\ref{item:InvokeEvaluation} in Section~\ref{sec:Overhead} is significant.  While some environments may support efficient procedure calls, the context switching cost is unavoidable and potentially prohibitive for large programs.
+
 \subsection{Cell Mode ($C$)}\label{sec:CellMode}
 
-\subsection{Optimized Cell Mode ($CO$)}\label{sec:OptCellMode}
+IncCell mode, a thunk is no longer a simple abstraction of a function.  Rather, a thunk is a two-element tuple.  The first element is a Boolean indicator for the status of the second element.  If the first element equals ``true,'' then the second element is a value.  Otherwise, the element is a lambda function as discussed previously.
+
+Figure~\ref{fig:impl:CellForceDelay} shows the modified \Delay\ and \Force\ methods used in cell mode.  \texttt{cons}, \texttt{car}, and \texttt{cdr} behave like their identically named equivalents in languages such as Scheme and Lisp.  In \Delay\texttt{\_C}, \texttt{cons} \underline{cons}tructs a two element list with the indicator as the head and the lambda function as the tail.  In \Force\texttt{\_C}, functions \texttt{car} and \texttt{cdr} take an input list and return the list's head and tail respectively.  Observe that cell mode's \Force\ achieves thunk value caching while also making at most one invocation to the parameterless lambda function.
+
+\begin{figure}[ht]
+  \begin{lstlisting}[]
+    DELAY_C(expr) := (cons False (lambda (): expr))
+    FORCE_C(lst) := if car lst
+                    then cdr lst
+                    else ((set cdr lst = (cdr lst))
+                          (set car lst = True)
+                          cdr lst)
+  \end{lstlisting}
+  \caption{\Delay\ and \Force\ functions in cell mode}
+  \label{fig:impl:CellForceDelay}
+\end{figure}
+
+\subsection{Practical Considerations}
+
+Bloss et~al.\ state that ``cell [mode] is generally more efficient than closure mode.''  In their compiler implementation for the Alfl~\cite{Alfl} language, Bloss et~al.\ use exclusively cell mode (or its variant which is beyond the scope of this paper).
+
+It must also be noted that not all expressions need to be treated as a thunk.  Consider again variable~\texttt{x} from Figure~\ref{fig:LazyEvalExample}.  Observe that the variable no situation exists where the value of \texttt{x} does not need to be evaluated to get the right answer.  These ``strict expressions'' which always need to evaluated can be determined using strictness analysis (a form of data flow analysis).  In their compiler, Bloss et~al.\ apply strict evaluation semantics to these strict expressions.  This strict/non-strict hybrid approach generally leads to improved runtime efficiency.
 
 \section{Conclusions}\label{sec:Conclusions}
 
+The primary reference used in this document~\cite{Bloss:1988} is almost thirty years old.  The argument may be made that the techniques described are too out of date to be useful.  However, the paper has a non-insignificant number of citations~(61), and continues to be regularly cited (as recently as~2017).  In addition, this document is intended as primer for the basic concepts and structures used in non-strict semantics. This work is not intended as a review of lazy evaluation's state of the art.
+
 \bibliographystyle{abbrv}
-\bibliography{references.bib}
+\bibliography{bib/references.bib}
 
 \end{document}
 

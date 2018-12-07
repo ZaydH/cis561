@@ -20,9 +20,9 @@
   Zayd Hammoudeh
 \end{center}
 
-Evaluation semantics codify the set of rules that describe how a programming language evaluates expressions.~\cite{hoover:Notes}  Imperative programming languages almost exclusively follow \textit{strict}, also known as ``\textit{greedy}'' or ``\textit{eager},'' semantic rules where expressions are evaluated immediately after being bound to a variable.  Therefore, the order of operations is implicitly defined in the source code's structure.
+Evaluation semantics codify the set of rules that describe how a programming language evaluates expressions.~\cite{hoover:Notes}  Imperative programming languages almost exclusively follow \textit{strict}, also known as ``\textit{greedy}'' or ``\textit{eager}'' semantic rules in which expressions are evaluated immediately after being bound to a variable.  Therefore, the order of operations is implicitly defined in the source code's structure.
 
-In contrast, many modern functional programming languages utilize \textit{non-strict}, also known as ``\textit{lazy},'' semantics. Non-strict evaluators adhere to two primary principles:~\cite{Henderson:1976}
+In contrast, many modern functional programming languages utilize \textit{non-strict}, also known as ``\textit{lazy}'' semantics. Non-strict evaluators adhere to two primary principles:~\cite{Henderson:1976}
 
 \begin{enumerate}
   \item An expression only gets evaluated at the time its value is \textit{absolutely} needed
@@ -56,7 +56,7 @@ In lazy evaluation, an expression is evaluated at the exact moment its \textit{v
 
 A \textit{thunk} is a run-time representation of a delayed expression evaluation.  Returning to the example in Figure~\ref{fig:LazyEvalExample}, variables \texttt{x}, \texttt{y}, and \texttt{z} are each a thunk.  Similarly, expression \texttt{g(x,z)} is a thunk that is composed of other thunks.
 
-A program~$\mathcal{P}$ implementing non-strict semantics can be represented as a directed graph $(V,E)$.  The set of vertices,~$V$, is all thunks in $P$.  For all ${u,v\in V}$, directed edge, ${u \rightarrow v \in E}$, if and only if thunk~$v$ \textit{may} need to be evaluated before thunk~$u$.
+A program,~$\mathcal{P}$, implementing non-strict semantics can be represented as a directed graph $(V,E)$.  The set of vertices,~$V$, is all thunks in $\mathcal{P}$.  For all ${u,v\in V}$, directed edge, ${u \rightarrow v \in E}$, if and only if thunk~$v$ \textit{may} need to be evaluated before thunk~$u$.
 
 Recall that formal non-strict evaluation requires that no expression be evaluated more than once. Therefore, $V$ contains no duplicate vertices.  Instead, if multiple thunks (e.g.,~$u$ and~$v$) directly depend on the value of the same thunk~(e.g.,~$w$), then all edges corresponding to these dependencies (e.g.,~${u\rightarrow w}$ \textit{and} ${v\rightarrow w}$) are in $E$.
 
@@ -104,9 +104,9 @@ The scheme in Figure~\ref{fig:LazyEvalExample} effectively addresses most of the
 
 \subsection{Closure Mode ($CL$)}\label{sec:ClosureMode}
 
-A \textit{closure} is a programming language concept first described by Landen~\cite{Landen:1964} in his seminal series of papers on the $\lambda$~calculus.  Closures are a technique that generate a higher-order function that encapsulates within the returned function one or more variables from the generating scope,
+A \textit{closure} is a programming language concept first described by Landen~\cite{Landen:1964} in his seminal series of papers on the $\lambda$~calculus.  Closures are a technique that generate a higher-order function that encapsulates within the returned function one or more variables from the generating scope.
 
-Bloss et~al.'s closure mode is an extension of the \Delay\textbackslash\Force paradigm shown in Figure~\ref{fig:impl:DelayForceBase}.  The \Force\ method is unchanged. The updated \Delay\texttt{\_CL} method uses a closure as shown in Figure~\ref{fig:impl:ClosureDelay}.  The closure contains two local two variables, \texttt{done} and \texttt{val}.  As before, the updated \Delay\texttt{\_CL} method returns a parameterless lambda function. The first time this returned function is executed, the function calculates, caches, and returns the value of the expression.  In all subsequent invocations, the function returns the expression's cached value,~\texttt{val}.
+Bloss et~al.'s closure mode is an extension of the \Delay\textbackslash\Force\ paradigm shown in Figure~\ref{fig:impl:DelayForceBase}.  The \Force\ method is unchanged. The updated \Delay\texttt{\_CL} method uses a closure as shown in Figure~\ref{fig:impl:ClosureDelay}.  The closure contains two local variables, \texttt{done} and \texttt{val}.  As before, the updated \Delay\texttt{\_CL} method returns a parameterless lambda function. The first time this returned function is executed, the function calculates, caches, and returns the value of the expression.  In all subsequent invocations, the function directly returns the expression's cached value,~\texttt{val}.
 
 \begin{figure}[ht]
   \begin{lstlisting}[]
@@ -122,13 +122,13 @@ Bloss et~al.'s closure mode is an extension of the \Delay\textbackslash\Force pa
   \label{fig:impl:ClosureDelay}
 \end{figure}
 
-The primary disadvantage of closure mode is that it relies upon a procedure call.  Therefore, even if \texttt{expr} has already been found, the procedure invocation cost (item~\ref{item:InvokeEvaluation} in Section~\ref{sec:Overhead} is significant.  While some environments may support efficient procedure calls, the context switching cost is unavoidable and potentially prohibitive for large programs.
+The primary disadvantage of closure mode is that it relies upon a procedure call.  Therefore, even if \texttt{expr} has already been found, the procedure invocation cost (item~\ref{item:InvokeEvaluation} in Section~\ref{sec:Overhead}) is paid.  While some environments may support efficient procedure calls, the context switching cost is unavoidable and potentially prohibitive for large programs.
 
 \subsection{Cell Mode ($C$)}\label{sec:CellMode}
 
-IncCell mode, a thunk is no longer a simple abstraction of a function.  Rather, a thunk is a two-element tuple.  The first element is a Boolean indicator for the status of the second element.  If the first element equals ``true,'' then the second element is a value.  Otherwise, the element is a lambda function as discussed previously.
+In cell mode, a thunk is no longer a simple abstraction of a function.  Rather, a thunk is a two-element tuple.  The first element is a Boolean indicator for the status of the second element.  If the first element equals ``true,'' then the second element is a value.  Otherwise, the second element is a lambda function as discussed previously.
 
-Figure~\ref{fig:impl:CellForceDelay} shows the modified \Delay\ and \Force\ methods used in cell mode.  \texttt{cons}, \texttt{car}, and \texttt{cdr} behave like their identically named equivalents in languages such as Scheme and Lisp.  In \Delay\texttt{\_C}, \texttt{cons} \underline{cons}tructs a two element list with the indicator as the head and the lambda function as the tail.  In \Force\texttt{\_C}, functions \texttt{car} and \texttt{cdr} take an input list and return the list's head and tail respectively.  Observe that cell mode's \Force\ achieves thunk value caching while also making at most one invocation to the parameterless lambda function.
+Figure~\ref{fig:impl:CellForceDelay} shows the modified \Delay\ and \Force\ methods used in cell mode.  \texttt{cons}, \texttt{car}, and \texttt{cdr} behave like their identically named equivalents in languages such as Scheme and Lisp.  In \Delay\texttt{\_C}, function \texttt{cons} \underline{cons}tructs a two element list with the Boolean indicator (\texttt{False}) as the head and the lambda function as the tail.  In \Force\texttt{\_C}, functions \texttt{car} and \texttt{cdr} take an input list and return the list's head and tail respectively.  Observe that cell mode's \Force\ achieves thunk value caching while also making at most one invocation to the parameterless lambda function.
 
 \begin{figure}[ht]
   \begin{lstlisting}[]
@@ -147,11 +147,11 @@ Figure~\ref{fig:impl:CellForceDelay} shows the modified \Delay\ and \Force\ meth
 
 Bloss et~al.\ state that ``cell [mode] is generally more efficient than closure mode.''  In their compiler implementation for the Alfl~\cite{Alfl} language, Bloss et~al.\ use exclusively cell mode (or its variant which is beyond the scope of this paper).
 
-It must also be noted that not all expressions need to be treated as a thunk.  Consider again variable~\texttt{x} from Figure~\ref{fig:LazyEvalExample}.  Observe that the variable no situation exists where the value of \texttt{x} does not need to be evaluated to get the right answer.  These ``strict expressions'' which always need to evaluated can be determined using strictness analysis (a form of data flow analysis).  In their compiler, Bloss et~al.\ apply strict evaluation semantics to these strict expressions.  This strict/non-strict hybrid approach generally leads to improved runtime efficiency.
+It must also be noted that not all expressions need to be treated as a thunk.  Consider again variable~\texttt{x} from Figure~\ref{fig:LazyEvalExample}.  No situation exists where the function \texttt{f} is called and the value of \texttt{x} is not needed.  Such ``strict expressions'' which always need to be evaluated can be determined using strictness analysis (a form of data-flow analysis).  In their compiler, Bloss et~al.\ apply strict evaluation semantics to these strict expressions.  This strict/non-strict hybrid approach generally leads to improved runtime efficiency.
 
 \section{Conclusions}\label{sec:Conclusions}
 
-The primary reference used in this document~\cite{Bloss:1988} is almost thirty years old.  The argument may be made that the techniques described are too out of date to be useful.  However, the paper has a non-insignificant number of citations~(61), and continues to be regularly cited (as recently as~2017).  In addition, this document is intended as primer for the basic concepts and structures used in non-strict semantics. This work is not intended as a review of lazy evaluation's state of the art.
+The primary reference used in this document~\cite{Bloss:1988} is almost thirty years old.  The argument may be made that the techniques described here are too out of date to be useful.  However, the paper has a non-insignificant number of citations~(61), and continues to be regularly cited (as recently as~2017).  In addition, this document is intended as primer for the basic concepts and structures used in non-strict semantics. This work is not intended as a review of lazy evaluation's state of the art.
 
 \bibliographystyle{abbrv}
 \bibliography{bib/references.bib}

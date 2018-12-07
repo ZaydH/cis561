@@ -574,3 +574,6 @@ TSWLatexianTemp*
 
 # standalone packages
 *.sta
+
+# Do not save the built PDFs
+*.pdf

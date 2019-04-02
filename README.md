@@ -1,5 +1,5 @@
 # cis561 -- Introduction to Compilers
-**Instructor**: [Michal Young](http://ix.cs.uoregon.edu/~michal)
+**Instructor**: [Michal Young](http://ix.cs.uoregon.edu/~michal)  
 **Term**: Fall 2018
 
 ## Repository Contents
